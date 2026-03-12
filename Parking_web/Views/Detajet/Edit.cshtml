@@ -1,0 +1,47 @@
+﻿@model Parking_web.Models.DTO.DetajetUpdateDto
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            @if (TempData["error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-warning text-white py-3">
+                    <h5 class="mb-0 fw-bold">Përditëso Detajet e Tarifës</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        @* <input type="hidden" asp-for="DetajetId" /> *@
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FromHour" class="form-label fw-semibold">Nga Ora</label>
+                                <input asp-for="FromHour" type="number" class="form-control" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ToHour" class="form-label fw-semibold">Deri Ora</label>
+                                <input asp-for="ToHour" type="number" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Cmimi" class="form-label fw-semibold">Çmimi (€)</label>
+                            <input asp-for="Cmimi" type="number" step="0.01" class="form-control" />
+                        </div>
+                        @* <div class="mb-4">
+                            <label asp-for="CilsimetiId" class="form-label fw-semibold">ID e Cilësimit</label>
+                            <input asp-for="CilsimetiId" type="number" class="form-control" />
+                        </div> *@
+                        <div class="d-flex gap-2 justify-content-end border-top pt-3">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 rounded-pill">Kthehu</a>
+                            <button type="submit" class="btn btn-warning text-white px-4 rounded-pill fw-bold">Ruaj Ndryshimet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

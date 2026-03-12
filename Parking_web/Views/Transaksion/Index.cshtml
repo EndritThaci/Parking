@@ -1,0 +1,176 @@
+﻿@model IEnumerable<Parking_web.Models.DTO.TransaksionRead>
+
+<div class="container-fluid px-0">
+    @{
+        var totaliGjithsej = Model?.Where(t => t.Cmimi.HasValue).Sum(t => t.Cmimi.Value) ?? 0;
+
+        var totaliMuaji = Model?.Where(t => t.Cmimi.HasValue &&
+        t.KohaHyrjes.Month == DateTime.Now.Month &&
+        t.KohaHyrjes.Year == DateTime.Now.Year)
+        .Sum(t => t.Cmimi.Value) ?? 0;
+
+        var totaliViti = Model?.Where(t => t.Cmimi.HasValue &&
+        t.KohaHyrjes.Year == DateTime.Now.Year)
+        .Sum(t => t.Cmimi.Value) ?? 0;
+
+        var njesite = Model?.Select(t => t.Cilsimi?.NjesiOrg?.Emri).Where(n => n != null).Distinct().OrderBy(n => n).ToList();
+    }
+
+    
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-black text-white pt-4 px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h4 class="fw-bold mb-0">Historia e Transaksioneve</h4>
+                    <small class="opacity-75">Regjistri i hyrjeve dhe daljeve</small>
+                </div>
+                <div style="min-width: 250px;">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-filter text-dark"></i></span>
+                        <select id="filterNjesia" class="form-select border-start-0 fw-bold text-dark">
+                            <option value="">Të gjitha Njësitë</option>
+                            @if (njesite != null)
+                            {
+                                foreach (var njesi in njesite)
+                                {
+                                    <option value="@njesi">@njesi</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 w-100" id="transaksionetTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Vend Parkimi</th>
+                            <th>Perdoruesi</th>
+                            <th>Hyrja</th>
+                            <th>Dalja</th>
+                            <th>Statusi</th>
+                            <th>Shërbimet</th>
+                            <th class="text-end pe-4">Pagesa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null)
+                        {
+                            foreach (var t in Model.OrderByDescending(x => x.KohaHyrjes))
+                            {
+                                <tr class="transaksion-row"
+                                    data-njesia="@t.Cilsimi?.NjesiOrg?.Emri"
+                                    data-cmimi="@(t.Cmimi ?? 0)"
+                                    data-muaji="@t.KohaHyrjes.Month"
+                                    data-viti="@t.KohaHyrjes.Year">
+                                    <td class="ps-4">
+                                        <span class="fw-bold text-dark">@t.Vendi?.VendiEmri, @t.Cilsimi?.NjesiOrg?.Emri</span>
+                                    </td>
+                                    <td>@t.Useri?.Emri @t.Useri?.Mbiemri</td>
+                                    <td>@t.KohaHyrjes.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@(t.KohaDaljes.HasValue? t.KohaDaljes.Value.ToString("dd/MM/yyyy HH:mm") : "--:--")</td>
+                                    <td>
+                                        <span class="badge @(t.Statusi?.ToLower() == "completed" ? "bg-primary-subtle text-primary" : "bg-warning-subtle text-secondary") rounded-pill px-3">
+                                            @t.Statusi
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (t.Sherbimi != null)
+                                        {
+                                            foreach (var s in t.Sherbimi)
+                                            {
+                                                <span class="badge bg-light text-dark border fw-normal">@s.Emri</span>
+                                            }
+                                        }
+                                    </td>
+                                    @if (t.Cmimi.HasValue && t.Cmimi > 0)
+                                    {
+                                        <td class="text-end pe-4 fw-bold text-primary">
+                                            @(t.Cmimi.Value.ToString("N2") + " €")
+                                        </td>                    
+                                    }
+                                    else
+                                    {
+                                        <td class="text-end pe-4 text-dark">
+                                            Në proces
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 mb-4 mt-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-black text-white">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali Për këtë Muaj</h6>
+                    <h2 class="fw-bold mb-0"><span id="summaryMuaji">@totaliMuaji.ToString("N2")</span> €</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-black text-white">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali Për këtë Vit</h6>
+                    <h2 class="fw-bold mb-0"><span id="summaryViti">@totaliViti.ToString("N2")</span> €</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-black text-white">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Total Gjithsej</h6>
+                    <h2 class="fw-bold mb-0"><span id="summaryGjithsej">@totaliGjithsej.ToString("N2")</span> €</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('filterNjesia').addEventListener('change', function() {
+            const selectedNjesia = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.transaksion-row');
+            const now = new Date();
+            const currentMonth = now.getMonth() + 1;
+            const currentYear = now.getFullYear();
+
+            let totalGjithsej = 0;
+            let totalMuaji = 0;
+            let totalViti = 0;
+
+            rows.forEach(row => {
+                const njesiaData = row.getAttribute('data-njesia').toLowerCase();
+                const cmimi = parseFloat(row.getAttribute('data-cmimi')) || 0;
+                const rreshtMuaji = parseInt(row.getAttribute('data-muaji'));
+                const rreshtViti = parseInt(row.getAttribute('data-viti'));
+
+                if (selectedNjesia === "" || njesiaData === selectedNjesia) {
+                    row.style.display = "";
+
+                    totalGjithsej += cmimi;
+                    if (rreshtViti === currentYear) {
+                        totalViti += cmimi;
+                        if (rreshtMuaji === currentMonth) {
+                            totalMuaji += cmimi;
+                        }
+                    }
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            document.getElementById('summaryGjithsej').innerText = totalGjithsej.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('summaryMuaji').innerText = totalMuaji.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('summaryViti').innerText = totalViti.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        });
+    </script>
+}

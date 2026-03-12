@@ -1,0 +1,57 @@
+﻿@model Parking_web.Models.DTO.SherbimiCreateDTO
+
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            @if (TempData["error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <span class="fw-semibold h4 pt-1">Krijo Shërbim të Ri</span>
+                </div>
+
+                <div class="card-body">
+                    <form method="post">
+
+                        <div class="mb-3">
+                            <label asp-for="Emri" class="form-label">Emri i Shërbimit</label>
+                            <input asp-for="Emri" class="form-control" placeholder="Shëno emrin e shërbimit" />
+                            <span asp-validation-for="Emri" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Cmimi" class="form-label">Çmimi (€)</label>
+                            <input asp-for="Cmimi" type="number" step="0.10" class="form-control" placeholder="0.00" />
+                            <span asp-validation-for="Cmimi" class="text-danger small"></span>
+                        </div>
+
+                      @*   <div class="mb-3">
+                            <label asp-for="BiznesId" class="form-label">ID e Biznesit</label>
+                            <input asp-for="BiznesId" type="number" class="form-control" />
+                            <span asp-validation-for="BiznesId" class="text-danger small"></span>
+                        </div> *@
+
+                        <div class="d-flex gap-2 justify-content-end border-top pt-3">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Anulo</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                Ruaj Shërbimin
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

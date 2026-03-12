@@ -1,0 +1,440 @@
+﻿@using Parking_web.Models.DTO
+@model IEnumerable<NjesiReadDto>
+
+<style>
+    /* Stilimi i butonave */
+    .btn-edit-custom {
+        color: #ffc107;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+        .btn-edit-custom:hover {
+            border-color: #ffc107 !important;
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #ba8b00;
+        }
+
+    .btn-delete-custom {
+        color: #dc3545;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+        .btn-delete-custom:hover {
+            border-color: #dc3545 !important;
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #a71d2a;
+        }
+
+    .btn-activate-custom {
+        color: #0d6efd;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+        .btn-activate-custom:hover {
+            border-color: #0d6efd !important;
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0a58ca;
+        }
+
+    .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+        line-height: 1.2;
+    }
+
+    /* Rregullimi i strukturës së Header-it */
+    .card-header {
+        padding: 0 !important;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 1rem 1.5rem;
+    }
+
+    /* Zona që hap/mbyll listën */
+    .clickable-title {
+        cursor: pointer;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        z-index: 1;
+    }
+
+    /* Zona e butonit (Mbi Z-Axis) */
+    .action-button-area {
+        position: relative;
+        z-index: 1050;
+    }
+
+    .btn-minimize i {
+        transition: transform 0.3s ease;
+    }
+
+    .collapsed .btn-minimize i {
+        transform: rotate(-90deg);
+    }
+</style>
+
+<div class="container my-5 pb-5">
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow rounded-pill px-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    else if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row align-items-center mb-4">
+        <div class="col">
+            <h2 class="fw-bold text-dark mb-1">Menaxhimi i Organizatës</h2>
+            <p class="text-muted small">Kontrolloni njësitë, shërbimet dhe cilësimet tuaja në një vend.</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-black text-white">
+            <div class="header-content">
+                <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collNjesite">
+                    <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white">Menaxhimi i Njësive</h4>
+                        <small class="opacity-75">Lista e pikave aktive</small>
+                    </div>
+                </div>
+                <div class="action-button-area">
+                    <a asp-controller="Njesia" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Njësi</a>
+                </div>
+            </div>
+        </div>
+        <div id="collNjesite" class="collapse show">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 w-100">
+                        <thead class="bg-light">
+                            <tr><th class="ps-4">ID</th><th>Emri</th><th>Kodi</th><th>Adresa</th><th class="text-end pe-4">Veprimet</th></tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null)
+                            {
+                                foreach (var njesi in Model)
+                                {
+                                    <tr>
+                                        <td class="ps-4 text-muted small">#@njesi.NjesiteId</td>
+                                        <td class="fw-bold">@njesi.Emri</td>
+                                        <td>@njesi.Kodi</td>
+                                        <td>@njesi.Adresa</td>
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group">
+                                                <a asp-action="Edit" asp-route-id="@njesi.NjesiteId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
+                                                <a asp-action="Delete" asp-route-id="@njesi.NjesiteId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @{
+        var sherbimet = ViewBag.Sherbimet as List<Parking_web.Models.Sherbimi>;
+    }
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-black text-white">
+            <div class="header-content">
+                <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collSherbimet">
+                    <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white">Menaxhimi i Shërbimeve</h4>
+                        <small class="opacity-75">Lista e shërbimeve dhe çmimeve</small>
+                    </div>
+                </div>
+                <div class="action-button-area d-flex gap-2">
+                    <a asp-controller="Sherbimi" asp-action="CreateParking" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Parking</a>
+                    <a asp-controller="Sherbimi" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Shërbim</a>
+                </div>
+            </div>
+        </div>
+        <div id="collSherbimet" class="collapse show">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 w-100">
+                        <thead class="bg-light">
+                            <tr><th class="ps-4">ID</th><th>Emri</th><th>Çmimi</th><th class="text-end pe-4">Veprimet</th></tr>
+                        </thead>
+                        <tbody>
+                            @if (sherbimet != null)
+                            {
+                                foreach (var s in sherbimet)
+                                {
+                                    <tr>
+                                        <td class="ps-4">#@s.SherbimiId</td>
+                                        <td class="fw-bold">@s.Emri</td>
+                                        @if(s.Cmimi != 0)
+                                        {
+                                        <td><span class="text-success fw-bold">@s.Cmimi.ToString("N2") €</span></td>
+                                        }
+                                        else
+                                        {
+                                            <td></td>
+                                        }
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group">
+                                                <a asp-controller="Sherbimi" asp-action="Edit" asp-route-id="@s.SherbimiId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
+                                                <a asp-controller="Sherbimi" asp-action="Delete" asp-route-id="@s.SherbimiId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @{
+        var cilsimet = ViewBag.Cilsimet as List<Parking_web.Models.DTO.CilsimetReadDto>;
+    }
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-black text-white">
+            <div class="header-content">
+                <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collCilsimet">
+                    <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white">Cilësimet e Parkimit</h4>
+                        <small class="opacity-75">Lidhja mes njësive dhe shërbimeve</small>
+                    </div>
+                </div>
+                <div class="action-button-area">
+                    <a asp-controller="Cilsimet" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Cilësim</a>
+                </div>
+            </div>
+        </div>
+        <div id="collCilsimet" class="collapse show">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 w-100">
+                        <thead class="bg-light">
+                            <tr><th class="ps-4">ID</th><th>Emri</th><th>Njësia</th><th>Sherbimi</th><th class="text-end pe-4">Veprimet</th></tr>
+                        </thead>
+                        <tbody>
+                            @if (cilsimet != null)
+                            {
+                                foreach (var c in cilsimet)
+                                {
+                                    <tr>
+                                        <td class="ps-4">#@c.CilsimetiId</td>
+                                        <td class="fw-bold">@c.Emri</td>
+                                        <td>@c.NjesiOrg?.Emri</td>
+                                        <td>@c.Sherbimi.Emri</td>
+                                        <td class="text-end pe-4">
+                                            @if (!c.Active)
+                                            {
+                                                <form asp-controller="Cilsimet" asp-action="Activate" asp-route-id="@c.CilsimetiId" method="post" class="d-inline me-2">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-activate-custom fw-semibold">Aktivizo</button>
+                                                </form>
+                                            }
+                                            <div class="btn-group">
+                                                <a asp-controller="Cilsimet" asp-action="Edit" asp-route-id="@c.CilsimetiId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
+                                                <a asp-controller="Cilsimet" asp-action="Delete" asp-route-id="@c.CilsimetiId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @{
+        var detajet = ViewBag.Detajet as List<Parking_web.Models.DTO.DetajetReadDto>;
+    }
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-black text-white">
+            <div class="header-content">
+                <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collDetajet">
+                    <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white">Detajet e Tarifave</h4>
+                        <small class="opacity-75">Çmimet sipas orëve</small>
+                    </div>
+                </div>
+                <div class="action-button-area">
+                    <a asp-controller="Detajet" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Detaj</a>
+                </div>
+            </div>
+        </div>
+        <div id="collDetajet" class="collapse show">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 w-100">
+                        <thead class="bg-light">
+                            <tr><th class="ps-4">Prej Orës</th><th>Deri Orën</th><th>Çmimi Për Orë</th><th>Cilsimi</th><th>Njesia</th><th>Detajet Aktive</th><th class="text-end pe-3">Veprimet</th></tr>
+                        </thead>
+                        <tbody>
+                            @if (detajet != null)
+                            {
+                                foreach (var d in detajet)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-bold">@d.FromHour:00 h</td>
+                                        <td class="fw-bold">@(d.ToHour.HasValue? d.ToHour + ":00 h" : "Pa limit")</td>
+                                        <td class="text-success fw-bold">@d.Cmimi.ToString("N2") €</td>
+                                        <td>@d.CilsimetParkimit.Emri</td>
+                                        <td>@d.CilsimetParkimit.NjesiOrg.Emri</td>
+                                        <td>@if (d.CilsimetParkimit.Active) 
+                                            { 
+                                                <p class="text-primary fw-bold mb-0">Aktiv</p> 
+                                            }
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group">
+                                                <a asp-controller="Detajet" asp-action="Edit" asp-route-id="@d.DetajetId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
+                                                <a asp-controller="Detajet" asp-action="Delete" asp-route-id="@d.DetajetId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @{
+        var lokacionet = ViewBag.Lokacionet as List<Parking_web.Models.Lokacioni>;
+    }
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-black text-white">
+            <div class="header-content">
+                <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collLokacionet">
+                    <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white">Menaxhimi i Lokacioneve</h4>
+                        <small class="opacity-75">Kati dhe Njësia</small>
+                    </div>
+                </div>
+                <div class="action-button-area">
+                    <a asp-controller="Lokacioni" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Lokacion</a>
+                </div>
+            </div>
+        </div>
+        <div id="collLokacionet" class="collapse show">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 w-100">
+                        <thead class="bg-light">
+                            <tr><th class="ps-4">ID</th><th>Kati</th><th>Njësia</th><th class="text-end pe-4">Veprimet</th></tr>
+                        </thead>
+                        <tbody>
+                            @if (lokacionet != null)
+                            {
+                                foreach (var l in lokacionet.OrderBy(n => n.NjesiOrg.Emri))
+                                {
+                                    <tr>
+                                        <td class="ps-4">#@l.LokacioniId</td>
+                                        <td class="fw-bold">Kati @l.Kati</td>
+                                        <td>@l.NjesiOrg?.Emri</td>
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group">
+                                                <a asp-controller="Lokacioni" asp-action="Edit" asp-route-id="@l.LokacioniId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
+                                                <a asp-controller="Lokacioni" asp-action="Delete" asp-route-id="@l.LokacioniId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @{
+        var vendet = ViewBag.Vendet as List<Parking_web.Models.Vendi>;
+    }
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-black text-white">
+            <div class="header-content">
+                <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collVendet">
+                    <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white">Menaxhimi i Vendeve</h4>
+                        <small class="opacity-75">Vendet specifike të parkimit</small>
+                    </div>
+                </div>
+                <div class="action-button-area">
+                    <a asp-controller="Vendi" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Vend</a>
+                </div>
+            </div>
+        </div>
+        <div id="collVendet" class="collapse show">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 w-100">
+                        <thead class="bg-light">
+                            <tr><th class="ps-4">ID</th><th>Emri i Vendit</th><th>Lokacioni</th><th class="text-end pe-4">Veprimet</th></tr>
+                        </thead>
+                        <tbody>
+                            @if (vendet != null)
+                            {
+                                foreach (var v in vendet)
+                                {
+                                    <tr>
+                                        <td class="ps-4">#@v.VendiId</td>
+                                        <td class="fw-bold">@v.VendiEmri</td>
+                                        <td>Kati @v.Lokacioni?.Kati - @v.Lokacioni?.NjesiOrg?.Emri</td>
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group">
+                                                <a asp-controller="Vendi" asp-action="Edit" asp-route-id="@v.VendiId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
+                                                <a asp-controller="Vendi" asp-action="Delete" asp-route-id="@v.VendiId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Double check: Sigurohemi që butonat nuk aktivizojnë collapse-in
+        document.querySelectorAll('.action-button-area').forEach(area => {
+            area.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+    </script>
+}

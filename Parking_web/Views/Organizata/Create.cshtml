@@ -1,0 +1,99 @@
+﻿@model Parking_web.Models.DTO.OrgCreateDTO
+
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <span class="fw-semibold h4 pt-1">Krijo Organizate</span>
+                </div>
+
+                <div class="card-body">
+                    <form method="post">
+
+                        <!-- Emri Biznesit -->
+                        <div class="mb-3">
+                            <label asp-for="EmriBiznesit" class="form-label"></label>
+                            <input asp-for="EmriBiznesit" class="form-control" placeholder="Business name" />
+                            <span asp-validation-for="EmriBiznesit" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Numri Unik & Numri Biznesit -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="NumriUnikIdentifikues" class="form-label"></label>
+                                <input asp-for="NumriUnikIdentifikues" class="form-control" />
+                                <span asp-validation-for="NumriUnikIdentifikues" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="NumriBiznesit" class="form-label"></label>
+                                <input asp-for="NumriBiznesit" class="form-control" />
+                                <span asp-validation-for="NumriBiznesit" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Numri Fiskal & Punetoret -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="NumriFiskal" class="form-label"></label>
+                                <input asp-for="NumriFiskal" class="form-control" />
+                                <span asp-validation-for="NumriFiskal" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="NumriPunetoreve" class="form-label"></label>
+                                <input asp-for="NumriPunetoreve" type="number" class="form-control" />
+                                <span asp-validation-for="NumriPunetoreve" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Adresa -->
+                        <div class="mb-3">
+                            <label asp-for="Adresa" class="form-label"></label>
+                            <input asp-for="Adresa" class="form-control" />
+                            <span asp-validation-for="Adresa" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Komuna -->
+                        <div class="mb-3">
+                            <label asp-for="Komuna" class="form-label"></label>
+                            <input asp-for="Komuna" class="form-control" />
+                            <span asp-validation-for="Komuna" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Telefoni & Email -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Telefoni" class="form-label"></label>
+                                <input asp-for="Telefoni" class="form-control" />
+                                <span asp-validation-for="Telefoni" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Index" class="btn btn-secondary">Kthehu</a>
+                            <button type="submit" class="btn btn-primary">
+                                Krijo Organizaten
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

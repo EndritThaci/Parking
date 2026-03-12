@@ -1,0 +1,52 @@
+﻿@model Parking_web.Models.DTO.DetajetCreateDto
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            @if (TempData["error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold">Shto Detaj të Ri (Tarifë)</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FromHour" class="form-label fw-semibold">Nga Ora</label>
+                                <input asp-for="FromHour" type="number" class="form-control" placeholder="0" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ToHour" class="form-label fw-semibold">Deri Ora (Opsionale)</label>
+                                <input asp-for="ToHour" type="number" class="form-control" placeholder="24" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Cmimi" class="form-label fw-semibold">Çmimi (€)</label>
+                            <input asp-for="Cmimi" type="number" step="0.01" class="form-control" />
+                        </div>
+                        <div class="mb-4">
+                            <label asp-for="CilsimetiId" class="form-label fw-semibold">Përzgjidh Cilsimin</label>
+
+                            <select asp-for="CilsimetiId" class="form-select"
+                                    asp-items="ViewBag.CilsimiList">
+                                <option value="" selected disabled>-- Zgjedh Cilsimin --</option>
+                            </select>
+
+                            <span asp-validation-for="CilsimetiId" class="text-danger small"></span>
+                        </div>
+                        <div class="d-flex gap-2 justify-content-end border-top pt-3">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 rounded-pill">Anulo</a>
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold">Ruaj Detajet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

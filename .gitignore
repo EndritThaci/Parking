@@ -1,0 +1,59 @@
+﻿===============================
+Visual Studio / ASP.NET Core
+===============================
+Build results
+bin/
+obj/
+
+
+User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+Visual Studio cache
+.vs/
+
+Rider
+.idea/
+
+OS files
+.DS_Store
+Thumbs.db
+
+===============================
+ASP.NET Core
+===============================
+Local app settings (secrets)
+appsettings.Development.json
+
+Logs
+*.log
+
+Published output
+publish/
+
+===============================
+EF Core
+===============================
+Local database files
+*.mdf
+.ldf
+
+===============================
+Test results
+===============================
+TestResults/
+
+===============================
+Environment files
+===============================
+.env
+.env.
+
+===============================
+HTTP scratch files
+===============================
+*.http
+*.rest

@@ -1,0 +1,109 @@
+﻿@model Parking_web.Models.DTO.UserCreateDTO
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            @if (TempData["success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <div class="card shadow mt-5 mb-5">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="bi bi-person-plus-fill text-success display-1"></i>
+                        </div>
+                        <h3 class="fw-bold text-primary mb-2">Krijo Llogari Menaxher</h3>
+                        <p class="text-muted">Plotësoni të dhënat për t'u regjistruar Menaxherin</p>
+                    </div>
+
+                    <form asp-action="RegisterManager" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Emri" class="form-control" placeholder="Emri" />
+                            <label asp-for="Emri" class="form-label">
+                                <i class="bi bi-person me-2"></i> Emri
+                            </label>
+                            <span asp-validation-for="Emri" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Mbiemri" class="form-control" placeholder="Mbiemri" />
+                            <label asp-for="Mbiemri" class="form-label">
+                                <i class="bi bi-person me-2"></i> Mbiemri
+                            </label>
+                            <span asp-validation-for="Mbiemri" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Email" class="form-control" placeholder="emri@shembull.com" />
+                            <label asp-for="Email" class="form-label">
+                                <i class="bi bi-envelope me-2"></i> Adresa Email
+                            </label>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Passwordi" class="form-control" placeholder="Fjalëkalimi" type="password" />
+                            <label asp-for="Passwordi" class="form-label">
+                                <i class="bi bi-lock me-2"></i> Fjalëkalimi
+                            </label>
+                            <span asp-validation-for="Passwordi" class="text-danger"></span>
+                        </div>
+
+                        @* <div class="form-floating mb-3">
+                            <input asp-for="BiznesId" class="form-control" placeholder="ID e Biznesit" type="number" />
+                            <label asp-for="BiznesId" class="form-label">
+                                <i class="bi bi-building me-2"></i> ID e Biznesit
+                            </label>
+                            <span asp-validation-for="BiznesId" class="text-danger"></span>
+                        </div> *@
+
+                        <div class="form-floating mb-3">
+                            <select asp-for="NjesiaId" class="form-select" id="njesiaSelect"
+                                    asp-items="ViewBag.NjesiteList" aria-label="Zgjedh Njësinë">
+                                <option value="" selected disabled>-- Zgjedh Njësinë --</option>
+                            </select>
+
+                            <label asp-for="NjesiaId">
+                                <i class="bi bi-building me-2"></i> Njësia Organizative
+                            </label>
+
+                            <span asp-validation-for="NjesiaId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle me-2"></i> Krijo Llogarinë
+                            </button>
+                        </div>
+
+                        <hr class="my-4">
+                        <div class="text-center">
+                            <small class="text-muted">OSE</small>
+                        </div>
+                        <hr class="my-4">
+
+                        <div class="text-center">
+                            <p class="mb-3 text-muted">Keni një llogari ekzistuese?</p>
+                            <a asp-action="Login" class="btn btn-outline-primary">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Kyçu Këtu
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

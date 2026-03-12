@@ -1,0 +1,67 @@
+﻿@model Parking_web.Models.DTO.CilsimetReadDto
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            @if (TempData["error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold">Shto Cilësim të Ri</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        <div class="mb-3">
+                            <label asp-for="Emri" class="form-label fw-semibold">Emri i Cilësimit</label>
+                            <input asp-for="Emri" class="form-control" placeholder="Psh: Sezona Verore" />
+                            <span asp-validation-for="Emri" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="NjesiteId" class="form-label fw-semibold">Përzgjidh Njësinë</label>
+
+                                @if (ViewBag.IsFixed == true)
+                                {
+                                    <select asp-for="NjesiteId" class="form-select bg-light text-muted"
+                                            asp-items="ViewBag.NjesiteList" disabled>
+                                    </select>
+
+                                    <input type="hidden" asp-for="NjesiteId" />
+                                    <small class="text-info"><i class="bi bi-info-circle me-1"></i> Njësia është paracaktuar.</small>
+                                }
+                                else
+                                {
+                                    <select asp-for="NjesiteId" class="form-select"
+                                            asp-items="ViewBag.NjesiteList">
+                                        <option value="" selected disabled>-- Zgjedh Njësinë --</option>
+                                    </select>
+                                }
+                                <span asp-validation-for="NjesiteId" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SherbimiId" class="form-label fw-semibold">Përzgjedh Shërbimit</label>
+
+                                <select asp-for="SherbimiId" class="form-select"
+                                        asp-items="ViewBag.SherbimetList">
+                                    <option value="" selected disabled>-- Zgjedh Sherbimin --</option>
+                                </select>
+                                <span asp-validation-for="SherbimiId" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end border-top pt-3 mt-3">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 rounded-pill">Anulo</a>
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold">Ruaj Cilësimin</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

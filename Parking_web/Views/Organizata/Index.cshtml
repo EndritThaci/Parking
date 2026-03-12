@@ -1,0 +1,161 @@
+﻿@using Parking_web.Models
+@model IEnumerable<Organizata>
+
+<style>
+    /* Stilimi i butonave si faqet e tjera */
+    .btn-edit-custom {
+        color: #ffc107;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+        .btn-edit-custom:hover {
+            border-color: #ffc107 !important;
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #ba8b00;
+        }
+
+    .btn-delete-custom {
+        color: #dc3545;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+        .btn-delete-custom:hover {
+            border-color: #dc3545 !important;
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #a71d2a;
+        }
+
+    .card-header-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+    }
+</style>
+
+<div class="container-fluid px-4 my-5 pb-5">
+
+    
+
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-pill px-4 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-black text-white p-0">
+            <div class="card-header-main">
+                <div>
+                    <h4 class="fw-bold mb-0 text-white">Regjistri i Organizatave</h4>
+                    <small class="opacity-75">Administrimi i bizneseve dhe kontakteve</small>
+                </div>
+                <a asp-controller="Organizata" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">
+                    <i class="bi bi-plus-lg me-1"></i> Shto Organizatë
+                </a>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 text-uppercase small fw-bold text-muted">Biznesi</th>
+                            <th class="text-uppercase small fw-bold text-muted">ID & Fiskal</th>
+                            <th class="text-uppercase small fw-bold text-muted">Lokacioni</th>
+                            <th class="text-uppercase small fw-bold text-muted">Punëtorë</th>
+                            <th class="text-uppercase small fw-bold text-muted">Kontakti</th>
+                            <th class="text-end pe-4 text-uppercase small fw-bold text-muted">Veprimet</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var org in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark">@org.EmriBiznesit</div>
+                                        <div class="small text-muted">@org.Adresa</div>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-semibold text-dark">UID: @org.NumriUnikIdentifikues</div>
+                                        <div class="small text-muted">Fiskal: @org.NumriFiskal</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border rounded-pill px-3 fw-normal">
+                                            <i class="bi bi-geo-alt text-primary me-1"></i>@org.Komuna
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="text-muted">
+                                            @org.NumriPunetoreve punëtorë
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-bold text-dark"><i class="bi bi-telephone me-1 text-muted"></i>@org.Telefoni</div>
+                                        <div class="small text-muted">@org.Email</div>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group">
+                                            <a asp-action="Edit" asp-route-id="@org.BiznesId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
+                                            <a asp-action="Delete" asp-route-id="@org.BiznesId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <i class="bi bi-building-exclamation text-muted d-block mb-2" style="font-size: 2.5rem;"></i>
+                                    <span class="text-muted fw-bold">Nuk u gjet asnjë organizatë në sistem.</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 mt-4 mb-3">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-black text-white">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali i Organizatave</h6>
+                        <h2 class="fw-bold mb-0">@Model.Count()</h2>
+                    </div>
+                    <i class="bi bi-building fs-1 opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-black text-white">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Qytete të Mbuluara</h6>
+                        <h2 class="fw-bold mb-0">@Model.Select(o => o.Komuna).Distinct().Count()</h2>
+                    </div>
+                    <i class="bi bi-geo-alt fs-1 opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-black text-white">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali i Punonjësve</h6>
+                        <h2 class="fw-bold mb-0">@Model.Sum(o => o.NumriPunetoreve)</h2>
+                    </div>
+                    <i class="bi bi-people fs-1 opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

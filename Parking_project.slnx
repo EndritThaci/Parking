@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Parking_project/Parking_project.csproj" />
+  <Project Path="Parking_web/Parking_web.csproj" Id="c6b27db6-9f27-41e3-ba67-1c6d8c7d9f71" />
+</Solution>

@@ -1,0 +1,21 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Parking_project.Models
+{
+    public class Vendi
+    {
+        [Key]
+        public int VendiId { get; set; }
+
+        [Required]
+        public string VendiEmri { get; set; }
+
+        public bool IsFree { get; set; }
+
+        public int LokacioniId { get; set; }
+
+        [ForeignKey(nameof(LokacioniId))]
+        public Lokacioni Lokacioni { get; set; }
+    }
+}

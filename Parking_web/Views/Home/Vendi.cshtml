@@ -1,0 +1,126 @@
+﻿@model IEnumerable<Parking_web.Models.Vendi>
+
+
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <div class="d-flex justify-content-center flex-wrap gap-2">
+            @foreach (var lok in ViewBag.Lokacionet)
+            {
+                <a asp-action="Vendi"
+                   asp-route-njesiaId="@ViewBag.SelectedNjesia"
+                   asp-route-lokacioniId="@lok.LokacioniId"
+                   class="btn @(ViewBag.SelectedLokacioni == lok.LokacioniId ? "btn-primary shadow" : "btn-outline-primary") rounded-pill px-4 fw-bold transition-all">
+                    Kati @lok.Kati
+                </a>
+            }
+        </div>
+    </div>
+
+    <hr class="mb-5 opacity-10">
+
+    <div class="row g-4 justify-content-center">
+        @if (TempData["error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show shadow rounded-pill px-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                @TempData["error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var vendi in Model)
+            {
+                <div class="col-md-4 col-lg-3">
+                    <a asp-controller="Home" asp-action="Create"
+                       asp-route-njesiaId="@ViewBag.SelectedNjesia"
+                       asp-route-vendiId="@vendi.VendiId"
+                       class="card h-100 border-0 shadow-sm text-decoration-none vendi-main-card transition-all">
+
+                        <div class="vendi-stripe"></div>
+
+                        <div class="card-body p-4 text-center">
+                            <div class="d-flex justify-content-between align-items-end mb-3">
+                                <span></span>
+                                @if (vendi.IsFree)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">
+                                            I lirë
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill small">
+                                            I zënë
+                                        </span>
+                                    }
+                            </div>
+
+                            <h3 class="fw-black text-dark mb-1">@vendi.VendiEmri</h3>
+                            <p class="text-muted small mb-5">Klikoni për rezervim</p>
+                        </div>
+
+                        @* <div class="card-footer bg-transparent border-0 pb-4 text-center">
+                            <span class="btn btn-outline-primary w-100 rounded-pill fw-bold py-2 transition-all btn-unit-action">Hape</span>
+                        </div> *@
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <div class="card border-0 bg-light p-5 rounded-4">
+                    <i class="bi bi-info-circle text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted">Nuk u gjet asnjë vend parkimi për këtë lokacion.</h5>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* STILI I NJEJTË SI KARTAT E INDEX */
+    .vendi-main-card {
+        border-radius: 20px;
+        background: #ffffff;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .vendi-main-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+            border: 1px solid #0d6efd !important;
+        }
+
+    /* Shiriti anësor (Indigo për Vendet) */
+    .vendi-stripe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: #0d6efd;
+    }
+
+    /* Ikona rrethore */
+    .vendi-icon-bg {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.4rem;
+    }
+
+    .fw-black {
+        font-weight: 900;
+        letter-spacing: -1px;
+    }
+
+    .transition-all {
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+</style>
