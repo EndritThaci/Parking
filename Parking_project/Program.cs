@@ -1,17 +1,20 @@
-using Parking_project.Data;
-using Parking_project.Models;
-using Parking_project.Models.DTO;
-using Parking_project.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using OfficeOpenXml;
+using Parking_project.Data;
+using Parking_project.Models;
+using Parking_project.Models.DTO;
+using Parking_project.Services;
 using Scalar.AspNetCore;
 using System.Text;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+ExcelPackage.License.SetNonCommercialPersonal("localhost");
 
 var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JwtSettings")["Secret"]);
 
