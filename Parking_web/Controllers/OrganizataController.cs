@@ -66,6 +66,10 @@ namespace Parking_web.Controllers
                     TempData["success"] = "Organizata u krijua me sukses";
                     return RedirectToAction(nameof(Index));
                 }
+                else
+                {
+                    TempData["error"] = $"Gabim: {response?.Message ?? "Diçka shkoi keq."}";
+                }
 
             }
             catch (Exception ex)
@@ -114,6 +118,10 @@ namespace Parking_web.Controllers
                 {
                     TempData["success"] = "Organizata u fshi me sukses";
                 }
+                else
+                {
+                    TempData["error"] = $"Gabim: {response?.Message ?? "Diçka shkoi keq."}";
+                }
 
             }
             catch (Exception ex)
@@ -140,6 +148,10 @@ namespace Parking_web.Controllers
                 {
                     return View(_mapper.Map<OrgUpdateDTO>(response.Data));
                 }
+                else
+                {
+                    TempData["error"] = $"Gabim: {response?.Message ?? "Diçka shkoi keq."}";
+                }
 
             }
             catch (Exception ex)
@@ -160,6 +172,11 @@ namespace Parking_web.Controllers
                 if (response != null && response.Success)
                 {
                     TempData["success"] = "Organizata u permirsua me sukses";
+                }
+                else
+                {
+                    TempData["error"] = $"Gabim: {response?.Message ?? "Diçka shkoi keq."}";
+                    return View(org);
                 }
 
             }

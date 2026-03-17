@@ -2,16 +2,16 @@
 
 <div class="container-fluid px-0">
     @{
-        var totaliGjithsej = Model?.Where(t => t.Cmimi.HasValue).Sum(t => t.Cmimi.Value) ?? 0;
+        var totaliGjithsej = Model?.Where(t => t.Cmimi.HasValue).Sum(t => t.Cmimi!.Value) ?? 0;
 
         var totaliMuaji = Model?.Where(t => t.Cmimi.HasValue &&
         t.KohaHyrjes.Month == DateTime.Now.Month &&
         t.KohaHyrjes.Year == DateTime.Now.Year)
-        .Sum(t => t.Cmimi.Value) ?? 0;
+        .Sum(t => t.Cmimi!.Value) ?? 0;
 
         var totaliViti = Model?.Where(t => t.Cmimi.HasValue &&
         t.KohaHyrjes.Year == DateTime.Now.Year)
-        .Sum(t => t.Cmimi.Value) ?? 0;
+        .Sum(t => t.Cmimi!.Value) ?? 0;
 
         var njesite = Model?.Select(t => t.Cilsimi?.NjesiOrg?.Emri).Where(n => n != null).Distinct().OrderBy(n => n).ToList();
     }
@@ -24,6 +24,9 @@
                 <div>
                     <h4 class="fw-bold mb-0">Historia e Transaksioneve</h4>
                     <small class="opacity-75">Regjistri i hyrjeve dhe daljeve</small>
+                </div>
+                <div class="action-button-area d-flex gap-2 me-3">
+                    <a asp-controller="LibriShitjes" asp-action="GetLibriCustom" class="btn btn-outline-light px-4 rounded-pill fw-bold">Gjenero Librin e Shitjes</a>
                 </div>
             </div>
         </div>
@@ -47,6 +50,8 @@
                             foreach (var t in Model.OrderByDescending(x => x.KohaHyrjes))
                             {
                                 <tr class="transaksion-row"
+                                    style="cursor: pointer;"
+                                    data-id="@t.TransaksioniId"
                                     data-njesia="@t.Cilsimi?.NjesiOrg?.Emri"
                                     data-cmimi="@(t.Cmimi ?? 0)"
                                     data-muaji="@t.KohaHyrjes.Month"
@@ -93,28 +98,88 @@
     </div>
     <div class="row g-3 mb-4 mt-4">
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm bg-dark text-white">
-                <div class="card-body p-4">
-                    <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali Për këtë Muaj</h6>
-                    <h2 class="fw-bold mb-0"><span id="summaryMuaji">@totaliMuaji.ToString("N2")</span> €</h2>
+            <a asp-controller="LibriShitjes"
+                   asp-action="GetLibri"
+                   asp-route-month="@DateTime.Now.Month"
+                   asp-route-year="@DateTime.Now.Year"
+                   class="text-decoration-none transition-up">
+                <div class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali Për këtë Muaj</h6>
+                            <i class="bi bi-file-earmark-excel text-success"></i>
+                        </div>
+                        <h2 class="fw-bold mb-0">@totaliMuaji.ToString("N2") €</h2>
+                        <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
+
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm bg-dark text-white">
-                <div class="card-body p-4">
-                    <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali Për këtë Vit</h6>
-                    <h2 class="fw-bold mb-0"><span id="summaryViti">@totaliViti.ToString("N2")</span> €</h2>
+            <a asp-controller="LibriShitjes"
+                   asp-action="GetLibri"
+                   asp-route-year="@DateTime.Now.Year"
+                   class="text-decoration-none transition-up">
+                <div class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali Për këtë Vit</h6>
+                            <i class="bi bi-file-earmark-excel text-success"></i>
+                        </div>
+                        <h2 class="fw-bold mb-0">@totaliViti.ToString("N2") €</h2>
+                        <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
+
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm bg-dark text-white">
-                <div class="card-body p-4">
-                    <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Total Gjithsej</h6>
-                    <h2 class="fw-bold mb-0"><span id="summaryGjithsej">@totaliGjithsej.ToString("N2")</span> €</h2>
+            <a asp-controller="LibriShitjes"
+                   asp-action="GetLibri"
+                   asp-route-all="true"
+                   class="text-decoration-none transition-up">
+                <div class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Total Gjithsej</h6>
+                            <i class="bi bi-file-earmark-excel text-success"></i>
+                        </div>
+                        <h2 class="fw-bold mb-0">@totaliGjithsej.ToString("N2") €</h2>
+                        <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 </div>
+
+<script>
+    document.querySelectorAll('.transaksion-row').forEach(row => {
+        row.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            if(id) {
+                window.location.href = `/LibriShitjes/GetLibri?id=${id}`;
+            }
+        });
+    });
+</script>
+<style>
+    .transition-up {
+        transition: transform 0.2s ease-in-out;
+        display: block;
+    }
+
+        .transition-up:hover {
+            transform: translateY(-5px);
+        }
+
+    .btn-hover-excel {
+        border: 1px solid transparent !important;
+        transition: all 0.3s ease;
+    }
+
+        .btn-hover-excel:hover {
+            background-color: #1a1a1a !important;
+        }
+</style>

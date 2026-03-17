@@ -80,6 +80,7 @@ builder.Services.AddScoped<IDetajetService, DetajetService>();
 builder.Services.AddScoped<ILokacioniService, LokacioniService>();
 builder.Services.AddScoped<IVendiService, VendiService>();
 builder.Services.AddScoped<ITransaksionService, TransaksionService>();
+builder.Services.AddScoped<ILibriService, LibriService>();
 
 var app = builder.Build();
 

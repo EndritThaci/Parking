@@ -1,0 +1,152 @@
+﻿@model Parking_web.Models.DTO.LibriShitjesCreateDTO
+@using System.Globalization
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            @* Alert Error *@
+            @if (TempData["error"] != null)
+            {
+                <div class="mb-3">
+                    <div class="alert alert-danger alert-dismissible fade show shadow rounded-pill px-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        @TempData["error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            }
+            @{
+                string emriMuajit = "";
+                if (Model?.month != null && Model.month >= 1 && Model.month <= 12)
+                {
+                    emriMuajit = CultureInfo.GetCultureInfo("sq-AL").DateTimeFormat.GetMonthName(Model.month.Value);
+                    emriMuajit = char.ToUpper(emriMuajit[0]) + emriMuajit.Substring(1);
+                }
+            }
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <div class="bg-excel py-4 text-center text-white">
+                    <i class="bi bi-file-earmark-excel display-4"></i>
+                    <h3 class="fw-bold mt-2">Libri i Shitjes</h3>
+                    <p class="mb-0 opacity-75">Gjenero raportin e shitjeve në Excel</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="mb-4 text-center">
+                        <label class="form-label fw-bold text-muted small text-uppercase d-block mb-3">Konfirmimi i Raportit</label>
+
+                        <div class="p-3 rounded-4 bg-light border shadow-sm">
+                            @if (Model?.id != null)
+                            {
+                                <div class="py-2">
+                                    <i class="bi bi-building-check text-primary display-6 d-block mb-2"></i>
+                                    <span class="fw-bold d-block">Raporti i Transaksionit</span>
+                                    <small class="text-muted">ID e Specifikuar: <strong>#@Model.id</strong></small>
+                                </div>
+                            }
+                            else if (Model?.month != null || Model?.year != null)
+                            {
+                                <div class="py-2">
+                                    <i class="bi bi-calendar-range text-info display-6 d-block mb-2"></i>
+                                    <span class="fw-bold d-block">Raport Periodik</span>
+                                    <small class="text-muted">
+                                        @if (Model?.month != null && Model?.year != null)
+                                        {
+                                            @($"Muaji: {emriMuajit} {Model.year}")
+                                        }
+                                        else
+                                        {
+                                            @(Model?.month != null ? $"Muaji: {emriMuajit} " : "")
+                                            @(Model?.year != null ? $"Viti: {Model.year}" : "")
+                                        }
+                                        
+                                    </small>
+                                </div>
+                            }
+                            else if (Model?.all == true)
+                            {
+                                <div class="py-2">
+                                    <i class="bi bi-globe-europe-africa text-primary display-6 d-block mb-2"></i>
+                                    <span class="fw-bold d-block">Raport i Plotë</span>
+                                    <small class="text-muted">Gjithëpërfshirës për </small>
+                                    @if (Model?.njesia != null)
+                                    {
+                                        <small class="text-muted">njesinë: <strong>@(ViewBag.Njesia.Emri ?? "")</strong></small>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">të gjitha njesitë</small>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <form asp-controller="LibriShitjes" asp-action="GetLibri" method="Post">
+                        <input type="hidden" name="id" value="@Model?.id" />
+                        <input type="hidden" name="month" value="@Model?.month" />
+                        <input type="hidden" name="year" value="@Model?.year" />
+                        <input type="hidden" name="njesia" value="@Model?.njesia" />
+                        <input type="hidden" name="all" value="@(Model?.all?.ToString().ToLower() ?? "false")" />
+
+                        <div class="border-dashed my-4"></div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-excel btn-lg w-100 rounded-pill fw-bold py-3 shadow">
+                                Shkarko Raportin (.xlsx) <i class="bi bi-file-earmark-arrow-down ms-2"></i>
+                            </button>
+
+                            <a asp-controller="Transaksion"
+                                   asp-action="@(User.IsInRole("Manager") ? "IndexManager" : "Index")"
+                                   asp-route-njesiaId="@Model?.njesia"
+                                   class="btn btn-link text-muted text-decoration-none rounded-pill py-3 text-center mt-2">
+                                <i class="bi bi-pencil-square me-1"></i> Kthehu
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-excel {
+        background: linear-gradient(45deg, #005bcf, #007bff) !important;
+    }
+
+    .btn-excel {
+        background-color: #007bff;
+        color: white;
+    }
+
+        .btn-excel:hover {
+            background-color: #005bcf;
+            color: white;
+        }
+
+    .border-dashed {
+        border-top: 2px dashed #dee2e6;
+        position: relative;
+        margin: 0 -3rem;
+    }
+
+        .border-dashed::before, .border-dashed::after {
+            content: "";
+            position: absolute;
+            top: -11px;
+            width: 22px;
+            height: 22px;
+            background-color: #f8f9fa;
+            border-radius: 50%;
+        }
+
+        .border-dashed::before {
+            left: -11px;
+        }
+
+        .border-dashed::after {
+            right: -11px;
+        }
+</style>

@@ -95,6 +95,8 @@ namespace Parking_project.Services
         {
             var key = Encoding.ASCII.GetBytes(_configuration.GetSection("JwtSettings")["Secret"]);
 
+            var org = _db.Organizata.FindAsync(useri.BiznesId);
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] {
@@ -103,7 +105,8 @@ namespace Parking_project.Services
                     new Claim(ClaimTypes.Name, useri.Emri),
                     new Claim(ClaimTypes.Role, useri.Role),
                     new Claim("BiznesId", useri.BiznesId.ToString() ?? ""),
-                    new Claim("NjesiaId", useri.NjesiaId.ToString() ?? "")
+                    new Claim("NjesiaId", useri.NjesiaId.ToString() ?? ""),
+                    new Claim("OrgName", org.Result?.EmriBiznesit.ToString() ?? string.Empty),
                 }),
                 Expires = DateTime.UtcNow.AddHours(3),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

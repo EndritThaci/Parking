@@ -165,7 +165,7 @@ namespace Parking_project.Controllers
 
 
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Super Admin")]
         [ProducesResponseType(typeof(ApiResponse<Organizata>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<Organizata>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<Organizata>), StatusCodes.Status409Conflict)]
@@ -231,7 +231,7 @@ namespace Parking_project.Controllers
 
 
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Super Admin")]
         [ProducesResponseType(typeof(ApiResponse<Organizata>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<Organizata>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<Organizata>), StatusCodes.Status500InternalServerError)]

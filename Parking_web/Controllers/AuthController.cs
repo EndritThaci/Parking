@@ -54,6 +54,7 @@ namespace Parking_web.Controllers
                     identety.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(c => c.Type == "role")?.Value ?? string.Empty));
                     identety.AddClaim(new Claim("BiznesId", jwt.Claims.FirstOrDefault(c => c.Type == "BiznesId")?.Value ?? string.Empty));
                     identety.AddClaim(new Claim("NjesiaId", jwt.Claims.FirstOrDefault(c => c.Type == "NjesiaId")?.Value ?? string.Empty));
+                    identety.AddClaim(new Claim("OrgName", jwt.Claims.FirstOrDefault(c => c.Type == "OrgName")?.Value ?? string.Empty));
                     var principal = new ClaimsPrincipal(identety);
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
                     HttpContext.Session.SetString(SD.SessionToken, model.Token!);
