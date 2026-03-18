@@ -4,19 +4,8 @@
 <div class="container py-5">
     <div class="row justify-content-center ">
         <div class="col-md-8 col-lg-6 ">
-            @if (TempData["error"] != null)
-            {
-                <div class="mb-3 ">
-                    <div class="alert alert-danger alert-dismissible fade show shadow rounded-pill px-4" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        @TempData["error"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                </div>
-            }
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
                 <div class="bg-excel py-4 bg-primary text-center text-white">
-                    <i class="bi bi-file-earmark-excel display-4"></i>
                     <h3 class="fw-bold mt-2">Libri i Shitjes</h3>
                     <p class="mb-0 opacity-75">Gjenero raportin e shitjeve në Excel</p>
                 </div>
@@ -28,7 +17,10 @@
                         <div class="mb-4">
                             <label class="form-label fw-bold">Zgjidhni Llojin e Raportit</label>
                             <div class="btn-group w-100" role="group">
-                                <input type="radio" class="btn-check" name="reportType" id="typeMonth" checked>
+                                <input type="radio" class="btn-check" name="reportType" id="typeDay" checked>
+                                <label class="btn btn-outline-primary" for="typeDay">Ditore</label>
+
+                                <input type="radio" class="btn-check" name="reportType" id="typeMonth">
                                 <label class="btn btn-outline-primary" for="typeMonth">Mujor</label>
 
                                 <input type="radio" class="btn-check" name="reportType" id="typeYear">
@@ -37,6 +29,11 @@
                                 <input type="radio" class="btn-check" name="reportType" id="typeAll">
                                 <label class="btn btn-outline-primary" for="typeAll">I Plotë</label>
                             </div>
+                        </div>
+
+                        <div id="sectionDay" class="mb-3 d-none">
+                            <label class="form-label small fw-bold text-muted">Data specifike</label>
+                            <input type="date" name="day" id="specificDateInput" class="form-control border-2" value="@DateTime.Now.ToString("yyyy-MM-dd")" lang="sq-AL" />
                         </div>
 
                         <div id="sectionMonth" class="mb-3">
@@ -108,38 +105,50 @@
 
 @section Scripts {
     <script>
+        const typeDay = document.getElementById('typeDay');
         const typeMonth = document.getElementById('typeMonth');
         const typeYear = document.getElementById('typeYear');
         const typeAll = document.getElementById('typeAll');
 
+        const sectionDay = document.getElementById('sectionDay');
         const sectionMonth = document.getElementById('sectionMonth');
         const sectionYear = document.getElementById('sectionYear');
         const allHidden = document.getElementById('allHidden');
 
         function updateFields() {
-            if (typeMonth.checked) {
+            sectionDay.classList.add('d-none');
+            sectionMonth.classList.add('d-none');
+            sectionYear.classList.add('d-none');
+
+            document.querySelector('[name="day"]').disabled = true;
+            document.querySelector('[name="month"]').disabled = true;
+            document.querySelector('[name="year"]').disabled = true;
+
+            allHidden.value = "false";
+
+            if (typeDay.checked) {
+                sectionDay.classList.remove('d-none');
+                document.querySelector('[name="day"]').disabled = false;
+            }
+            else if (typeMonth.checked) {
                 sectionMonth.classList.remove('d-none');
                 sectionYear.classList.remove('d-none');
-                allHidden.value = "false";
+                document.querySelector('[name="month"]').disabled = false;
+                document.querySelector('[name="year"]').disabled = false;
                 
                 if (!document.querySelector('[name="month"]').value) {
                     document.querySelector('[name="month"]').value = new Date().getMonth() + 1;
                 }
             } else if (typeYear.checked) {
-                sectionMonth.classList.add('d-none');
                 sectionYear.classList.remove('d-none');
-                allHidden.value = "false";
-                document.querySelector('[name="month"]').value = "";
-            } else {
-                sectionMonth.classList.add('d-none');
-                sectionYear.classList.add('d-none');
+                document.querySelector('[name="year"]').disabled = false;
+            }
+            else if (typeAll.checked) {
                 allHidden.value = "true";
-                document.querySelector('[name="month"]').value = "";
-                document.querySelector('[name="year"]').value = "";
             }
         }
 
-        [typeMonth, typeYear, typeAll].forEach(radio => {
+        [typeDay, typeMonth, typeYear, typeAll].forEach(radio => {
             radio.addEventListener('change', updateFields);
         });
 

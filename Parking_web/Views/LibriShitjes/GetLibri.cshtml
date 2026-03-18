@@ -4,17 +4,6 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            @* Alert Error *@
-            @if (TempData["error"] != null)
-            {
-                <div class="mb-3">
-                    <div class="alert alert-danger alert-dismissible fade show shadow rounded-pill px-4" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        @TempData["error"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                </div>
-            }
             @{
                 string emriMuajit = "";
                 if (Model?.month != null && Model.month >= 1 && Model.month <= 12)
@@ -27,7 +16,6 @@
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
 
                 <div class="bg-excel py-4 text-center text-white">
-                    <i class="bi bi-file-earmark-excel display-4"></i>
                     <h3 class="fw-bold mt-2">Libri i Shitjes</h3>
                     <p class="mb-0 opacity-75">Gjenero raportin e shitjeve në Excel</p>
                 </div>
@@ -40,7 +28,7 @@
                             @if (Model?.id != null)
                             {
                                 <div class="py-2">
-                                    <i class="bi bi-building-check text-primary display-6 d-block mb-2"></i>
+                                    <i class="bi bi-file-earmark-binary text-primary display-6 d-block mb-2"></i>
                                     <span class="fw-bold d-block">Raporti i Transaksionit</span>
                                     <small class="text-muted">ID e Specifikuar: <strong>#@Model.id</strong></small>
                                 </div>
@@ -48,7 +36,7 @@
                             else if (Model?.month != null || Model?.year != null)
                             {
                                 <div class="py-2">
-                                    <i class="bi bi-calendar-range text-info display-6 d-block mb-2"></i>
+                                    <i class="bi bi-calendar-range text-primary display-6 d-block mb-2"></i>
                                     <span class="fw-bold d-block">Raport Periodik</span>
                                     <small class="text-muted">
                                         @if (Model?.month != null && Model?.year != null)
@@ -67,7 +55,7 @@
                             else if (Model?.all == true)
                             {
                                 <div class="py-2">
-                                    <i class="bi bi-globe-europe-africa text-primary display-6 d-block mb-2"></i>
+                                    <i class="bi bi-table text-primary display-6 d-block mb-2"></i>
                                     <span class="fw-bold d-block">Raport i Plotë</span>
                                     <small class="text-muted">Gjithëpërfshirës për </small>
                                     @if (Model?.njesia != null)

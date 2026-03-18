@@ -25,10 +25,11 @@ namespace Parking_web.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> GetLibri(int? id, int? month, int? year, bool? all, int? njesia)
+        public async Task<IActionResult> GetLibri(int? id, DateOnly? day, int? month, int? year, bool? all, int? njesia)
         {
             LibriShitjesCreateDTO dto = new();
             dto.id = id;
+            dto.day = day;
             dto.month = month;
             dto.year = year;
             dto.all = all;
@@ -46,7 +47,7 @@ namespace Parking_web.Controllers
                     ViewBag.Njesia = response?.Data;
             }
 
-            if (id == null && month == null && year == null && (all == null || all == false))
+            if (id == null && day == null && month == null && year == null && (all == null || all == false))
             {
                 return View();
             }
@@ -91,7 +92,14 @@ namespace Parking_web.Controllers
 
                 return RedirectToAction("GetLibriCustom");
             }
-            if (dto.month != null)
+            if (dto.day != null)
+            {
+                return File(
+                    response.Data,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"Libri_i_Shitjeve_{dto.day}.xlsx");
+            }
+            else if (dto.month != null)
             {
                 var monthName = CultureInfo
                     .GetCultureInfo("sq-AL")

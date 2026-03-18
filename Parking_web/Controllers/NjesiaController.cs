@@ -59,7 +59,7 @@ namespace Parking_web.Controllers
             return View(orgList);
         }
 
-        //[Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Index()
         {
             NjesiReadDto orgList = new();

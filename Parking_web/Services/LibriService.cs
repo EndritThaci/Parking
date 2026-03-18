@@ -17,7 +17,7 @@ namespace Parking_web.Services
             {
                 ApiType = SD.ApiType.GET,
                 Data = dto,
-                Url = $"{APIEndPoint}?id={dto.id}&month={dto.month}&year={dto.year}&all={dto.all}&njesia={dto.njesia}",
+                Url = $"{APIEndPoint}?id={dto.id}&day={dto.day}&month={dto.month}&year={dto.year}&all={dto.all}&njesia={dto.njesia}",
             });
         }
     }

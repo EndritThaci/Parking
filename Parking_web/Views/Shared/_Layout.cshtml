@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Parking</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Parking_web.styles.css" asp-append-version="true" />
 
@@ -132,6 +133,34 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var successMsg = @Html.Raw(Json.Serialize(TempData["success"]));
+        var errorMsg = @Html.Raw(Json.Serialize(TempData["error"]));
+
+        if (successMsg) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Sukses!',
+                text: successMsg,
+                timer: 1500,
+                showConfirmButton: false,
+                timerProgressBar: true
+            });
+        }
+
+        if (errorMsg) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gabim!',
+                text: errorMsg,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Kuptova'
+            });
+        }
+    });
+</script>

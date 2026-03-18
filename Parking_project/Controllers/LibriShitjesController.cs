@@ -33,7 +33,7 @@ namespace fin_auto_project.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<byte[]>>> GetLibrin([FromQuery] LibriShitjesCreateDTO dto)
         {
-            if (dto.id == null && (dto.month == null || dto.year == null) && dto.year == null && (dto.all == null || dto.all == false))
+            if (dto.id == null && dto.day == null && (dto.month == null || dto.year == null) && dto.year == null && (dto.all == null || dto.all == false))
             {
                 return BadRequest(ApiResponse<object>.BadRequest("Please provide the parameters."));
             }
@@ -54,10 +54,18 @@ namespace fin_auto_project.Controllers
             if (dto.id != null)
                 query = query.Where(t => t.TransaksioniId == dto.id);
 
+            if (dto.day != null)
+            {
+                var targetDate = dto.day.Value.ToDateTime(TimeOnly.MinValue);
+                query = query.Where(t => t.KohaHyrjes.Date == targetDate);
+            }
+
             if (dto.year != null)
+            {
                 query = query.Where(t => t.KohaHyrjes.Year == dto.year);
-            if (dto.month != null)
-                query = query.Where(t => t.KohaHyrjes.Month == dto.month);
+                if (dto.month != null)
+                    query = query.Where(t => t.KohaHyrjes.Month == dto.month);
+            }
 
             if (dto.njesia != null)
                 query = query.Where(t => t.NjesiaId == dto.njesia);

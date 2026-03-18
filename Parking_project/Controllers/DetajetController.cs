@@ -135,6 +135,7 @@ namespace Parking_project.Controllers
         [ProducesResponseType(typeof(ApiResponse<DetajetReadDto>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ApiResponse<DetajetReadDto>), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ApiResponse<DetajetReadDto>>> CreateDetajet(DetajetCreateDto DetajeCreateDto)
         {
@@ -151,7 +152,7 @@ namespace Parking_project.Controllers
                     return NotFound(ApiResponse<object>.NotFound($"Cilsimet with the given id {DetajeCreateDto.CilsimetiId} doesnt exists."));
                 }
 
-            var getDetajet = await _db.Detajet.Where(c=> c.CilsimetiId == DetajeCreateDto.CilsimetiId)
+                var getDetajet = await _db.Detajet.Where(c=> c.CilsimetiId == DetajeCreateDto.CilsimetiId)
                     .Where(d => (d.FromHour == DetajeCreateDto.FromHour) 
                     || (d.FromHour <= DetajeCreateDto.FromHour && d.ToHour > DetajeCreateDto.FromHour) 
                     || (d.FromHour < DetajeCreateDto.ToHour && d.ToHour >= DetajeCreateDto.ToHour) 
@@ -159,10 +160,10 @@ namespace Parking_project.Controllers
                     || (d.FromHour <= DetajeCreateDto.FromHour && d.ToHour == null)
                     || (d.ToHour <= DetajeCreateDto.ToHour && d.FromHour >= DetajeCreateDto.FromHour)
                     || (d.ToHour > DetajeCreateDto.FromHour && DetajeCreateDto.ToHour ==null)).FirstOrDefaultAsync();
-            if (getDetajet != null)
-            {
-                return BadRequest(ApiResponse<object>.BadRequest("Invalid time has been set"));
-            }
+                if (getDetajet != null)
+                {
+                    return Conflict(ApiResponse<object>.Conflict("Time Conflict for this Cilsim"));
+                }
                
                 var detajetModel = _mapper.Map<Detajet>(DetajeCreateDto);
                 await _db.Detajet.AddAsync(detajetModel);

@@ -2,7 +2,6 @@
 @model NjesiReadDto
 
 <style>
-    /* Stilimi i butonave */
     .btn-edit-custom {
         color: #ffc107;
         border: 1px solid transparent;
@@ -44,7 +43,6 @@
         line-height: 1.2;
     }
 
-    /* Rregullimi i strukturës së Header-it */
     .card-header {
         padding: 0 !important;
         overflow: hidden;
@@ -59,7 +57,6 @@
         padding: 1rem 1.5rem;
     }
 
-    /* Zona që hap/mbyll listën */
     .clickable-title {
         cursor: pointer;
         flex-grow: 1;
@@ -68,36 +65,22 @@
         z-index: 1;
     }
 
-    /* Zona e butonit (Mbi Z-Axis) */
     .action-button-area {
         position: relative;
         z-index: 1050;
     }
 
     .btn-minimize i {
-        transition: transform 0.3s ease;
+        display: inline-block;
+        transition: transform 0.3s ease-in-out;
     }
 
-    .collapsed .btn-minimize i {
+    .clickable-title.collapsed .btn-minimize i {
         transform: rotate(-90deg);
     }
 </style>
 
 <div class="container my-5 pb-5">
-    @if (TempData["success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show shadow rounded-pill px-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    else if (TempData["error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
 
     <div class="row align-items-center mb-4">
         <div class="col">
@@ -130,7 +113,7 @@
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 w-100">
                         <thead class="bg-light">
-                            <tr><th class="ps-4">ID</th><th>Emri</th><th>Çmimi</th><th class="text-end pe-4">Veprimet</th></tr>
+                            <tr><th class="ps-4">Emri</th><th>Çmimi</th><th class="text-end pe-4">Veprimet</th></tr>
                         </thead>
                         <tbody>
                             @if (sherbimet != null)
@@ -138,8 +121,7 @@
                                 foreach (var s in sherbimet)
                                 {
                                     <tr>
-                                        <td class="ps-4">#@s.SherbimiId</td>
-                                        <td class="fw-bold">@s.Emri</td>
+                                        <td class="fw-bold ps-4">@s.Emri</td>
                                         @if (s.Cmimi != 0)
                                         {
                                             <td><span class="text-success fw-bold">@s.Cmimi.ToString("N2") €</span></td>
@@ -165,7 +147,7 @@
     </div>
 
     @{
-        var cilsimet = ViewBag.Cilsimet as List<Parking_web.Models.DTO.CilsimetReadDto>;
+        var cilsimet = (ViewBag.Cilsimet as List<Parking_web.Models.DTO.CilsimetReadDto>)?.OrderBy(n => n.NjesiOrg.Emri).ThenBy(c => c.Emri);
     }
     <div class="card border-0 shadow-sm mb-5">
         <div class="card-header bg-black text-white">
@@ -187,7 +169,7 @@
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 w-100">
                         <thead class="bg-light">
-                            <tr><th class="ps-4">ID</th><th>Emri</th><th>Njësia</th><th>Sherbimi</th><th class="text-end pe-4">Veprimet</th></tr>
+                            <tr><th class="ps-4">Emri</th><th>Njësia</th><th>Sherbimi</th><th class="text-end pe-4">Veprimet</th></tr>
                         </thead>
                         <tbody>
                             @if (cilsimet != null)
@@ -195,8 +177,7 @@
                                 foreach (var c in cilsimet)
                                 {
                                     <tr>
-                                        <td class="ps-4">#@c.CilsimetiId</td>
-                                        <td class="fw-bold">@c.Emri</td>
+                                        <td class="fw-bold ps-4">@c.Emri</td>
                                         <td>@c.NjesiOrg?.Emri</td>
                                         <td>@c.Sherbimi.Emri</td>
                                         <td class="text-end pe-4">
@@ -223,7 +204,10 @@
     </div>
 
     @{
-        var detajet = ViewBag.Detajet as List<Parking_web.Models.DTO.DetajetReadDto>;
+        var detajet = (ViewBag.Detajet as List<Parking_web.Models.DTO.DetajetReadDto>)?
+            .OrderBy(n => n.CilsimetParkimit.NjesiOrg.Emri)
+            .ThenBy(c => c.CilsimetParkimit.Emri)
+            .ThenBy(d => d.FromHour);
     }
     <div class="card border-0 shadow-sm mb-5">
         <div class="card-header bg-black text-white">
@@ -257,127 +241,127 @@
                                         <td class="fw-bold">@(d.ToHour.HasValue? d.ToHour + ":00 h" : "Pa limit")</td>
                                         <td class="text-success fw-bold">@d.Cmimi.ToString("N2") €</td>
                                         <td>@d.CilsimetParkimit.Emri</td>
-                                        <td>@if (d.CilsimetParkimit.Active) { <p class="text-primary fw-bold mb-0">Aktiv</p> }</td>
-                                        <td class="text-end pe-4">
-                                            <div class="btn-group">
-                                                <a asp-controller="Detajet" asp-action="Edit" asp-route-id="@d.DetajetId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
-                                                <a asp-controller="Detajet" asp-action="Delete" asp-route-id="@d.DetajetId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
+                                        <td>@if (d.CilsimetParkimit.Active) {
+                                            <p class="text-primary fw-bold mb-0">Aktiv</p>
+                                        }
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group">
+                                            <a asp-controller="Detajet" asp-action="Edit" asp-route-id="@d.DetajetId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
+                                            <a asp-controller="Detajet" asp-action="Delete" asp-route-id="@d.DetajetId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
+                                        </div>
+                                    </td>
+                                </tr>
                             }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @{
-        var lokacionet = ViewBag.Lokacionet as List<Parking_web.Models.Lokacioni>;
-    }
-    <div class="card border-0 shadow-sm mb-5">
-        <div class="card-header bg-black text-white">
-            <div class="header-content">
-                <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collLokacionet">
-                    <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
-                    <div>
-                        <h4 class="fw-bold mb-0 text-white">Menaxhimi i Lokacioneve</h4>
-                        <small class="opacity-75">Kati dhe Njësia</small>
-                    </div>
-                </div>
-                <div class="action-button-area">
-                    <a asp-controller="Lokacioni" asp-route-id="@Model.NjesiteId" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Lokacion</a>
-                </div>
-            </div>
-        </div>
-        <div id="collLokacionet" class="collapse show">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 w-100">
-                        <thead class="bg-light">
-                            <tr><th class="ps-4">ID</th><th>Kati</th><th>Njësia</th><th class="text-end pe-4">Veprimet</th></tr>
-                        </thead>
-                        <tbody>
-                            @if (lokacionet != null)
-                            {
-                                foreach (var l in lokacionet.OrderBy(n => n.NjesiOrg.Emri))
-                                {
-                                    <tr>
-                                        <td class="ps-4">#@l.LokacioniId</td>
-                                        <td class="fw-bold">Kati @l.Kati</td>
-                                        <td>@l.NjesiOrg?.Emri</td>
-                                        <td class="text-end pe-4">
-                                            <div class="btn-group">
-                                                <a asp-controller="Lokacioni" asp-action="Edit" asp-route-id="@l.LokacioniId" asp-route-njesiaId="@Model.NjesiteId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
-                                                <a asp-controller="Lokacioni" asp-action="Delete" asp-route-id="@l.LokacioniId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @{
-        var vendet = ViewBag.Vendet as List<Parking_web.Models.Vendi>;
-    }
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-black text-white">
-            <div class="header-content">
-                <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collVendet">
-                    <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
-                    <div>
-                        <h4 class="fw-bold mb-0 text-white">Menaxhimi i Vendeve</h4>
-                        <small class="opacity-75">Vendet specifike të parkimit</small>
-                    </div>
-                </div>
-                <div class="action-button-area">
-                    <a asp-controller="Vendi" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Vend</a>
-                </div>
-            </div>
-        </div>
-        <div id="collVendet" class="collapse show">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 w-100">
-                        <thead class="bg-light">
-                            <tr><th class="ps-4">ID</th><th>Emri i Vendit</th><th>Lokacioni</th><th class="text-end pe-4">Veprimet</th></tr>
-                        </thead>
-                        <tbody>
-                            @if (vendet != null)
-                            {
-                                foreach (var v in vendet)
-                                {
-                                    <tr>
-                                        <td class="ps-4">#@v.VendiId</td>
-                                        <td class="fw-bold">@v.VendiEmri</td>
-                                        <td>Kati @v.Lokacioni?.Kati - @v.Lokacioni?.NjesiOrg?.Emri</td>
-                                        <td class="text-end pe-4">
-                                            <div class="btn-group">
-                                                <a asp-controller="Vendi" asp-action="Edit" asp-route-id="@v.VendiId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
-                                                <a asp-controller="Vendi" asp-action="Delete" asp-route-id="@v.VendiId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
+@{
+    var lokacionet = (ViewBag.Lokacionet as List<Parking_web.Models.Lokacioni>)?.OrderBy(n => n.NjesiOrg.Emri).ThenBy(k => k.Kati);
+}
+<div class="card border-0 shadow-sm mb-5">
+    <div class="card-header bg-black text-white">
+        <div class="header-content">
+            <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collLokacionet">
+                <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
+                <div>
+                    <h4 class="fw-bold mb-0 text-white">Menaxhimi i Lokacioneve</h4>
+                    <small class="opacity-75">Kati dhe Njësia</small>
+                </div>
+            </div>
+            <div class="action-button-area">
+                <a asp-controller="Lokacioni" asp-route-id="@Model.NjesiteId" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Lokacion</a>
+            </div>
+        </div>
+    </div>
+    <div id="collLokacionet" class="collapse show">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 w-100">
+                    <thead class="bg-light">
+                        <tr><th class="ps-4">Kati</th><th>Njësia</th><th class="text-end pe-4">Veprimet</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (lokacionet != null)
+                        {
+                            foreach (var l in lokacionet)
+                            {
+                                <tr>
+                                    <td class="fw-bold ps-4">Kati @l.Kati</td>
+                                    <td>@l.NjesiOrg?.Emri</td>
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group">
+                                            <a asp-controller="Lokacioni" asp-action="Edit" asp-route-id="@l.LokacioniId" asp-route-njesiaId="@Model.NjesiteId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
+                                            <a asp-controller="Lokacioni" asp-action="Delete" asp-route-id="@l.LokacioniId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    var vendet = (ViewBag.Vendet as List<Parking_web.Models.Vendi>)?.OrderBy(n => n.Lokacioni.NjesiOrg.Emri).ThenBy(k => k.Lokacioni.Kati).ThenBy(v => v.VendiEmri).ToList();
+}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-black text-white">
+        <div class="header-content">
+            <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collVendet">
+                <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
+                <div>
+                    <h4 class="fw-bold mb-0 text-white">Menaxhimi i Vendeve</h4>
+                    <small class="opacity-75">Vendet specifike të parkimit</small>
+                </div>
+            </div>
+            <div class="action-button-area">
+                <a asp-controller="Vendi" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Vend</a>
+            </div>
+        </div>
+    </div>
+    <div id="collVendet" class="collapse show">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 w-100">
+                    <thead class="bg-light">
+                        <tr><th class="ps-4">Emri i Vendit</th><th>Lokacioni</th><th class="text-end pe-4">Veprimet</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (vendet != null)
+                        {
+                            foreach (var v in vendet)
+                            {
+                                <tr>
+                                    <td class="fw-bold ps-4">@v.VendiEmri</td>
+                                    <td>Kati @v.Lokacioni?.Kati - @v.Lokacioni?.NjesiOrg?.Emri</td>
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group">
+                                            <a asp-controller="Vendi" asp-action="Edit" asp-route-id="@v.VendiId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
+                                            <a asp-controller="Vendi" asp-action="Delete" asp-route-id="@v.VendiId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
 @section Scripts {
     <script>
-        // Double check: Sigurohemi që butonat nuk aktivizojnë collapse-in
         document.querySelectorAll('.action-button-area').forEach(area => {
             area.addEventListener('click', function(e) {
                 e.stopPropagation();

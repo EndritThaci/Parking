@@ -1,5 +1,55 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Politika e Privatësisë";
 }
-<h1>@ViewData["Title"]</h1>
 
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5">
+                <h1 class="display-5 fw-bold text-primary mb-4 text-center">@ViewData["Title"]</h1>
+                <p class="lead text-muted mb-5 text-center">Ne vlerësojmë besimin tuaj dhe jemi të përkushtuar për të mbrojtur të dhënat tuaja personale.</p>
+
+                <hr class="my-5">
+
+                <div class="mb-5">
+                    <h3 class="fw-bold"><i class="bi bi-shield-lock me-2"></i>1. Çfarë të dhënash mbledhim?</h3>
+                    <p>Për funksionimin e sistemit <strong>Endriti Parking</strong>, ne mbledhim informacionet e mëposhtme:</p>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><i class="bi bi-check2-circle me-2 text-success"></i><strong>Të dhënat e llogarisë:</strong> Emri, mbiemri, adresa e email-it dhe roli juaj (Admin, Manager, etj.).</li>
+                        <li class="list-group-item"><i class="bi bi-check2-circle me-2 text-success"></i><strong>Të dhënat e organizatës:</strong> Emri i organizatës dhe njësitë organizative përkatëse.</li>
+                        <li class="list-group-item"><i class="bi bi-check2-circle me-2 text-success"></i><strong>Transaksionet:</strong> Të dhënat mbi shitjet dhe operacionet që kryhen brenda sistemit.</li>
+                    </ul>
+                </div>
+
+                <div class="mb-5">
+                    <h3 class="fw-bold"><i class="bi bi-cpu me-2"></i>2. Si i përdorim të dhënat tuaja?</h3>
+                    <p>Informacioni i mbledhur përdoret ekskluzivisht për:</p>
+                    <ul>
+                        <li>Gjenerimin e raporteve (Libri i Shitjes, etj.).</li>
+                        <li>Menaxhimin e aksesit dhe sigurisë së llogarisë tuaj.</li>
+                        <li>Përmirësimin e funksionaliteteve të sistemit.</li>
+                    </ul>
+                </div>
+
+                <div class="mb-5">
+                    <h3 class="fw-bold"><i class="bi bi-eye-slash me-2"></i>3. Siguria e të dhënave</h3>
+                    <p>Të dhënat tuaja ruhen në serverë të sigurt dhe aksesohen vetëm përmes protokolleve të autorizuara (JWT Tokens). Ne nuk i ndajmë, shesim apo japim të dhënat tuaja palëve të treta për qëllime marketingu.</p>
+                </div>
+
+                <div class="mb-5">
+                    <h3 class="fw-bold"><i class="bi bi-file-earmark-text me-2"></i>4. Cookies</h3>
+                    <p>Ky aplikacion përdor "Cookies" vetëm për të mbajtur sesionin tuaj të hapur (Authentication) dhe për të mbajtur preferencat e përdoruesit gjatë lundrimit.</p>
+                </div>
+
+                <div class="bg-light p-4 rounded-4 border-start border-4 border-primary">
+                    <h5 class="fw-bold">Pyetje rreth privatësisë?</h5>
+                    <p class="mb-0">Nëse keni ndonjë pyetje rreth mënyrës se si ne i trajtojmë të dhënat tuaja, ju lutemi kontaktoni administratorin e sistemit.</p>
+                </div>
+
+                <div class="text-center mt-5">
+                    <small class="text-muted">Përditësuar së fundmi më: @DateTime.Now.ToString("dd MMMM yyyy")</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
