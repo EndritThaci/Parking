@@ -352,13 +352,7 @@ namespace Parking_project.Controllers
                     }
                 }
 
-                var getLokacionin = await _db.Vendi.Where(v => v.VendiId == findTransaktion.VendiParkimitId).Include(l => l.Lokacioni).ThenInclude(n => n.NjesiOrg).FirstOrDefaultAsync();
-                getLokacionin.IsFree = true;
-                await _db.SaveChangesAsync();
-
-
                 findTransaktion.KohaDaljes = KohaDaljes;
-                findTransaktion.Statusi = "Checked-Out";
 
                 _db.TransaksionParkimi.Update(findTransaktion);
                 await _db.SaveChangesAsync();
@@ -425,6 +419,10 @@ namespace Parking_project.Controllers
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Transaktion with id {id} not found."));
                 }
+
+                var getLokacionin = await _db.Vendi.Where(v => v.VendiId == findTransaktion.VendiParkimitId).Include(l => l.Lokacioni).ThenInclude(n => n.NjesiOrg).FirstOrDefaultAsync();
+                getLokacionin?.IsFree = true;
+                await _db.SaveChangesAsync();
 
                 findTransaktion.Statusi = "Completed";
 

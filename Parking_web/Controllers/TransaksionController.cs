@@ -29,7 +29,16 @@ namespace Parking_web.Controllers
                 var response = await _transaksionService.GetByOrgAsync<ApiResponse<IEnumerable<TransaksionRead>>>();
                 if (response != null && response.Success && response.Data != null)
                 {
-                  orgList = response.Data.ToList();
+                    foreach (var t in response.Data)
+                    {
+                        if (t.Statusi == "Pending")
+                        {
+                            t.Cmimi = null;
+                            t.KohaDaljes = null;
+                            t.Sherbimi = null;
+                        }
+                    }
+                    orgList = response.Data.ToList();
                 }
             }
             catch (Exception ex)

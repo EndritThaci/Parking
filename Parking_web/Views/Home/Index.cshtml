@@ -8,14 +8,14 @@ else
 {
 
     var pendingList = ViewBag.PendingTransactions as List<TransaksionRead>;
-    var checkedOutList = ViewBag.CheckedOutTransactions as List<TransaksionRead>;
 
+    ViewData["Title"] = "Shtepia";
 
 <div class="container py-5">
 
-        @if ((pendingList != null && pendingList.Any()) || (checkedOutList != null && checkedOutList.Any()))
+        @if ((pendingList != null && pendingList.Any()))
         {
-            var sum = pendingList.Count + checkedOutList.Count;
+            var sum = pendingList.Count;
             <div class="mb-5">
                 <div class="d-flex align-items-center mb-3 justify-content-center"
                      style="cursor: pointer;"
@@ -61,42 +61,6 @@ else
                                                 <a asp-controller="Home" asp-action="Edit" asp-route-transaksioniId="@item.TransaksioniId"
                                                    class="btn btn-outline-warning w-100 rounded-pill fw-bold py-2 shadow-sm transition-all btn-pay">
                                                     Përzgjidh për Mbyllje
-                                                </a>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                            @foreach (var item in checkedOutList)
-                            {
-                                <div class="col-md-6 col-lg-4">
-                                    <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative checkOut-card">
-                                        <div class="checkOut-stripe"></div>
-                                        <div class="card-body p-4">
-                                            <a asp-controller="Home" asp-action="Pay" asp-route-id="@item.TransaksioniId" class="text-decoration-none">
-                                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                                    <div>
-                                                        <h6 class="text-muted small text-uppercase fw-bold mb-1">Vendi i Parkimit</h6>
-                                                        <h4 class="fw-black mb-0">@item.Vendi.VendiEmri, Kati @item.Vendi.Lokacioni.Kati, @item.Cilsimi.NjesiOrg.Emri</h4>
-                                                    </div>
-
-                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 rounded-pill">
-                                                        Mbyllur
-                                                    </span>
-                                                </div>
-
-                                                <div class="d-flex align-items-center text-muted small mb-4">
-                                                    <i class="bi bi-clock-history me-2"></i>
-                                                    <span>Hyrja: <strong>@item.KohaHyrjes.ToString("HH:mm")</strong></span>
-                                                    <span class="mx-2">|</span>
-                                                    <span>Dalja: <strong>@item.KohaDaljes?.ToString("HH:mm")</strong></span>
-                                                    <span class="mx-2">|</span>
-                                                    <span>Data: @item.KohaDaljes?.ToString("dd/MM")</span>
-                                                </div>
-
-                                                <a asp-controller="Home" asp-action="Pay" asp-route-id="@item.TransaksioniId"
-                                                   class="btn btn-outline-danger w-100 rounded-pill fw-bold py-2 shadow-sm transition-all btn-pay1">
-                                                    Përzgjidh për Pagesë
                                                 </a>
                                             </a>
                                         </div>

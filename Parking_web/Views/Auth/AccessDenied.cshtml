@@ -1,9 +1,12 @@
-﻿<div class="container">
+﻿@{
+    ViewData["Title"] = "Nuk keni Qasje";
+}
+
+<div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
             <div class="card shadow mt-5 mb-5">
                 <div class="card-body p-5 text-center">
-                    <!-- Header -->
                     <div class="mb-4">
                         <i class="bi bi-shield-exclamation text-warning display-1"></i>
                     </div>
@@ -13,8 +16,6 @@
                         Na vjen keq, nuk keni leje për të hyrë në këtë burim.
                         Ju lutemi kontaktoni administratorin tuaj nëse mendoni se ky është një gabim.
                     </p>
-
-                    <!-- Action Buttons -->
                     <div class="d-grid gap-2">
                         <a asp-action="index" asp-controller="home" class="btn btn-primary">
                             <i class="bi bi-house me-2"></i>Kthehu ne Fillim

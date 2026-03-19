@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using QRCoder;
 
 namespace Parking_web.Controllers
 {
@@ -48,9 +49,7 @@ namespace Parking_web.Controllers
                 if (UserResponse != null && UserResponse.Success && UserResponse.Data != null)
                 {
                     var pendingList = UserResponse.Data.Where(t => t.Statusi == "Pending").ToList();
-                    var checkedOutList = UserResponse.Data.Where(t => t.Statusi == "Checked-Out").ToList();
                     ViewBag.PendingTransactions = pendingList;
-                    ViewBag.CheckedOutTransactions = checkedOutList;
                 }
 
             }
@@ -238,6 +237,90 @@ namespace Parking_web.Controllers
 
             return RedirectToAction("Index");
         }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult QRShow(int id)
+        {
+            return View(id);
+        }
+
+        public IActionResult QRGenerate(int id)
+        {
+            using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+            {
+                string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmm");
+                string url = $"https://localhost:7061/Home/QRRead?id={id}&t={timestamp}"; // URL dohet me bo te serverit
+
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
+                PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
+                byte[] qrCodeAsPngByteArr = qrCode.GetGraphic(20);
+
+                return File(qrCodeAsPngByteArr, "image/png");
+            }
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> QRRead(int id, string t)
+        {
+            if (string.IsNullOrEmpty(t))
+            {
+                TempData["error"] = "Ky QR Kod nuk exsiston.";
+                return RedirectToAction("Index");
+            }
+
+            if (DateTime.TryParseExact(t, "yyyyMMddHHmm", null, System.Globalization.DateTimeStyles.None, out DateTime generatedTime))
+            {
+                var diff = DateTime.UtcNow - generatedTime;
+
+                if (diff.TotalMinutes > 10)
+                {
+                    TempData["error"] = "Ky QR Kod ka skaduar (limiti 10 min). Ju lutem gjeneroni një të ri.";
+                    return RedirectToAction("Index");
+                }
+            }
+            else
+            {
+                return BadRequest("Format i gabuar i kohës.");
+            }
+
+            return View(id);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> QRWrite(int id)
+        {
+            try
+            {
+                var transaksioni = await _transaksioniService.GetAsync<ApiResponse<TransaksionRead>>(id);
+                if (transaksioni == null || !transaksioni.Success || transaksioni.Data == null)
+                {
+                    TempData["error"] = "QR Code i pavlefshëm.";
+                    return RedirectToAction("Index");
+                }
+                TransaksionUpdateDto update = new();
+                update.SherbimiId = transaksioni.Data.Sherbimi?.Where(i => i.SherbimiId != transaksioni.Data.Cilsimi.SherbimiId).Select(i => i.SherbimiId).ToList();
+                var response1 = await _transaksioniService.UpdateAsync<ApiResponse<TransaksionRead>>(id, update);
+                var response = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(id);
+                if (response != null && response.Success)
+                {
+                    TempData["success"] = "Transaksioni u mbyll me sukses. Faleminderit për përdorimin e Parkingut tonë";
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    TempData["error"] = "QR Code i pavlefshëm.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"Gabim: {ex.Message}";
+            }
+            return RedirectToAction("Index");
+        }
+
 
 
         public IActionResult Privacy()

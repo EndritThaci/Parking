@@ -94,11 +94,19 @@ namespace fin_auto_project.Controllers
                 Cilsimi = t.Cilsimet,
                 Useri = t.User,
                 Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList(),
-            });
+            }).ToList();
 
             foreach (var rez in result)
             {
                 rez.Useri.Passwordi = "";
+
+                if (rez.Statusi == "Pending")
+                {
+                    rez.Cmimi = null;
+                    rez.KohaDaljes = null;
+                    rez.Sherbimi = null;
+                }
+
             }
 
             var file = BookToExcel(result);
@@ -112,7 +120,7 @@ namespace fin_auto_project.Controllers
 
         }
 
-        private byte[] BookToExcel(IEnumerable<TransaksionRead> transactions)
+        private byte[] BookToExcel(List<TransaksionRead> transactions)
         {
             using var package = new OfficeOpenXml.ExcelPackage();
             var worksheet = package.Workbook.Worksheets.Add("Libri i Shitjeve");

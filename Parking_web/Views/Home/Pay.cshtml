@@ -1,10 +1,12 @@
 ﻿@model Parking_web.Models.DTO.TransaksionRead
+@{
+    ViewData["Title"] = "Pagesa";
+}
 
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-                @* HEADER *@
                 <div class="bg-primary py-4 text-center text-white">
                     <i class="bi bi-wallet2 display-4"></i>
                     <h3 class="fw-bold">Pagesa e Transaksionit</h3>
@@ -12,7 +14,6 @@
                 </div>
 
                 <div class="card-body p-4 p-md-5">
-                    @* INFO *@
                     <div class="d-flex justify-content-between mb-3">
                         <span class="text-muted">Vendi i Parkimit:</span>
                         <span class="fw-bold">@Model.Vendi.VendiEmri, Kati @Model.Vendi.Lokacioni.Kati, @Model.Cilsimi.NjesiOrg.Emri</span>
@@ -24,22 +25,24 @@
 
                     <div class="border-dashed my-4"></div>
 
-                    @* CMIMI *@
                     <div class="text-center mb-4">
                         <h6 class="text-muted text-uppercase small fw-bold">Shuma Totale për të Paguar</h6>
                         <h1 class="display-4 fw-black text-primary">@Model.Cmimi €</h1>
                     </div>
 
-                    @* FORMA QE THIRR POST PAYMENT *@
                     <div class="d-grid gap-2">
-                        <form asp-action="Payment" method="post">
+                        @* <form asp-action="Payment" method="post">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@Model.TransaksioniId" />
 
                             <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow">
                                 Konfirmo Pagesën
                             </button>
-                        </form>
+                        </form> *@
+
+                        <a asp-action="QRShow" asp-route-id="@Model.TransaksioniId" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow">
+                            Konfirmo Pagesën
+                        </a>
 
                         <a asp-action="Index" class="btn btn-link text-muted text-decoration-none text-center">
                             Anulo dhe kthehu
@@ -56,11 +59,10 @@
         font-weight: 900;
     }
 
-    /* Efekti i biletës që kërkove */
     .border-dashed {
         border-top: 2px dashed #dee2e6;
         position: relative;
-        margin: 0 -3rem; /* E nxjerr vijën pak jashtë padding-ut të kartës */
+        margin: 0 -3rem;
     }
 
         .border-dashed::before, .border-dashed::after {
@@ -69,7 +71,7 @@
             top: -11px;
             width: 22px;
             height: 22px;
-            background-color: #f8f9fa; /* Ngjyra e backgroundit të faqes */
+            background-color: #f8f9fa;
             border-radius: 50%;
         }
 
