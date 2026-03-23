@@ -88,7 +88,23 @@ namespace Parking_project.Services
             {
                 throw new InvalidOperationException("An unexpected error occured during registration", ex);
             }
+        }
 
+        public async Task<string> ChangePassword(Useri user, string OldPassword, string NewPassword)
+        {
+            try
+            {
+                if (user == null || _passwordHasher.VerifyHashedPassword(user, user.Passwordi, OldPassword) == PasswordVerificationResult.Failed)
+                {
+                    return null;
+                }
+
+                return _passwordHasher.HashPassword(null, NewPassword);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("An unexpected error occured during registration", ex);
+            }
         }
 
         private string GenerateToken(Useri useri)

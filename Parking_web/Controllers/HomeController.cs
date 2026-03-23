@@ -1,15 +1,11 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Parking_web.Models;
 using Parking_web.Models.DTO;
-using Parking_web.Services;
 using Parking_web.Services.IServices;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using QRCoder;
+using System.Diagnostics;
 
 namespace Parking_web.Controllers
 {
@@ -21,9 +17,10 @@ namespace Parking_web.Controllers
         private readonly ITransaksionService _transaksioniService;
         private readonly ICilsimiService _cilsimiService;
         private readonly ISherbimiService _sherbimiService;
+        private readonly ICardDetailsService _cardDetailsService;
         private readonly IMapper _mapper;
 
-        public HomeController(INjesiaService njesiaService, ILokacioniService lokacioniService, ITransaksionService transaksioniService, IVendiService vendiService, ISherbimiService sherbimiService, ICilsimiService cilsimiService, IMapper mapper)
+        public HomeController(INjesiaService njesiaService, ILokacioniService lokacioniService, ITransaksionService transaksioniService, IVendiService vendiService, ISherbimiService sherbimiService, ICilsimiService cilsimiService, IMapper mapper, ICardDetailsService cardDetailsService)
         {
             _njesiaService = njesiaService;
             _lokacioniService = lokacioniService;
@@ -32,6 +29,7 @@ namespace Parking_web.Controllers
             _cilsimiService = cilsimiService;
             _sherbimiService = sherbimiService;
             _mapper = mapper;
+            _cardDetailsService = cardDetailsService;
         }
 
         public async Task<IActionResult> Index()
@@ -41,7 +39,7 @@ namespace Parking_web.Controllers
             {
                 var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiReadDto>>>();
                 var UserResponse = await _transaksioniService.GetByUserAsync<ApiResponse<List<TransaksionRead>>>();
-               
+
                 if (response != null && response.Success && response.Data != null)
                 {
                     orgList = response.Data;
@@ -53,7 +51,7 @@ namespace Parking_web.Controllers
                 }
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
@@ -117,7 +115,7 @@ namespace Parking_web.Controllers
 
                 if (cilsimiActiv == null)
                 {
-                    TempData["error"] = "Nuk u gjet asnjë cilësim aktiv për këtë njësi.";
+                    TempData["error"] = "Nuk u gjet asnje cilesim aktiv për kete njësi.";
                     return RedirectToAction("Index");
                 }
 
@@ -140,7 +138,7 @@ namespace Parking_web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TransaksionetCreateDto createDto)
-        { 
+        {
             try
             {
                 var response = await _transaksioniService.CreateAsync<ApiResponse<TransaksionetCreateDto>>(createDto);
@@ -190,14 +188,14 @@ namespace Parking_web.Controllers
         {
             try
             {
-                var response = await _transaksioniService.UpdateAsync<ApiResponse<TransaksionRead>>(transaksioniId,transaksion);
+                var response = await _transaksioniService.UpdateAsync<ApiResponse<TransaksionRead>>(transaksioniId, transaksion);
                 if (response != null && response.Success)
                 {
                     return RedirectToAction("Pay", new { id = transaksioniId });
                 }
                 else
                 {
-                    TempData["error"] = "Gabim ne perpunimin e sherbimeve";
+                    TempData["error"] = $"Gabim ne perpunimin e sherbimeve";
                 }
 
             }
@@ -218,39 +216,29 @@ namespace Parking_web.Controllers
                 TempData["error"] = "Transaksioni nuk u gjet.";
                 return RedirectToAction("Index");
             }
+            var cardDetails = await _cardDetailsService.GetByUserAsync<ApiResponse<IEnumerable<CardDetails>>>();
+            if (cardDetails != null && cardDetails.Success)
+            {
+                ViewBag.CardDetails = cardDetails.Data;
+            }
 
             return View(response.Data);
         }
 
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Payment(int id)
-        {
-            var response = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(id);
-
-            if (response == null || !response.Success)
-            {
-                TempData["error"] = "Pagesa deshtoi.";
-                return RedirectToAction("Pay", new { id = id });
-            }
-
-            return RedirectToAction("Index");
-        }
-
         [HttpGet]
         [Authorize]
-        public IActionResult QRShow(int id)
+        public IActionResult QRShow(int id, int selectedCardId)
         {
+            ViewBag.SelectedCardId = selectedCardId;
             return View(id);
         }
 
-        public IActionResult QRGenerate(int id)
+        public IActionResult QRGenerate(int id, int selectedCardId)
         {
             using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
             {
                 string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmm");
-                string url = $"https://localhost:7061/Home/QRRead?id={id}&t={timestamp}"; // URL dohet me bo te serverit
+                string url = $"https://localhost:7061/Home/QRRead?id={id}&t={timestamp}&c={selectedCardId}"; // URL dohet me bo te serverit
 
                 QRCodeData qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
                 PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
@@ -262,7 +250,7 @@ namespace Parking_web.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> QRRead(int id, string t)
+        public async Task<IActionResult> QRRead(int id, string t, int c)
         {
             if (string.IsNullOrEmpty(t))
             {
@@ -279,6 +267,8 @@ namespace Parking_web.Controllers
                     TempData["error"] = "Ky QR Kod ka skaduar (limiti 10 min). Ju lutem gjeneroni një të ri.";
                     return RedirectToAction("Index");
                 }
+                ViewBag.SelectedCardId = c;
+
             }
             else
             {
@@ -290,19 +280,28 @@ namespace Parking_web.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> QRWrite(int id)
+        public async Task<IActionResult> QRWrite(int id, int CardId)
         {
             try
             {
+
                 var transaksioni = await _transaksioniService.GetAsync<ApiResponse<TransaksionRead>>(id);
                 if (transaksioni == null || !transaksioni.Success || transaksioni.Data == null)
                 {
                     TempData["error"] = "QR Code i pavlefshëm.";
                     return RedirectToAction("Index");
                 }
-                TransaksionUpdateDto update = new();
-                update.SherbimiId = transaksioni.Data.Sherbimi?.Where(i => i.SherbimiId != transaksioni.Data.Cilsimi.SherbimiId).Select(i => i.SherbimiId).ToList();
-                var response1 = await _transaksioniService.UpdateAsync<ApiResponse<TransaksionRead>>(id, update);
+
+                var card = await _cardDetailsService.PayAsync<ApiResponse<CardDetails>>(CardId, transaksioni.Data.Cmimi!.Value);
+                if (card == null || !card.Success)
+                {
+                    TempData["error"] = $"Pagesa deshtoi. {card?.Message}";
+                    return RedirectToAction("Index");
+                }
+
+                //TransaksionUpdateDto update = new();
+                //update.SherbimiId = transaksioni.Data.Sherbimi?.Where(i=> i.SherbimiId != transaksioni.Data.Cilsimi.SherbimiId).Select(i=> i.SherbimiId).ToList();
+                //var response1 = await _transaksioniService.UpdateAsync<ApiResponse<TransaksionRead>>(id, update);
                 var response = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(id);
                 if (response != null && response.Success)
                 {
@@ -320,7 +319,6 @@ namespace Parking_web.Controllers
             }
             return RedirectToAction("Index");
         }
-
 
 
         public IActionResult Privacy()

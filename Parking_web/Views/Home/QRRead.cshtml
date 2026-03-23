@@ -11,7 +11,7 @@
         <p class="text-muted">Ju lutem prisni, mos e mbyllni faqen.</p>
     </div>
 
-    <form id="autoPostForm" asp-controller="Home" asp-action="QRWrite" asp-route-id="@Model" method="post" class="d-none">
+    <form id="autoPostForm" asp-controller="Home" asp-action="QRWrite" asp-route-id="@Model" asp-route-CardId="@ViewBag.SelectedCardId" asp-route-amount="@ViewBag.Amount" method="post" class="d-none">
         @Html.AntiForgeryToken()
         <button type="submit">Submit</button>
     </form>

@@ -11,7 +11,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.Security.Cryptography;
 
-namespace fin_auto_project.Controllers
+namespace Parking_project.Controllers
 {
     [Route("api/LibriShitjes")]
     [ApiController]

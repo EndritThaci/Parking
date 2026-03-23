@@ -54,13 +54,13 @@ builder.Services.AddRateLimiter(options =>
 });
 
 builder.Services.AddCors();
-// Add services to the container.
+
 builder.Services.AddDbContext<AplicationDbContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
 builder.Services.AddOpenApi( options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
@@ -122,6 +122,10 @@ builder.Services.AddAutoMapper(o =>
     o.CreateMap<TransaksionParkimi, TransaksionetCreateDto>().ReverseMap();
     o.CreateMap<TransaksionParkimi, TransaksionUpdateDto>().ReverseMap();
     o.CreateMap<TransaksionParkimi, TransaksionRead>().ReverseMap();
+
+    o.CreateMap<CardDetails, CardDetailsCreateDTO>().ReverseMap();
+
+    o.CreateMap<BankAccount, BankAccountCreateDTO>().ReverseMap();
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -129,7 +133,6 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

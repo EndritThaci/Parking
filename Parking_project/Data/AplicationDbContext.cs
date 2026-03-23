@@ -15,6 +15,9 @@ namespace Parking_project.Data
         public DbSet<TransaksionParkimi> TransaksionParkimi { get; set; }
         public DbSet<Detajet> Detajet { get; set; }
         public DbSet<TransaksionDetaj> TransaksionDetaj { get; set; }
+        public DbSet<Banka> Bank { get; set; }
+        public DbSet<BankAccount> BankAccount { get; set; }
+        public DbSet<CardDetails> CardDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -114,6 +117,32 @@ namespace Parking_project.Data
                 .HasOne(td => td.Sherbimi)
                 .WithMany()
                 .HasForeignKey(td => td.SherbimiId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 9. CardDetails (Multiple FKs)
+            modelBuilder.Entity<CardDetails>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<CardDetails>()
+                .HasOne(c => c.BankAccount)
+                .WithMany()
+                .HasForeignKey(c => c.BankAcountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 10. BankAccount 
+            modelBuilder.Entity<BankAccount>()
+                .HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BankAccount>()
+                .HasOne(d => d.Bank)
+                .WithMany()
+                .HasForeignKey(d => d.BankId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
 

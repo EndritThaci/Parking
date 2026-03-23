@@ -30,19 +30,67 @@
                         <h1 class="display-4 fw-black text-primary">@Model.Cmimi €</h1>
                     </div>
 
+                    <div class="border-dashed my-4"></div>
+
+                    <div class="mb-4">
+                        <h6 class="text-muted text-center small fw-bold mb-3">Zgjidhni Mënyrën e Pagesës</h6>
+
+                        <div class="card-slider-container">
+                            @{
+                                var cards = ViewBag.CardDetails as IEnumerable<Parking_web.Models.CardDetails>;
+                            }
+
+                            @if (cards != null && cards.Any())
+                            {
+                                <div class="d-flex flex-nowrap gap-3 pb-3" style="overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;">
+                                    @foreach (var card in cards)
+                                    {
+                                        <div class="payment-card-item" onclick="selectCard(this, '@card.Id')" style="flex: 0 0 260px; scroll-snap-align: start; cursor: pointer;">
+                                            <div class="p-3 rounded-4 border bg-light text-black shadow-sm position-relative card-visual h-100">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <i class="bi bi-sim text-primary fs-4"></i>
+                                                    <span class="small opacity-75">@card.BankAccount.Bank.Name</span>
+                                                </div>
+                                                <div class="mb-3 tracking-widest small text-center py-2">
+                                                    **** **** **** @(card.CardNumber.Length > 4 ? card.CardNumber.Substring(card.CardNumber.Length - 4) : card.CardNumber)
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-end mt-2">
+                                                    <span style="font-size: 0.65rem;" class="text-uppercase fw-bold">@Model.Useri.Emri @Model.Useri.Mbiemri</span>
+                                                    <span style="font-size: 0.65rem;">@card.ExpirationDate.ToString("MM/yy")</span>
+                                                </div>
+                                                <div class="selection-indicator position-absolute top-0 end-0 m-2 d-none">
+                                                    <i class="bi bi-check-circle-fill text-primary fs-5"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center p-3 border rounded-4 bg-light">
+                                    <small class="text-muted">Nuk keni kartela të regjistruara. <a asp-controller="Profile" asp-action="Index" class="fw-bold">Shto një këtu</a>.</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="selectedCardId" name="selectedCardId" value="" />
+
                     <div class="d-grid gap-2">
-                        @* <form asp-action="Payment" method="post">
+                        <form asp-action="QRShow" method="get" id="paymentForm">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@Model.TransaksioniId" />
+                            <input type="hidden" name="selectedCardId" id="selectedCardInput" />
 
-                            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow">
-                                Konfirmo Pagesën
+                            <button type="submit" id="submitBtn" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow" disabled>
+                                Zgjedh për pagesë
                             </button>
-                        </form> *@
 
-                        <a asp-action="QRShow" asp-route-id="@Model.TransaksioniId" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow">
-                            Konfirmo Pagesën
-                        </a>
+                            <div id="selectionWarning" class="text-danger small text-center mt-2">
+                                <i class="bi bi-info-circle"></i> Ju lutem zgjidhni një kartelë për të vazhduar.
+                            </div>
+                        </form>
 
                         <a asp-action="Index" class="btn btn-link text-muted text-decoration-none text-center">
                             Anulo dhe kthehu
@@ -86,4 +134,53 @@
     .bg-primary {
         background: linear-gradient(45deg, #0d6efd, #0a58ca) !important;
     }
+
+    .card-slider-container div::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .card-slider-container div::-webkit-scrollbar-thumb {
+        background: #dee2e6;
+        border-radius: 10px;
+    }
+
+    .card-visual {
+        transition: all 0.3s ease;
+        border: 2px solid transparent !important;
+    }
+
+    .payment-card-item.active .card-visual {
+        border-color: #0d6efd !important;
+        transform: scale(1.02);
+        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2) !important;
+    }
+
+    .payment-card-item.active .selection-indicator {
+        display: block !important;
+    }
+
+    .tracking-widest {
+        letter-spacing: 2px;
+    }
 </style>
+<script>
+    function selectCard(element, cardId) {
+        document.querySelectorAll('.payment-card-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        element.classList.add('active');
+
+        
+        const cardInput = document.getElementById('selectedCardInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const warning = document.getElementById('selectionWarning');
+
+        cardInput.value = cardId;
+
+        if (cardId) {
+            submitBtn.disabled = false;
+            warning.classList.add('d-none');
+        }
+    }
+</script>

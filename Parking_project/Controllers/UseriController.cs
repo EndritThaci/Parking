@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
-using Parking_project.Data;
-using Parking_project.Models;
-using Parking_project.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Parking_project.Data;
+using Parking_project.Models;
+using Parking_project.Models.DTO;
+using Parking_project.Services;
+using System.Security.Claims;
 
 namespace Parking_project.Controllers
 {
@@ -13,12 +15,14 @@ namespace Parking_project.Controllers
     public class UseriController : ControllerBase
     {
         private readonly AplicationDbContext _db;
+        private readonly IAuthService _authService;
         private readonly IMapper _mapper;
 
-        public UseriController(AplicationDbContext db, IMapper mapper)
+        public UseriController(AplicationDbContext db, IMapper mapper, IAuthService authService)
         {
             _db = db;
             _mapper = mapper;
+            _authService = authService;
         }
 
         [HttpGet]
@@ -41,22 +45,21 @@ namespace Parking_project.Controllers
         }
 
         [HttpGet("{id:int}")]
-        [ProducesResponseType(typeof(ApiResponse<UserReadDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<UserReadDTO>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<UserReadDTO>), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ApiResponse<UserReadDTO>>> GetUserById(int id)
+        public async Task<ActionResult<ApiResponse<Useri>>> GetUserById(int id)
         {
             try
             {
                 if (id <= 0)
                     return NotFound(ApiResponse<UserReadDTO>.NotFound("Invalid ID"));
 
-                var user = await _db.Useri.FirstOrDefaultAsync(u => u.UserId == id);
+                var user = await _db.Useri.Where(u => u.UserId == id).Include(o => o.Organizata).Include(n => n.Njesi).FirstOrDefaultAsync();
                 if (user == null)
                     return NotFound(ApiResponse<UserReadDTO>.NotFound($"User with ID {id} not found"));
 
-                var data = _mapper.Map<UserReadDTO>(user);
-                return Ok(ApiResponse<UserReadDTO>.Ok(data, "User retrieved successfully"));
+                return Ok(ApiResponse<Useri>.Ok(user, "User retrieved successfully"));
             }
             catch (Exception ex)
             {
@@ -126,5 +129,45 @@ namespace Parking_project.Controllers
                 return StatusCode(500, errorResponse);
             }
         }
+
+        [HttpPut("Password")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<Useri>>> ChangePassword(ChangePasswordDTO dto)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var user = await _db.Useri.FirstOrDefaultAsync(u => u.UserId == userId);
+                if (user == null)
+                    return NotFound(ApiResponse<Useri>.NotFound($"User with ID {userId} not found"));
+
+                if (dto.NewPassword != dto.ConfirmPassword)
+                    return BadRequest(ApiResponse<Useri>.BadRequest("New password and confirmation do not match"));
+
+                if (dto.NewPassword == dto.OldPassword)
+                    return BadRequest(ApiResponse<Useri>.BadRequest("New password and Old password can not match"));
+
+                var response = await _authService.ChangePassword(user, dto.OldPassword, dto.NewPassword);
+                if (response == null)
+                    return BadRequest(ApiResponse<Useri>.BadRequest("Incorrect Password"));
+
+                user.Passwordi = response;
+
+                await _db.SaveChangesAsync();
+
+                return Ok(ApiResponse<Useri>.Ok(user, "User updated successfully"));
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<Useri>.Error(500, "An Error Occurred while editing user", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
+
     }
 }
