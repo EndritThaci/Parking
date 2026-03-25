@@ -195,7 +195,7 @@ namespace Parking_web.Controllers
                 }
                 else
                 {
-                    TempData["error"] = $"Gabim ne perpunimin e sherbimeve";
+                    TempData["error"] = $"Gabim: {response?.Message ?? "Diçka shkoi keq."}";
                 }
 
             }
@@ -213,7 +213,7 @@ namespace Parking_web.Controllers
 
             if (response == null || !response.Success)
             {
-                TempData["error"] = "Transaksioni nuk u gjet.";
+                TempData["error"] = $"Gabim: {response?.Message ?? "Transaksioni nuk u gjet."}";
                 return RedirectToAction("Index");
             }
             var cardDetails = await _cardDetailsService.GetByUserAsync<ApiResponse<IEnumerable<CardDetails>>>();
@@ -223,6 +223,37 @@ namespace Parking_web.Controllers
             }
 
             return View(response.Data);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Manager , Admin")]
+        public async Task<IActionResult> CashPayment(int id)
+        {
+            try
+            {
+                var transaksioni = await _transaksioniService.GetAsync<ApiResponse<TransaksionRead>>(id);
+                if (transaksioni == null || !transaksioni.Success || transaksioni.Data == null)
+                {
+                    TempData["error"] = $"Gabim: {transaksioni?.Message ?? "Diçka shkoi keq."}";
+                    return RedirectToAction("Index");
+                }
+
+                var response = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(id);
+                if (response != null && response.Success)
+                {
+                    TempData["success"] = "Transaksioni u mbyll me sukses. Faleminderit për përdorimin e Parkingut tonë";
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    TempData["error"] = $"Gabim: {response?.Message ?? "Diçka shkoi keq."}";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"Gabim: {ex.Message}";
+            }
+            return RedirectToAction("Index");
         }
 
         [HttpGet]
@@ -238,7 +269,9 @@ namespace Parking_web.Controllers
             using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
             {
                 string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmm");
-                string url = $"https://localhost:7061/Home/QRRead?id={id}&t={timestamp}&c={selectedCardId}"; // URL dohet me bo te serverit
+                string signature = GenerateSignature(id, timestamp, selectedCardId);
+
+                string url = $"https://localhost:7061/Home/QRRead?id={id}&t={timestamp}&c={selectedCardId}&s={signature}"; // URL dohet me bo te serverit
 
                 QRCodeData qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
                 PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
@@ -248,13 +281,32 @@ namespace Parking_web.Controllers
             }
         }
 
+        private string GenerateSignature(int id, string timestamp, int cardId)
+        {
+            string secretKey = "hfxycvrdsxr653eed6>";
+            string payload = $"{id}-{timestamp}-{cardId}";
+
+            using (var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes(secretKey)))
+            {
+                byte[] hashBytes = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(payload));
+                return Convert.ToBase64String(hashBytes).Replace("+", "-").Replace("/", "_");
+            }
+        }
+
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> QRRead(int id, string t, int c)
+        public async Task<IActionResult> QRRead(int id, string t, int c, string s)
         {
-            if (string.IsNullOrEmpty(t))
+            if (string.IsNullOrEmpty(t) || string.IsNullOrEmpty(s))
             {
                 TempData["error"] = "Ky QR Kod nuk exsiston.";
+                return RedirectToAction("Index");
+            }
+
+            string expectedSignature = GenerateSignature(id, t, c);
+            if (s != expectedSignature)
+            {
+                TempData["error"] = "Ky QR Kod është i pavlefshëm.";
                 return RedirectToAction("Index");
             }
 
@@ -295,7 +347,7 @@ namespace Parking_web.Controllers
                 var card = await _cardDetailsService.PayAsync<ApiResponse<CardDetails>>(CardId, transaksioni.Data.Cmimi!.Value);
                 if (card == null || !card.Success)
                 {
-                    TempData["error"] = $"Pagesa deshtoi. {card?.Message}";
+                    TempData["error"] = $"Pagesa deshtoi. {card?.Message ?? ""}";
                     return RedirectToAction("Index");
                 }
 

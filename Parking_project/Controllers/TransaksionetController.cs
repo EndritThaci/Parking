@@ -307,6 +307,10 @@ namespace Parking_project.Controllers
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Transaktion with id {id} not found."));
                 }
+                if (findTransaktion.Statusi == "Completed")
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Transaction is already completed"));
+                }
                 var sherbimiParking = await _db.CilsimetParkimit.Where(c => c.CilsimetiId == findTransaktion.CilsimiId).Include(s => s.Sherbimi).FirstOrDefaultAsync();
 
                 List<Sherbimi> getSherbimet = new List<Sherbimi>();
