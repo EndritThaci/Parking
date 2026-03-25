@@ -16,6 +16,8 @@ namespace Parking_project.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal Cmimi { get; set; }
 
+        public bool active { get; set; } = true;
+
         [Required]
         public int CilsimetiId { get; set; }
 

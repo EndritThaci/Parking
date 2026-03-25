@@ -17,7 +17,9 @@ namespace Parking_project.Models
         [Required]
         public int SherbimiId { get; set; }
 
-        public bool Active { get; set; } = false;
+        public bool Selected { get; set; } = false; //cakton cila eshte aktive per momentin
+
+        public bool active { get; set; } = true; //kjo sherben per fshire cilsimin
 
         [ForeignKey(nameof(SherbimiId))]
         public Sherbimi Sherbimi { get; set; }

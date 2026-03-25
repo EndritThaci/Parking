@@ -13,6 +13,8 @@ namespace Parking_project.Models
 
         public bool IsFree { get; set; }
 
+        public bool active { get; set; } = true;
+
         public int LokacioniId { get; set; }
 
         [ForeignKey(nameof(LokacioniId))]

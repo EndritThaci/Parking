@@ -9,9 +9,6 @@ namespace Parking_web.Models
         public int Id { get; set; }
 
         [Required]
-        public string CardName { get; set; }
-
-        [Required]
         public string CardNumber { get; set; }
 
         [Required]

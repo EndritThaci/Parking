@@ -9,7 +9,7 @@ namespace Parking_web.Models.DTO
         public string Emri { get; set; }
         public int NjesiteId { get; set; }
         public int SherbimiId { get; set; }
-        public bool Active { get; set; }
+        public bool Selected { get; set; }
         public NjesiOrg NjesiOrg { get; set; }
         public Sherbimi Sherbimi { get; set; }
     }

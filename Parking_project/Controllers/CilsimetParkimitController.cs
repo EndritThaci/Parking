@@ -28,12 +28,13 @@ namespace Parking_project.Controllers
             try
             {
                 var getCilsimet = await _db.CilsimetParkimit
+                    .Where(a => a.active)
                     .Include(n => n.NjesiOrg)
-                    .ThenInclude(o=> o.Organizata)
+                    .ThenInclude(o => o.Organizata)
                     .Include(s => s.Sherbimi)
                     .ToListAsync();
                 var cilsimet = _mapper.Map<IEnumerable<CilsimetReadDto>>(getCilsimet);
-                var response = ApiResponse<IEnumerable<CilsimetReadDto>>.Ok(cilsimet, "Cilsimet retrieved successfully.");  
+                var response = ApiResponse<IEnumerable<CilsimetReadDto>>.Ok(cilsimet, "Cilsimet retrieved successfully.");
                 return Ok(response);
             }
             catch (Exception ex)
@@ -54,10 +55,11 @@ namespace Parking_project.Controllers
             {
                 int orgId = int.Parse(User.FindFirst("BiznesId")!.Value);
                 var getCilsimet = await _db.CilsimetParkimit
+                    .Where(a => a.active)
                     .Include(n => n.NjesiOrg)
                     .ThenInclude(o => o.Organizata)
                     .Include(s => s.Sherbimi)
-                    .Where(c=>c.NjesiOrg.BiznesId == orgId)
+                    .Where(c => c.NjesiOrg.BiznesId == orgId)
                     .ToListAsync();
                 var cilsimet = _mapper.Map<IEnumerable<CilsimetReadDto>>(getCilsimet);
                 var response = ApiResponse<IEnumerable<CilsimetReadDto>>.Ok(cilsimet, "Cilsimet retrieved successfully.");
@@ -80,6 +82,7 @@ namespace Parking_project.Controllers
             try
             {
                 var getCilsimet = await _db.CilsimetParkimit
+                    .Where(a => a.active)
                     .Include(n => n.NjesiOrg)
                     .ThenInclude(o => o.Organizata)
                     .Include(s => s.Sherbimi)
@@ -111,6 +114,7 @@ namespace Parking_project.Controllers
 
                 }
                 var cilsimetParking = await _db.CilsimetParkimit
+                    .Where(a => a.active)
                     .Include(n => n.NjesiOrg)
                      .ThenInclude(o => o.Organizata)
                     .Include(s => s.Sherbimi).FirstOrDefaultAsync(n => n.CilsimetiId == id);
@@ -141,11 +145,11 @@ namespace Parking_project.Controllers
         {
             try
             {
-                if(cilsimetDto == null)
+                if (cilsimetDto == null)
                 {
-                        return BadRequest(ApiResponse<object>.BadRequest("Data is invalid"));
+                    return BadRequest(ApiResponse<object>.BadRequest("Data is invalid"));
                 }
-                if(cilsimetDto.NjesiteId <= 0)
+                if (cilsimetDto.NjesiteId <= 0)
                 {
                     return BadRequest(ApiResponse<object>.BadRequest($"The Njesi Id {cilsimetDto.NjesiteId} is invalid"));
                 }
@@ -154,26 +158,26 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<object>.BadRequest($"The Sherbimi Id {cilsimetDto.SherbimiId} is invalid"));
                 }
 
-                var getNjesi = await _db.NjesiOrg.FindAsync(cilsimetDto.NjesiteId);
-                if(getNjesi == null)
+                var getNjesi = await _db.NjesiOrg.Where(a => a.active).FirstOrDefaultAsync(n => n.NjesiteId == cilsimetDto.NjesiteId);
+                if (getNjesi == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"The Njesi Id {cilsimetDto.NjesiteId} is not found"));
                 }
-                var getSherbim = await _db.Sherbimi.FindAsync(cilsimetDto.SherbimiId);
+                var getSherbim = await _db.Sherbimi.Where(a => a.active).FirstOrDefaultAsync(s => s.SherbimiId == cilsimetDto.SherbimiId);
                 if (getSherbim == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"The Sherbimi Id {cilsimetDto.SherbimiId} is not found"));
                 }
-                if(getSherbim.BiznesId != getNjesi.BiznesId)
+                if (getSherbim.BiznesId != getNjesi.BiznesId)
                     return BadRequest(ApiResponse<object>.BadRequest($"Sherbimi and Njesia are not in the same Organization"));
-                if(getSherbim.Emri.ToLower() != "parking")
+                if (getSherbim.Emri.ToLower() != "parking")
                     return BadRequest(ApiResponse<object>.BadRequest($"Sherbimi with id {cilsimetDto.SherbimiId} is not a Parking Sherbim."));
 
                 CilsimetParkimit cilsimetParkimit = _mapper.Map<CilsimetParkimit>(cilsimetDto);
-                cilsimetParkimit.Active = false;
+                cilsimetParkimit.Selected = false;
                 await _db.CilsimetParkimit.AddAsync(cilsimetParkimit);
                 await _db.SaveChangesAsync();
-                
+
                 var response = ApiResponse<CilsimetReadDto>.CreatedAt(_mapper.Map<CilsimetReadDto>(cilsimetParkimit), "The Cilsimet has been added Successfully");
                 return CreatedAtAction(nameof(GetCilsimetById), new { id = cilsimetParkimit.CilsimetiId }, response); ;
             }
@@ -210,13 +214,13 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<object>.BadRequest($"The Sherbimi Id {updateDto.SherbimiId} is invalid"));
                 }
 
-                var getNjesi = await _db.NjesiOrg.FindAsync(updateDto.NjesiteId);
+                var getNjesi = await _db.NjesiOrg.Where(a => a.active).FirstOrDefaultAsync(n => n.NjesiteId == updateDto.NjesiteId);
                 if (getNjesi == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"The Njesi Id {updateDto.NjesiteId} is not found"));
                 }
 
-                var getSherbim = await _db.Sherbimi.FindAsync(updateDto.SherbimiId);
+                var getSherbim = await _db.Sherbimi.Where(a => a.active).FirstOrDefaultAsync(s => s.SherbimiId == updateDto.SherbimiId);
                 if (getSherbim == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"The Sherbimi Id {updateDto.SherbimiId} is not found"));
@@ -224,7 +228,7 @@ namespace Parking_project.Controllers
                 if (getSherbim.BiznesId != getNjesi.BiznesId)
                     return BadRequest(ApiResponse<object>.BadRequest($"Sherbimi and Njesia are not in the same Organization"));
 
-                var getCilsimet = await _db.CilsimetParkimit.FindAsync(id);
+                var getCilsimet = await _db.CilsimetParkimit.Where(a => a.active).FirstOrDefaultAsync(i => i.CilsimetiId == id);
                 if (getCilsimet == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Cilsimeti with Id {id} is not found"));
@@ -258,22 +262,17 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<object>.BadRequest($"The id {id} given is invalid"));
                 }
                 var getCilsimin = await _db.CilsimetParkimit.FindAsync(id);
-
-                var transaksionet = await _db.TransaksionParkimi.Where(s => s.CilsimiId == id).ToListAsync();
-
-                var transakasionetIds = transaksionet.Select(t => t.TransaksioniId).ToList();
-
-                var detajet = await _db.TransaksionDetaj.Where(d => transakasionetIds.Contains(d.TransaksionId)).ToListAsync();
-
-                _db.TransaksionDetaj.RemoveRange(detajet);
-                await _db.SaveChangesAsync();
-
                 if (getCilsimin == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Cilsimi with id {id} is not found"));
                 }
+                var getDetajet = await _db.Detajet.Where(n => n.CilsimetiId == getCilsimin.CilsimetiId).ToListAsync();
+                if (getDetajet != null)
+                {
+                    foreach (var x in getDetajet) x.active = false;
+                }
 
-                _db.CilsimetParkimit.Remove(getCilsimin);
+                getCilsimin.active = false;
                 await _db.SaveChangesAsync();
 
                 var response = ApiResponse<object>.NoContent($"Cilsimi with ID {id} has been deleted.");
@@ -299,24 +298,23 @@ namespace Parking_project.Controllers
                 {
                     return BadRequest(ApiResponse<object>.BadRequest($"The id {id} given is invalid"));
                 }
-                var getCilsimin = await _db.CilsimetParkimit.FindAsync(id);
-                var getCilsiminActiv = await _db.CilsimetParkimit.Where(c=> c.Active == true && c.NjesiteId == getCilsimin.NjesiteId).ToListAsync();
-
+                var getCilsimin = await _db.CilsimetParkimit.Where(a => a.active).FirstOrDefaultAsync(i => i.CilsimetiId == id);
                 if (getCilsimin == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Cilsimi with id {id} is not found"));
                 }
+                var getCilsiminActiv = await _db.CilsimetParkimit.Where(a => a.active).Where(c => c.Selected == true && c.NjesiteId == getCilsimin.NjesiteId).ToListAsync();
 
                 foreach (var item in getCilsiminActiv)
                 {
-                    item.Active = false;
+                    item.Selected = false;
                 }
 
-                getCilsimin.Active = true;
+                getCilsimin.Selected = true;
 
                 await _db.SaveChangesAsync();
 
-                var response = ApiResponse<object>.Ok(null,$"Cilsimi with ID {id} activated successfully.");
+                var response = ApiResponse<object>.Ok(null, $"Cilsimi with ID {id} activated successfully.");
                 return Ok(response);
 
             }

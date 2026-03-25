@@ -16,6 +16,8 @@ namespace Parking_web.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal Cmimi { get; set; } = decimal.Zero;
 
+        public bool active { get; set; } = true;
+
         [Required]
         public int BiznesId { get; set; }
 

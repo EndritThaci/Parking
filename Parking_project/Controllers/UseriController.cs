@@ -32,7 +32,7 @@ namespace Parking_project.Controllers
         {
             try
             {
-                var users = await _db.Useri.ToListAsync();
+                var users = await _db.Useri.Where(u => u.active).ToListAsync();
                 var data = _mapper.Map<IEnumerable<UserReadDTO>>(users);
 
                 return Ok(ApiResponse<IEnumerable<UserReadDTO>>.Ok(data, "Users retrieved successfully"));
@@ -55,7 +55,7 @@ namespace Parking_project.Controllers
                 if (id <= 0)
                     return NotFound(ApiResponse<UserReadDTO>.NotFound("Invalid ID"));
 
-                var user = await _db.Useri.Where(u => u.UserId == id).Include(o => o.Organizata).Include(n => n.Njesi).FirstOrDefaultAsync();
+                var user = await _db.Useri.Where(u => u.UserId == id && u.active).Include(o => o.Organizata).Include(n => n.Njesi).FirstOrDefaultAsync();
                 if (user == null)
                     return NotFound(ApiResponse<UserReadDTO>.NotFound($"User with ID {id} not found"));
 
@@ -79,17 +79,14 @@ namespace Parking_project.Controllers
         public async Task<ActionResult<ApiResponse<UserUpdateDTO>>> UpdateUser(int id, UserUpdateDTO dto)
         {
             try
-            {            
+            {
                 if (dto == null || id != dto.UserId)
                     return BadRequest(ApiResponse<UserUpdateDTO>.BadRequest("Invalid data"));
 
-                var user = await _db.Useri.FirstOrDefaultAsync(u => u.UserId == id);
+                var user = await _db.Useri.Where(u => u.active).FirstOrDefaultAsync(u => u.UserId == id);
                 if (user == null)
                     return NotFound(ApiResponse<UserUpdateDTO>.NotFound($"User with ID {id} not found"));
 
-                //var emailExists = await _db.Useri.AnyAsync(u => u.Email.ToLower() == dto.Email.ToLower() && u.UserId != id);
-                //if (emailExists)
-                //    return Conflict(ApiResponse<UserUpdateDTO>.Conflict("Email already in use"));
                 var organizataExists = await _db.Organizata.AnyAsync(o => o.BiznesId == dto.BiznesId);
                 if (!organizataExists)
                     return NotFound(ApiResponse<UserUpdateDTO>.NotFound("Organizata not found"));
@@ -98,7 +95,8 @@ namespace Parking_project.Controllers
                 await _db.SaveChangesAsync();
 
                 return Ok(ApiResponse<UserUpdateDTO>.Ok(dto, "User updated successfully"));
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 var errorResponse = ApiResponse<UserUpdateDTO>.Error(500, "An Error Occurred while editing user", ex.Message);
                 return StatusCode(500, errorResponse);
@@ -118,7 +116,7 @@ namespace Parking_project.Controllers
                 if (user == null)
                     return NotFound(ApiResponse<UserReadDTO>.NotFound($"User with ID {id} not found"));
 
-                _db.Useri.Remove(user);
+                user.active = false;
                 await _db.SaveChangesAsync();
 
                 return Ok(ApiResponse<UserReadDTO>.NoContent("User deleted successfully"));

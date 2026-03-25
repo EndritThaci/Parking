@@ -195,54 +195,5 @@ namespace Parking_web.Controllers
             }
             return View(sherbimi);
         }
-
-        
-        [Authorize(Roles = "Admin , Manager")]
-        public async Task<IActionResult> CreateParking(int? id)
-        {
-            var njesiteResponse = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiReadDto>>>();
-            var njesite = njesiteResponse?.Data;
-
-            ViewBag.NjesiteList = new SelectList(njesite, "NjesiteId", "Emri", id);
-            ViewBag.IsFixed = id.HasValue;
-            if(id != null)
-            {
-                return View(new SherbimParkingDTO { NjesiteId = id.Value });
-            }
-            return View();
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin , Manager")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateParking(SherbimParkingDTO createDTO)
-        {
-            try
-            {
-                createDTO.BiznesId = int.Parse(User.FindFirst("BiznesId")!.Value);
-                var response = await _sherbimiService.CreateParkingAsync<ApiResponse<SherbimParkingDTO>>(createDTO);
-                if (response != null && response.Success && response.Data != null)
-                {
-                    TempData["success"] = "Sherbimi u krijua me sukses";
-                    if (User.IsInRole("Manager"))
-                    {
-                        return RedirectToAction("Index", "Njesia");
-                    }
-                    return RedirectToAction("Index2", "Njesia");
-                }
-                else
-                {
-                    TempData["error"] = "Konflikt ne krijimin e sherbimit";
-                }
-
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = $"Gabim: {ex.Message}";
-            }
-            return View(createDTO);
-        }
-
-
     }
 }

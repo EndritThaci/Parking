@@ -20,6 +20,8 @@ namespace Parking_web.Models
         [StringLength(200)]
         public string Adresa { get; set; }
 
+        public bool active { get; set; } = true;
+
         [Required]
         public int BiznesId { get; set; }
 

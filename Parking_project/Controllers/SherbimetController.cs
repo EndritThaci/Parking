@@ -31,7 +31,7 @@ namespace Parking_project.Controllers
         {
             try
             {
-                var sherbimet = await _db.Sherbimi.Include(o=> o.Organizata).ToListAsync();
+                var sherbimet = await _db.Sherbimi.Where(a => a.active).Include(o => o.Organizata).ToListAsync();
                 return Ok(ApiResponse<IEnumerable<Sherbimi>>.Ok(sherbimet, "Lokacionet retrieved successfully"));
             }
             catch (Exception ex)
@@ -51,7 +51,7 @@ namespace Parking_project.Controllers
             try
             {
                 int orgId = int.Parse(User.FindFirst("BiznesId")!.Value);
-                var sherbimet = await _db.Sherbimi.Include(o => o.Organizata).Where(s=> s.BiznesId==orgId).ToListAsync();
+                var sherbimet = await _db.Sherbimi.Where(a => a.active).Include(o => o.Organizata).Where(s => s.BiznesId == orgId).ToListAsync();
                 return Ok(ApiResponse<IEnumerable<Sherbimi>>.Ok(sherbimet, "Lokacionet retrieved successfully"));
             }
             catch (Exception ex)
@@ -74,7 +74,7 @@ namespace Parking_project.Controllers
                 {
                     return BadRequest(ApiResponse<Sherbimi>.BadRequest("Id must be grater than 0"));
                 }
-                var sherbimet = await _db.Sherbimi.Include(o => o.Organizata).FirstOrDefaultAsync(s => s.SherbimiId == id);
+                var sherbimet = await _db.Sherbimi.Where(a => a.active).Include(o => o.Organizata).FirstOrDefaultAsync(s => s.SherbimiId == id);
                 if (sherbimet == null)
                 {
                     return NotFound(ApiResponse<Sherbimi>.NotFound("Sherbimi nuk ekziston"));
@@ -105,12 +105,6 @@ namespace Parking_project.Controllers
                 var organizataExists = await _db.Organizata.AnyAsync(n => n.BiznesId == sherbimiDto.BiznesId);
                 if (!organizataExists)
                     return NotFound(ApiResponse<SherbimiCreateDTO>.NotFound($"Organizata with id {sherbimiDto.BiznesId} doesn't exist"));
-
-                //var njesiaExists = await _db.NjesiOrg.FirstOrDefaultAsync(n => n.NjesiteId == sherbimiDto.NjesiteId);
-                //if (njesiaExists == null)
-                //    return NotFound(ApiResponse<SherbimiCreateDTO>.NotFound($"Njesia with id {sherbimiDto.NjesiteId} doesn't exist"));
-                //if (njesiaExists.BiznesId != sherbimiDto.BiznesId)
-                //    return BadRequest(ApiResponse<SherbimiCreateDTO>.BadRequest($"Njesia with id {sherbimiDto.NjesiteId} doesn't belong to Organizata with id {sherbimiDto.BiznesId}"));
 
                 var sherbimi = _mapper.Map<Sherbimi>(sherbimiDto);
 
@@ -144,7 +138,7 @@ namespace Parking_project.Controllers
                 if (sherbimiDto == null || id != sherbimiDto.SherbimiId || sherbimiDto.Cmimi < 0)
                     return BadRequest(ApiResponse<SherbimiUpdateDTO>.BadRequest("Invalid Data"));
 
-                var existing = await _db.Sherbimi.FirstOrDefaultAsync(s => s.SherbimiId == sherbimiDto.SherbimiId);
+                var existing = await _db.Sherbimi.Where(a => a.active).FirstOrDefaultAsync(s => s.SherbimiId == sherbimiDto.SherbimiId);
 
                 if (existing == null)
                     return NotFound(ApiResponse<SherbimiUpdateDTO>.NotFound($"Sherbimi with ID {id} not found"));
@@ -162,7 +156,7 @@ namespace Parking_project.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        //[Authorize]
+        [Authorize]
         [ProducesResponseType(typeof(ApiResponse<SherbimiCreateDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<SherbimiCreateDTO>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<SherbimiCreateDTO>), StatusCodes.Status404NotFound)]
@@ -175,21 +169,18 @@ namespace Parking_project.Controllers
                 if (sherbimi == null)
                     return NotFound(ApiResponse<Sherbimi>.NotFound("Sherbimi not found"));
 
-                var cilsimet = await _db.CilsimetParkimit.Where(s => s.SherbimiId == id).ToListAsync();
+                var getCilsimi = await _db.CilsimetParkimit.Where(n => n.SherbimiId == sherbimi.SherbimiId).ToListAsync();
+                if (getCilsimi != null)
+                {
+                    foreach (var x in getCilsimi) x.active = false;
+                }
+                var getDetajet = await _db.Detajet.Where(n => n.CilsimetParkimit.SherbimiId == sherbimi.SherbimiId).ToListAsync();
+                if (getDetajet != null)
+                {
+                    foreach (var x in getDetajet) x.active = false;
+                }
 
-                var cilsimiId = cilsimet.Select(c=> c.CilsimetiId).ToList();
-
-                var transaksionet = await _db.TransaksionParkimi.Where(s => cilsimiId.Contains(s.CilsimiId)).Select(t=> t.TransaksioniId).ToListAsync();
-
-                var detajet = await _db.TransaksionDetaj.Where(d => transaksionet.Contains(d.TransaksionId)).ToListAsync();
-
-                _db.TransaksionDetaj.RemoveRange(detajet);
-                await _db.SaveChangesAsync();
-
-                _db.CilsimetParkimit.RemoveRange(cilsimet);
-                await _db.SaveChangesAsync();
-
-                _db.Sherbimi.Remove(sherbimi);
+                sherbimi.active = false;
                 await _db.SaveChangesAsync();
 
                 return Ok(ApiResponse<Sherbimi>.NoContent("Sherbimi deleted successfully"));
@@ -203,72 +194,5 @@ namespace Parking_project.Controllers
 
         }
 
-        [HttpPost]
-        [Route("Parking")]
-        [Authorize]
-        [ProducesResponseType(typeof(ApiResponse<SherbimParkingDTO>), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ApiResponse<SherbimParkingDTO>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<SherbimParkingDTO>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ApiResponse<SherbimParkingDTO>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<SherbimParkingDTO>>> CreateParking(SherbimParkingDTO sherbimiDto)
-        {
-            try
-            {
-                if (sherbimiDto == null)
-                    return BadRequest(ApiResponse<SherbimParkingDTO>.BadRequest("Invalid Data"));
-
-                var organizataExists = await _db.Organizata.AnyAsync(n => n.BiznesId == sherbimiDto.BiznesId);
-                if (!organizataExists)
-                    return NotFound(ApiResponse<SherbimiCreateDTO>.NotFound($"Organizata with id {sherbimiDto.BiznesId} doesn't exist"));
-                var njesiaExists = await _db.NjesiOrg.AnyAsync(n => n.NjesiteId == sherbimiDto.NjesiteId);
-                if (!njesiaExists)
-                    return NotFound(ApiResponse<SherbimiCreateDTO>.NotFound($"Njesia with id {sherbimiDto.NjesiteId} doesn't exist"));
-
-                var sherbimi = new Sherbimi
-                {
-                    Emri = "Parking",
-                    Cmimi = 0,
-                    BiznesId = sherbimiDto.BiznesId
-                };
-
-                await _db.Sherbimi.AddAsync(sherbimi);
-                await _db.SaveChangesAsync();
-
-                var cilsimi = new CilsimetParkimit
-                {
-                    Emri = sherbimiDto.EmriCilsimit,
-                    SherbimiId = sherbimi.SherbimiId,
-                    NjesiteId = sherbimiDto.NjesiteId,
-                    Active = false
-                };
-
-                await _db.CilsimetParkimit.AddAsync(cilsimi);
-                await _db.SaveChangesAsync();
-
-                var detaji = new Detajet
-                {
-                    CilsimetiId = cilsimi.CilsimetiId,
-                    FromHour = sherbimiDto.FromHour,
-                    ToHour = sherbimiDto.ToHour,
-                    Cmimi = sherbimiDto.Cmimi
-                };
-
-                await _db.Detajet.AddAsync(detaji);
-                await _db.SaveChangesAsync();
-
-
-                return CreatedAtAction(
-                    nameof(GetSherbimiById),
-                    new { id = sherbimi.SherbimiId },
-                    ApiResponse<SherbimParkingDTO>.CreatedAt(sherbimiDto, "Sherbimi created successfully")
-                );
-            }
-            catch (Exception ex)
-            {
-                var response = ApiResponse<SherbimiCreateDTO>.Error(500, "An Error Occurred while creating Sherbimet", ex.Message);
-                return StatusCode(500, response);
-            }
-
-        }
     }
 }

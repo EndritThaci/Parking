@@ -11,6 +11,8 @@ namespace Parking_web.Models
         [Required]
         public int Kati { get; set; }
 
+        public bool active { get; set; } = true;
+
         [Required]
         public int NjesiteId { get; set; }
 

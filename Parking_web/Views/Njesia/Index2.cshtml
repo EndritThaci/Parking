@@ -153,7 +153,6 @@
                     </div>
                 </div>
                 <div class="action-button-area d-flex gap-2">
-                    <a asp-controller="Sherbimi" asp-action="CreateParking" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Parking</a>
                     <a asp-controller="Sherbimi" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Shërbim</a>
                 </div>
             </div>
@@ -231,7 +230,7 @@
                                         <td>@c.NjesiOrg?.Emri</td>
                                         <td>@c.Sherbimi.Emri</td>
                                         <td class="text-end pe-4">
-                                            @if (!c.Active)
+                                            @if (!c.Selected)
                                             {
                                                 <form asp-controller="Cilsimet" asp-action="Activate" asp-route-id="@c.CilsimetiId" method="post" class="d-inline me-2">
                                                     @Html.AntiForgeryToken()
@@ -293,7 +292,7 @@
                                         <td>@d.CilsimetParkimit.Emri</td>
                                         <td>@d.CilsimetParkimit.NjesiOrg.Emri</td>
                                         <td>
-                                            @if (d.CilsimetParkimit.Active)
+                                            @if (d.CilsimetParkimit.Selected)
                                             {
                                                 <p class="text-primary fw-bold mb-0">Aktiv</p>
                                             }

@@ -29,7 +29,7 @@ namespace Parking_project.Controllers
         {
             try
             {
-                var detajetList = await _db.Detajet.Include(c => c.CilsimetParkimit).ThenInclude(n => n.NjesiOrg).ThenInclude(o => o.Organizata).ToListAsync();
+                var detajetList = await _db.Detajet.Where(a=> a.active).Include(c => c.CilsimetParkimit).ThenInclude(n => n.NjesiOrg).ThenInclude(o => o.Organizata).ToListAsync();
                 if (detajetList == null)
                 {
                     return BadRequest(ApiResponse<object>.NotFound("No Detajet found."));
@@ -56,7 +56,7 @@ namespace Parking_project.Controllers
             try
             {
                 int orgId = int.Parse(User.FindFirst("BiznesId")!.Value);
-                var detajetList = await _db.Detajet.Include(c => c.CilsimetParkimit).ThenInclude(n => n.NjesiOrg).ThenInclude(o => o.Organizata)
+                var detajetList = await _db.Detajet.Where(a => a.active).Include(c => c.CilsimetParkimit).ThenInclude(n => n.NjesiOrg).ThenInclude(o => o.Organizata)
                     .Where(o=>o.CilsimetParkimit.NjesiOrg.BiznesId == orgId).ToListAsync();
                 if (detajetList == null)
                 {
@@ -84,7 +84,7 @@ namespace Parking_project.Controllers
             try
             {
                 int njeisaId = int.Parse(User.FindFirst("NjesiaId")!.Value);
-                var detajetList = await _db.Detajet.Include(c => c.CilsimetParkimit).ThenInclude(n => n.NjesiOrg).ThenInclude(o => o.Organizata)
+                var detajetList = await _db.Detajet.Where(a => a.active).Include(c => c.CilsimetParkimit).ThenInclude(n => n.NjesiOrg).ThenInclude(o => o.Organizata)
                     .Where(o=>o.CilsimetParkimit.NjesiteId == njeisaId).ToListAsync();
                 if (detajetList == null)
                 {
@@ -115,7 +115,7 @@ namespace Parking_project.Controllers
                 {
                     return BadRequest(ApiResponse<object>.BadRequest("Invalid id parameter."));
                 }
-                var detajet = await _db.Detajet.FindAsync(id);
+                var detajet = await _db.Detajet.Where(a => a.active).FirstOrDefaultAsync(d => d.DetajetId == id);
                 if (detajet == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Detajet with the given id {id} doesnt exists."));
@@ -146,13 +146,13 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<object>.BadRequest("Invalid data has been send."));
                 }
 
-                var getCilsimet = await _db.CilsimetParkimit.FindAsync(DetajeCreateDto.CilsimetiId);
+                var getCilsimet = await _db.CilsimetParkimit.Where(a => a.active).FirstOrDefaultAsync(d => d.CilsimetiId == DetajeCreateDto.CilsimetiId);
                 if (getCilsimet == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Cilsimet with the given id {DetajeCreateDto.CilsimetiId} doesnt exists."));
                 }
 
-                var getDetajet = await _db.Detajet.Where(c=> c.CilsimetiId == DetajeCreateDto.CilsimetiId)
+                var getDetajet = await _db.Detajet.Where(a => a.active).Where(c=> c.CilsimetiId == DetajeCreateDto.CilsimetiId)
                     .Where(d => (d.FromHour == DetajeCreateDto.FromHour) 
                     || (d.FromHour <= DetajeCreateDto.FromHour && d.ToHour > DetajeCreateDto.FromHour) 
                     || (d.FromHour < DetajeCreateDto.ToHour && d.ToHour >= DetajeCreateDto.ToHour) 
@@ -199,7 +199,7 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<object>.BadRequest("Invalid data has been send."));
                 }
 
-                var findDetajet = await _db.Detajet.FindAsync(id);
+                var findDetajet = await _db.Detajet.Where(a => a.active).FirstOrDefaultAsync(d => d.DetajetId == id);
                 if (findDetajet == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Detajet with the given id {id} doesnt exists."));
@@ -219,7 +219,7 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<object>.BadRequest("Invalid Time has been given"));
                 }
 
-                var getDetajet = await _db.Detajet.Where(d => d.CilsimetiId == findDetajet.CilsimetiId)
+                var getDetajet = await _db.Detajet.Where(a => a.active).Where(d => d.CilsimetiId == findDetajet.CilsimetiId)
                     .Where(d => (detajeUpdateDto.ToHour == null || d.FromHour < detajeUpdateDto.ToHour)
                     && (d.ToHour == null || d.ToHour > detajeUpdateDto.FromHour)).FirstOrDefaultAsync();
 

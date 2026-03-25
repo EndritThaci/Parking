@@ -29,14 +29,14 @@ namespace Parking_project.Services
 
         public async Task<bool> IsEmailExistsAsync(string email)
         {
-            return await _db.Useri.AnyAsync(u => u.Email.ToLower() == email.ToLower());
+            return await _db.Useri.Where(a => a.active).AnyAsync(u => u.Email.ToLower() == email.ToLower());
         }
 
         public async Task<LoginResponseDTO> LoginAsync(LoginDTO loginDTO)
         {
             try
             {
-                var user = await _db.Useri.FirstOrDefaultAsync(u => u.Email.ToLower() == loginDTO.Email.ToLower());
+                var user = await _db.Useri.Where(a => a.active).FirstOrDefaultAsync(u => u.Email.ToLower() == loginDTO.Email.ToLower());
 
                 if (user == null || _passwordHasher.VerifyHashedPassword(user, user.Passwordi, loginDTO.Password) == PasswordVerificationResult.Failed)
 

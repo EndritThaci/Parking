@@ -17,7 +17,8 @@ namespace Parking_web.Models
         [Required]
         public int SherbimiId { get; set; }
 
-        public bool Active { get; set; } = false;
+        public bool Selected { get; set; } = false;
+        public bool active { get; set; } = true;
 
         [ForeignKey(nameof(SherbimiId))]
         public Sherbimi Sherbimi { get; set; }

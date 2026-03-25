@@ -30,6 +30,8 @@ namespace Parking_web.Models
         [MaxLength(50)]
         public string Role { get; set; } = "Customer";
 
+        public bool active { get; set; } = true;
+
         public int? BiznesId { get; set; }
         public int? NjesiaId { get; set; }
 

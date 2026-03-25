@@ -111,7 +111,7 @@ namespace Parking_web.Controllers
                 }
                 var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
                 var cilsimet = cilsimiResponse.Data;
-                var cilsimiActiv = cilsimet?.FirstOrDefault(c => c.Active);
+                var cilsimiActiv = cilsimet?.FirstOrDefault(c => c.Selected);
 
                 if (cilsimiActiv == null)
                 {

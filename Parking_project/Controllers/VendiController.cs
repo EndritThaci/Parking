@@ -29,6 +29,7 @@ namespace Parking_project.Controllers
             try
             {
                 var vendet = await _db.Vendi
+                    .Where(u => u.active)
                     .Include(v => v.Lokacioni)
                     .ThenInclude(l => l.NjesiOrg)
                     .ThenInclude(o => o.Organizata)
@@ -54,6 +55,7 @@ namespace Parking_project.Controllers
             {
                 int orgId = int.Parse(User.FindFirst("BiznesId")!.Value);
                 var vendet = await _db.Vendi
+                    .Where(a => a.active)
                     .Include(v => v.Lokacioni)
                     .ThenInclude(l => l.NjesiOrg)
                     .ThenInclude(o => o.Organizata)
@@ -68,7 +70,7 @@ namespace Parking_project.Controllers
                 return StatusCode(500, errorResponse);
             }
         }
-        
+
         [HttpGet]
         [Authorize]
         [Route("ByNjesi")]
@@ -80,6 +82,7 @@ namespace Parking_project.Controllers
             {
                 int njeisaId = int.Parse(User.FindFirst("NjesiaId")!.Value);
                 var vendet = await _db.Vendi
+                    .Where(a => a.active)
                     .Include(v => v.Lokacioni)
                     .ThenInclude(l => l.NjesiOrg)
                     .ThenInclude(o => o.Organizata)
@@ -105,6 +108,7 @@ namespace Parking_project.Controllers
             try
             {
                 var vendet = await _db.Vendi
+                    .Where(a => a.active)
                     .Include(v => v.Lokacioni)
                     .ThenInclude(l => l.NjesiOrg)
                     .ThenInclude(o => o.Organizata)
@@ -133,6 +137,7 @@ namespace Parking_project.Controllers
                     return NotFound(ApiResponse<Vendi>.NotFound("Invalid ID supplied"));
 
                 var vendi = await _db.Vendi
+                    .Where(a => a.active)
                     .Include(v => v.Lokacioni)
                     .ThenInclude(l => l.NjesiOrg)
                     .ThenInclude(o => o.Organizata)
@@ -164,11 +169,11 @@ namespace Parking_project.Controllers
                 if (dto == null)
                     return BadRequest(ApiResponse<VendiCreateDTO>.BadRequest("Data is required"));
 
-                var lokacioniExists = await _db.Lokacioni.AnyAsync(l => l.LokacioniId == dto.LokacioniId);
+                var lokacioniExists = await _db.Lokacioni.Where(a => a.active).AnyAsync(l => l.LokacioniId == dto.LokacioniId);
                 if (!lokacioniExists)
                     return NotFound(ApiResponse<VendiCreateDTO>.NotFound("Lokacioni does not exist"));
 
-                var vendiExists = await _db.Vendi.AnyAsync(n => n.VendiEmri.ToLower() == dto.VendiEmri.ToLower() && n.LokacioniId == dto.LokacioniId);
+                var vendiExists = await _db.Vendi.Where(a => a.active).AnyAsync(n => n.VendiEmri.ToLower() == dto.VendiEmri.ToLower() && n.LokacioniId == dto.LokacioniId);
                 if (vendiExists)
                 {
                     return Conflict(ApiResponse<VendiCreateDTO>.Conflict("Vendi exists"));
@@ -176,6 +181,7 @@ namespace Parking_project.Controllers
 
                 var vendi = _mapper.Map<Vendi>(dto);
                 vendi.IsFree = true;
+                vendi.active = true;
                 await _db.Vendi.AddAsync(vendi);
                 await _db.SaveChangesAsync();
 
@@ -206,15 +212,15 @@ namespace Parking_project.Controllers
                 if (dto == null || id != dto.VendiId)
                     return BadRequest(ApiResponse<VendiUpdateDTO>.BadRequest("ID mismatch"));
 
-                var existing = await _db.Vendi.FirstOrDefaultAsync(v => v.VendiId == id);
+                var existing = await _db.Vendi.Where(a => a.active).FirstOrDefaultAsync(v => v.VendiId == id);
                 if (existing == null)
                     return NotFound(ApiResponse<VendiUpdateDTO>.NotFound($"Vendi with ID {id} not found"));
 
-                var lokacioniExists = await _db.Lokacioni.AnyAsync(l => l.LokacioniId == dto.LokacioniId);
+                var lokacioniExists = await _db.Lokacioni.Where(a => a.active).AnyAsync(l => l.LokacioniId == dto.LokacioniId);
                 if (!lokacioniExists)
                     return NotFound(ApiResponse<VendiUpdateDTO>.NotFound("Lokacioni does not exist"));
 
-                var vendiExists = await _db.Vendi.AnyAsync(n => n.VendiEmri.ToLower() == dto.VendiEmri.ToLower() && n.LokacioniId == dto.LokacioniId && n.VendiId != dto.VendiId);
+                var vendiExists = await _db.Vendi.Where(a => a.active).AnyAsync(n => n.VendiEmri.ToLower() == dto.VendiEmri.ToLower() && n.LokacioniId == dto.LokacioniId && n.VendiId != dto.VendiId);
                 if (vendiExists)
                     return Conflict(ApiResponse<VendiCreateDTO>.Conflict("Vendi exists"));
 
@@ -244,18 +250,8 @@ namespace Parking_project.Controllers
                 if (vendi == null)
                     return NotFound(ApiResponse<Vendi>.NotFound($"Vendi with ID {id} not found"));
 
-                var transaksionet = await _db.TransaksionParkimi.Where(s => s.VendiParkimitId == id).ToListAsync();
 
-                var transIds = transaksionet.Select(t => t.TransaksioniId).ToList();
-
-                var detajet = await _db.TransaksionDetaj.Where(d => transIds.Contains(d.TransaksionId)).ToListAsync();
-
-                _db.TransaksionDetaj.RemoveRange(detajet);
-                await _db.SaveChangesAsync();
-                _db.TransaksionParkimi.RemoveRange(transaksionet);
-                await _db.SaveChangesAsync();
-
-                _db.Vendi.Remove(vendi);
+                vendi.active = false;
                 await _db.SaveChangesAsync();
 
                 return Ok(ApiResponse<Vendi>.NoContent("Vendi deleted successfully"));

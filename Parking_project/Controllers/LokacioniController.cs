@@ -28,7 +28,7 @@ namespace Parking_project.Controllers
         {
             try
             {
-                var lokacionet = await _db.Lokacioni.Include(n => n.NjesiOrg).ThenInclude(o => o.Organizata).ToListAsync();
+                var lokacionet = await _db.Lokacioni.Where(a => a.active).Include(n => n.NjesiOrg).ThenInclude(o => o.Organizata).ToListAsync();
                 return Ok(ApiResponse<IEnumerable<Lokacioni>>.Ok(lokacionet, "Lokacionet retrieved successfully"));
             }
             catch (Exception ex)
@@ -48,7 +48,7 @@ namespace Parking_project.Controllers
             try
             {
                 int orgId = int.Parse(User.FindFirst("BiznesId")!.Value);
-                var lokacionet = await _db.Lokacioni.Include(n => n.NjesiOrg).ThenInclude(o => o.Organizata).Where(l=> l.NjesiOrg.BiznesId == orgId).ToListAsync();
+                var lokacionet = await _db.Lokacioni.Where(a => a.active).Include(n => n.NjesiOrg).ThenInclude(o => o.Organizata).Where(l => l.NjesiOrg.BiznesId == orgId).ToListAsync();
                 return Ok(ApiResponse<IEnumerable<Lokacioni>>.Ok(lokacionet, "Lokacionet retrieved successfully"));
             }
             catch (Exception ex)
@@ -66,7 +66,7 @@ namespace Parking_project.Controllers
         {
             try
             {
-                var lokacionet = await _db.Lokacioni.Include(n => n.NjesiOrg).ThenInclude(o => o.Organizata).Where(l => l.NjesiteId == njesiId).ToListAsync();
+                var lokacionet = await _db.Lokacioni.Where(a => a.active).Include(n => n.NjesiOrg).ThenInclude(o => o.Organizata).Where(l => l.NjesiteId == njesiId).ToListAsync();
                 return Ok(ApiResponse<IEnumerable<Lokacioni>>.Ok(lokacionet, "Lokacionet retrieved successfully"));
             }
             catch (Exception ex)
@@ -89,7 +89,7 @@ namespace Parking_project.Controllers
                 if (id <= 0)
                     return BadRequest(ApiResponse<Lokacioni>.BadRequest("Invalid ID supplied"));
 
-                var lokacioni = await _db.Lokacioni.Include(n => n.NjesiOrg).ThenInclude(o => o.Organizata).FirstOrDefaultAsync(l => l.LokacioniId == id);
+                var lokacioni = await _db.Lokacioni.Where(a => a.active).Include(n => n.NjesiOrg).ThenInclude(o => o.Organizata).FirstOrDefaultAsync(l => l.LokacioniId == id);
 
                 if (lokacioni == null)
                     return NotFound(ApiResponse<Lokacioni>.NotFound($"Lokacioni with ID {id} not found"));
@@ -117,11 +117,11 @@ namespace Parking_project.Controllers
                 if (dto == null)
                     return BadRequest(ApiResponse<LokacioniCreateDTO>.BadRequest("Data is required"));
 
-                var njesiaExists = await _db.NjesiOrg.AnyAsync(n => n.NjesiteId == dto.NjesiteId);
+                var njesiaExists = await _db.NjesiOrg.Where(a => a.active).AnyAsync(n => n.NjesiteId == dto.NjesiteId);
                 if (!njesiaExists)
                     return NotFound(ApiResponse<LokacioniCreateDTO>.NotFound("Njesia does not exist"));
 
-                var lokacioniExists = await _db.Lokacioni.AnyAsync(l => l.Kati == dto.Kati && l.NjesiteId == dto.NjesiteId);
+                var lokacioniExists = await _db.Lokacioni.Where(a => a.active).AnyAsync(l => l.Kati == dto.Kati && l.NjesiteId == dto.NjesiteId);
                 if (lokacioniExists)
                     return Conflict(ApiResponse<VendiCreateDTO>.Conflict("Lokacioni exists"));
 
@@ -156,15 +156,15 @@ namespace Parking_project.Controllers
                 if (dto == null || id != dto.LokacioniId)
                     return BadRequest(ApiResponse<LokacioniUpdateDTO>.BadRequest("ID mismatch"));
 
-                var existing = await _db.Lokacioni.FirstOrDefaultAsync(l => l.LokacioniId == id);
+                var existing = await _db.Lokacioni.Where(a => a.active).FirstOrDefaultAsync(l => l.LokacioniId == id);
                 if (existing == null)
                     return NotFound(ApiResponse<LokacioniUpdateDTO>.NotFound($"Lokacioni with ID {id} not found"));
 
-                var existingNjesi = await _db.NjesiOrg.FirstOrDefaultAsync(n => n.NjesiteId == dto.NjesiteId);
+                var existingNjesi = await _db.NjesiOrg.Where(a => a.active).FirstOrDefaultAsync(n => n.NjesiteId == dto.NjesiteId);
                 if (existingNjesi == null)
                     return NotFound(ApiResponse<LokacioniUpdateDTO>.NotFound($"Njesia with ID {dto.NjesiteId} not found"));
 
-                var lokacioniExists = await _db.Lokacioni.AnyAsync(l => l.Kati == dto.Kati && l.NjesiteId == dto.NjesiteId && l.LokacioniId != dto.LokacioniId);
+                var lokacioniExists = await _db.Lokacioni.Where(a => a.active).AnyAsync(l => l.Kati == dto.Kati && l.NjesiteId == dto.NjesiteId && l.LokacioniId != dto.LokacioniId);
                 if (lokacioniExists)
                     return Conflict(ApiResponse<VendiCreateDTO>.Conflict("Lokacioni exists"));
 
@@ -189,26 +189,18 @@ namespace Parking_project.Controllers
         {
             try
             {
-                var lokacioni = await _db.Lokacioni.FirstOrDefaultAsync(l => l.LokacioniId == id);
+                var lokacioni = await _db.Lokacioni.Where(a => a.active).FirstOrDefaultAsync(l => l.LokacioniId == id);
 
                 if (lokacioni == null)
                     return NotFound(ApiResponse<Lokacioni>.NotFound($"Lokacioni with ID {id} not found"));
 
-                var vendet = await _db.Vendi.Where(v => v.LokacioniId == id).Select(v => v.VendiId).ToListAsync();
+                var getVendi = await _db.Vendi.Where(n => n.LokacioniId == lokacioni.LokacioniId).ToListAsync();
+                if (getVendi != null)
+                {
+                    foreach (var x in getVendi) x.active = false;
+                }
 
-                var transaksionet = await _db.TransaksionParkimi.Where(s => vendet.Contains(s.VendiParkimitId)).ToListAsync();
-                
-                var transIds = transaksionet.Select(t => t.TransaksioniId).ToList();
-
-                var detajet = await _db.TransaksionDetaj.Where(d => transIds.Contains(d.TransaksionId)).ToListAsync();
-
-                _db.TransaksionDetaj.RemoveRange(detajet);
-                await _db.SaveChangesAsync();
-                _db.TransaksionParkimi.RemoveRange(transaksionet);
-                await _db.SaveChangesAsync();
-
-
-                _db.Lokacioni.Remove(lokacioni);
+                lokacioni.active = false;
                 await _db.SaveChangesAsync();
 
                 return Ok(ApiResponse<Lokacioni>.NoContent("Lokacioni deleted successfully"));

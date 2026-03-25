@@ -27,10 +27,10 @@ namespace Parking_project.Controllers
         {
             try
             {
-            var njesiOrgList = await _db.NjesiOrg.Include(o=> o.Organizata).ToListAsync();
-            var dtoResponseNjesi = _mapper.Map<List<NjesiReadDto>>(njesiOrgList);
-            var response = ApiResponse<IEnumerable<NjesiReadDto>>.Ok(dtoResponseNjesi, "Records retrieved successfully");
-            return Ok(response);
+                var njesiOrgList = await _db.NjesiOrg.Where(a => a.active).Include(o => o.Organizata).ToListAsync();
+                var dtoResponseNjesi = _mapper.Map<List<NjesiReadDto>>(njesiOrgList);
+                var response = ApiResponse<IEnumerable<NjesiReadDto>>.Ok(dtoResponseNjesi, "Records retrieved successfully");
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -49,7 +49,7 @@ namespace Parking_project.Controllers
             try
             {
                 int biznesId = int.Parse(User.FindFirst("BiznesId")!.Value);
-                var njesiOrgList = await _db.NjesiOrg.Include(o => o.Organizata).Where(n=> n.BiznesId==biznesId).ToListAsync();
+                var njesiOrgList = await _db.NjesiOrg.Where(a => a.active).Include(o => o.Organizata).Where(n => n.BiznesId == biznesId).ToListAsync();
                 var dtoResponseNjesi = _mapper.Map<List<NjesiReadDto>>(njesiOrgList);
                 var response = ApiResponse<IEnumerable<NjesiReadDto>>.Ok(dtoResponseNjesi, "Records retrieved successfully");
                 return Ok(response);
@@ -72,9 +72,9 @@ namespace Parking_project.Controllers
                 if (id <= 0)
                 {
                     return NotFound(ApiResponse<object>.NotFound("Njesia Id is invalid"));
-                    
+
                 }
-                var njesiOrg = await _db.NjesiOrg.FirstOrDefaultAsync(n => n.NjesiteId == id);
+                var njesiOrg = await _db.NjesiOrg.Where(a => a.active).FirstOrDefaultAsync(n => n.NjesiteId == id);
                 if (njesiOrg == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"NjesiOrg with ID {id} not found."));
@@ -118,14 +118,12 @@ namespace Parking_project.Controllers
                     return NotFound(ApiResponse<object>.NotFound($"Organizata with ID {njesiOrgDto.BiznesId} not found."));
                 }
 
-                var duplicateName = await _db.NjesiOrg
-                    .FirstOrDefaultAsync(n => n.Emri == njesiOrgDto.Emri);
+                var duplicateName = await _db.NjesiOrg.Where(a => a.active).FirstOrDefaultAsync(n => n.Emri == njesiOrgDto.Emri);
                 if (duplicateName != null)
                 {
                     return Conflict(ApiResponse<object>.Conflict($"Njesia with the name '{njesiOrgDto.Emri}' already exists."));
                 }
-                var duplicateCode = await _db.NjesiOrg
-                    .FirstOrDefaultAsync(n => n.Kodi == njesiOrgDto.Kodi);
+                var duplicateCode = await _db.NjesiOrg.Where(a => a.active).FirstOrDefaultAsync(n => n.Kodi == njesiOrgDto.Kodi);
                 if (duplicateCode != null)
                 {
                     return Conflict(ApiResponse<object>.Conflict($"Njesia with the code '{njesiOrgDto.Kodi}' already exists."));
@@ -140,7 +138,7 @@ namespace Parking_project.Controllers
             }
             catch (Exception ex)
             {
-                var errorResponse = ApiResponse<object>.Error(500, $"An Error Occurred while creating NjesiOrg: ",  ex.Message);
+                var errorResponse = ApiResponse<object>.Error(500, $"An Error Occurred while creating NjesiOrg: ", ex.Message);
                 return StatusCode(500, errorResponse);
             }
         }
@@ -174,8 +172,7 @@ namespace Parking_project.Controllers
                     return NotFound(ApiResponse<object>.NotFound($"NjesiOrg with ID {id} not found."));
                 }
 
-                var duplicateName = await _db.NjesiOrg
-                    .FirstOrDefaultAsync(n => n.Emri == njesiUpdateDto.Emri && n.NjesiteId != id);
+                var duplicateName = await _db.NjesiOrg.Where(a => a.active).FirstOrDefaultAsync(n => n.Emri == njesiUpdateDto.Emri && n.NjesiteId != id);
                 if (duplicateName != null)
                 {
                     return Conflict(ApiResponse<object>.Conflict($"An Organizata with the name '{njesiUpdateDto.Emri}' already exists."));
@@ -211,7 +208,27 @@ namespace Parking_project.Controllers
                 {
                     return NotFound(ApiResponse<object>.NotFound($"NjesiOrg with ID {id} not found."));
                 }
-                _db.NjesiOrg.Remove(getNjesiOrg);
+                var getLokacionet = await _db.Lokacioni.Where(n => n.NjesiteId == getNjesiOrg.NjesiteId).ToListAsync();
+                if (getLokacionet != null)
+                {
+                    foreach (var loc in getLokacionet) loc.active = false;
+                }
+                var getVendi = await _db.Vendi.Where(n => n.Lokacioni.NjesiteId == getNjesiOrg.NjesiteId).ToListAsync();
+                if (getVendi != null)
+                {
+                    foreach (var x in getVendi) x.active = false;
+                }
+                var getCilsimi = await _db.CilsimetParkimit.Where(n => n.NjesiteId == getNjesiOrg.NjesiteId).ToListAsync();
+                if (getCilsimi != null)
+                {
+                    foreach (var x in getCilsimi) x.active = false;
+                }
+                var getDetajet = await _db.Detajet.Where(n => n.CilsimetParkimit.NjesiteId == getNjesiOrg.NjesiteId).ToListAsync();
+                if (getDetajet != null)
+                {
+                    foreach (var x in getDetajet) x.active = false;
+                }
+                getNjesiOrg.active = false;
                 await _db.SaveChangesAsync();
                 var response = ApiResponse<object>.NoContent($"NjesiOrg with ID {id} has been deleted.");
                 return Ok(response);

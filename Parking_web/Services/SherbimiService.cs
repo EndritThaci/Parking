@@ -21,16 +21,6 @@ namespace Parking_web.Services
             });
         }
 
-        public Task<T?> CreateParkingAsync<T>(SherbimParkingDTO dto)
-        {
-            return SendAsync<T>(new ApiRequest
-            {
-                ApiType = SD.ApiType.POST,
-                Data = dto,
-                Url = $"{APIEndPoint}/Parking",
-            });
-        }
-
         public Task<T?> DeleteAsync<T>(int id)
         {
             return SendAsync<T>(new ApiRequest

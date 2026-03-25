@@ -145,7 +145,7 @@ namespace Parking_project.Controllers
                     Emri = "Sezona e Pare",
                     NjesiOrg = defaultNjesia,
                     Sherbimi = defaultSherbim1,
-                    Active = true
+                    Selected = true
                 };
 
                 await _db.CilsimetParkimit.AddAsync(defaultCilsimi);

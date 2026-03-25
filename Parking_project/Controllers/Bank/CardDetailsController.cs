@@ -137,7 +137,6 @@ namespace Parking_project.Controllers.Bank
                 bankAccount.BankId = dto.BankId;
                 bankAccount.AccountNumber = dto.AccountNumber;
                 bankAccount.Amount = dto.Amount;
-                bankAccount.Name = dto.AccountName;
                 bankAccount.UserId = userId;
                 _db.BankAccount.Add(bankAccount);
                 await _db.SaveChangesAsync();
@@ -146,7 +145,6 @@ namespace Parking_project.Controllers.Bank
                 var cardDetails = new CardDetails();
                 cardDetails.ExpirationDate = dto.ExpirationDate;
                 cardDetails.CardNumber = EncryptionHelper.Encrypt(dto.CardNumber);
-                cardDetails.CardName = dto.CardName;
                 cardDetails.BankAcountId = bankAccount.Id;
                 cardDetails.UserId = userId;
                 _db.CardDetails.Add(cardDetails);
