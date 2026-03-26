@@ -135,24 +135,56 @@ namespace Parking_web.Controllers
             return View(createDto);
         }
 
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> EntryQR(int njesiaId, int vendiId)
+        {
+            ViewBag.VendiId = vendiId;
+            return View(njesiaId);
+        }
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> EntryQRReader(int njesiaId, int vendiId)
+        {
+            ViewBag.VendiId = vendiId;
+            return View(njesiaId);
+        }
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(TransaksionetCreateDto createDto)
+        public async Task<IActionResult> CreateTransacsion(int njesiaId, int vendiId)
         {
+            TransaksionetCreateDto createDto = new();
             try
             {
+                var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
+                var cilsimet = cilsimiResponse.Data;
+                var cilsimiActiv = cilsimet?.FirstOrDefault(c => c.Selected);
+
+                if (cilsimiActiv == null)
+                {
+                    TempData["error"] = "Nuk u gjet asnje cilesim aktiv për kete njësi.";
+                    return RedirectToAction("Index");
+                }
+                createDto.VendiParkimitId = vendiId;
+                createDto.NjesiaId = njesiaId;
+                createDto.CilsimiId = cilsimiActiv.CilsimetiId;
+ 
                 var response = await _transaksioniService.CreateAsync<ApiResponse<TransaksionetCreateDto>>(createDto);
                 if (response != null && response.Success && response.Data != null)
                 {
+                    TempData["success"] = "Transaksioni u krijua me sukses";
                     return RedirectToAction("Index");
                 }
+                TempData["error"] = $"Gabim: Ndodhi nje gabim gjat krijimit te transaksionit";
 
             }
             catch (Exception ex)
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
-            return View(createDto);
+            return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Edit(int transaksioniId)
@@ -264,15 +296,27 @@ namespace Parking_web.Controllers
             return View(id);
         }
 
-        public IActionResult QRGenerate(int id, int selectedCardId)
+        public IActionResult QRGenerate(int? id, int? selectedCardId, int? njesiaId, int? vendiId)
         {
             using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
             {
                 string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmm");
-                string signature = GenerateSignature(id, timestamp, selectedCardId);
+                string url = "";
 
-                string url = $"https://localhost:7061/Home/QRRead?id={id}&t={timestamp}&c={selectedCardId}&s={signature}"; // URL dohet me bo te serverit
-
+                if (selectedCardId != null && id != null)
+                {
+                    string signature = GenerateSignature((int)id, timestamp, (int)selectedCardId);
+                    url = $"https://localhost:7061/Home/QRRead?id={id}&t={timestamp}&c={selectedCardId}&s={signature}"; // URL dohet me bo te serverit
+                }
+                else if (njesiaId != null && vendiId != null)
+                {
+                    url = $"https://localhost:7061/Home/EntryQRReader?njesiaId={njesiaId}&vendiId={vendiId}"; // URL dohet me bo te serverit
+                }
+                else
+                {
+                    TempData["error"] = "Gabim. QR kodi nuk mund te krijohet ";
+                    return View("Index");
+                }
                 QRCodeData qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
                 PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
                 byte[] qrCodeAsPngByteArr = qrCode.GetGraphic(20);

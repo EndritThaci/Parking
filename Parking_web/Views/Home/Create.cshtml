@@ -34,7 +34,13 @@
                         </li>
                     </ul>
 
-                    <form asp-action="Create" method="post">
+                    <a asp-action="EntryQR" asp-route-njesiaId="@Model.NjesiaId" asp-route-vendiId="@Model.VendiParkimitId" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                        Konfirmo dhe Vazhdo
+                    </a>
+                    <a asp-action="Index" class="btn rounded-pill fw-bold border-0">
+                        Anulo
+                    </a>
+                    @* <form asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
 
                         <input type="hidden" asp-for="VendiParkimitId" />
@@ -48,7 +54,7 @@
                                 Anulo
                             </a>
                         </div>
-                    </form>
+                    </form> *@
                 </div>
             </div>
         </div>

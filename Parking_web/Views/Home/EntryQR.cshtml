@@ -1,0 +1,63 @@
+﻿@model int
+
+@{
+    ViewData["Title"] = "Skanimi i QR Kodit per Hyrje";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card shadow-lg border-0 rounded-4 p-4">
+
+                <div>
+                    <h3 class="fw-bold mb-3 text-primary">QR Kodi për Hyrje</h3>
+                    <p class="text-muted">Skanoni kodin e mëposhtëm për të procesuar veprimin automatikisht.</p>
+
+                    <div id="qr-to-print"class="qr-container my-4 p-3 bg-light rounded-3 d-inline-block">
+                        <img src="@Url.Action("QRGenerate", "Home", new { njesiaId = Model, vendiId = ViewBag.VendiId })"
+                             alt="QR Code"
+                             class="img-fluid shadow-sm"
+                             style="max-width: 300px; border: 10px solid white;" />
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button onclick="window.print()" class="btn btn-primary btn-lg rounded-pill fw-bold shadow">
+                        <i class="bi bi-printer me-2"></i> Printo Kodin
+                    </button>
+                    <a asp-action="Index" class="btn btn-lg rounded-pill">Kthehu</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    @@page {
+        margin: 0;
+    }
+
+    @@media print {
+        body {
+            margin: 0;
+            padding: 2cm;
+        }
+            
+            body * {
+                visibility: hidden;
+            }
+        #qr-to-print, #qr-to-print * {
+            visibility: visible;
+        }
+
+        #qr-to-print {
+            position: absolute;
+            left: 0;
+            top: 1cm;
+            width: 100%;
+            text-align: center;
+        }
+        .btn, .btn-link, .no-print {
+            display: none !important;
+        }
+    }
+</style>
