@@ -6,7 +6,6 @@ namespace Parking_web.Services
 {
     public class OrganizataService : BaseService ,IOrganizataService
     {
-        private readonly string _organizataUrl;
         private readonly string APIEndPoint = "/api/organizata";
 
         public OrganizataService(IHttpClientFactory httpClient,IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(httpClient,httpContextAccessor)

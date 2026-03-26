@@ -144,7 +144,7 @@ namespace Parking_project.Controllers
 
 
                 var login = await _authService.LoginAsync(loginDTO);
-                if (login == null)
+                if (login == null || login.UserReadDTO == null || login.Token == null)
                 {
                     return BadRequest(ApiResponse<LoginResponseDTO>.BadRequest("Login failed"));
                 }

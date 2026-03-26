@@ -44,12 +44,16 @@
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                        <ul class="navbar-nav flex-grow-1">
-                            @if (User.Identity.IsAuthenticated)
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Shtëpia</a>
-                                </li>
+                        
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <ul class="navbar-nav flex-grow-1">
+                                @if(!User.IsInRole("Super Admin"))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Shtëpia</a>
+                                    </li>
+                                }
                                 @if (User.IsInRole("Super Admin"))
                                 {
                                     <li class="nav-item">
@@ -74,11 +78,10 @@
                                         <a class="nav-link text-dark" asp-area="" asp-controller="Transaksion" asp-action="IndexManager">Transaksionet</a>
                                     </li>
                                 }
-                            }
-                        </ul>
-                        <ul class="navbar-nav">
-                            @if (User.Identity.IsAuthenticated)
-                            {
+                            
+                            </ul>
+                            <ul class="navbar-nav">
+                            
                                 @if (User.IsInRole("Super Admin"))
                                 {
                                     <li class="nav-item">
@@ -99,17 +102,19 @@
                                         <li><a class="dropdown-item" asp-controller="Auth" asp-action="LogOut"><i class="bi bi-box-arrow-right text-primary"></i> Dil</a></li>
                                     </ul>
                                 </li>
-                            }
-                            else
-                            {
+                            </ul>
+                        }
+                        else
+                        {
+                            <ul class="navbar-nav">
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-controller="Auth" asp-action="LogIn">Kyqu</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-controller="Auth" asp-action="Register">Krijo Llogari</a>
                                 </li>
-                            }
-                        </ul>
+                            </ul>
+                        }
                     </div>
                 </div>
             </nav>

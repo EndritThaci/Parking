@@ -1,8 +1,12 @@
 ﻿@using Parking_web.Models.DTO
 @model IEnumerable<NjesiReadDto>
-@if (!User.Identity.IsAuthenticated)
+@if (User.Identity == null || !User.Identity.IsAuthenticated)
 {
-    Context.Response.Redirect(Url.Action("Login", "Auth"));
+    Context.Response.Redirect(Url.Action("Login", "Auth")!);
+}
+else if (User.IsInRole("Super Admin"))
+{
+    Context.Response.Redirect(Url.Action("Index", "Organizata")!);
 }
 else
 {

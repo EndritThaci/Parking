@@ -151,7 +151,7 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<Useri>.BadRequest("New password and Old password can not match"));
 
                 var response = await _authService.ChangePassword(user, dto.OldPassword, dto.NewPassword);
-                if (response == null)
+                if (string.IsNullOrEmpty(response))
                     return BadRequest(ApiResponse<Useri>.BadRequest("Incorrect Password"));
 
                 user.Passwordi = response;

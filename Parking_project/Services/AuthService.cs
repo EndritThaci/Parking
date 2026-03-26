@@ -39,9 +39,12 @@ namespace Parking_project.Services
                 var user = await _db.Useri.Where(a => a.active).FirstOrDefaultAsync(u => u.Email.ToLower() == loginDTO.Email.ToLower());
 
                 if (user == null || _passwordHasher.VerifyHashedPassword(user, user.Passwordi, loginDTO.Password) == PasswordVerificationResult.Failed)
-
                 {
-                    return null;
+                    return new LoginResponseDTO
+                    {
+                        UserReadDTO = null,
+                        Token = null
+                    };
                 }
 
                 var token = GenerateToken(user);
@@ -59,7 +62,7 @@ namespace Parking_project.Services
 
         }
 
-        public async Task<UserReadDTO?> RegisterAsync(UserCreateDTO userCreate, string role)
+        public async Task<UserReadDTO> RegisterAsync(UserCreateDTO userCreate, string role)
         {
             try
             {
@@ -96,7 +99,7 @@ namespace Parking_project.Services
             {
                 if (user == null || _passwordHasher.VerifyHashedPassword(user, user.Passwordi, OldPassword) == PasswordVerificationResult.Failed)
                 {
-                    return null;
+                    return "";
                 }
 
                 return _passwordHasher.HashPassword(null, NewPassword);
@@ -109,7 +112,7 @@ namespace Parking_project.Services
 
         private string GenerateToken(Useri useri)
         {
-            var key = Encoding.ASCII.GetBytes(_configuration.GetSection("JwtSettings")["Secret"]);
+            var key = Encoding.ASCII.GetBytes(_configuration.GetSection("JwtSettings")["Secret"]!);
 
             var org = _db.Organizata.FindAsync(useri.BiznesId);
 
