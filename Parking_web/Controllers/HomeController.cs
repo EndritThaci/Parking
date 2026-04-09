@@ -39,17 +39,22 @@ namespace Parking_web.Controllers
             {
                 var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiReadDto>>>();
                 var UserResponse = await _transaksioniService.GetByUserAsync<ApiResponse<List<TransaksionRead>>>();
+                var OrgResponse = await _transaksioniService.GetByOrgAsync<ApiResponse<List<TransaksionRead>>>();
 
                 if (response != null && response.Success && response.Data != null)
                 {
                     orgList = response.Data;
                 }
-                if (UserResponse != null && UserResponse.Success && UserResponse.Data != null)
+                if (UserResponse != null && UserResponse.Success && UserResponse.Data != null && User.IsInRole("Customer"))
                 {
                     var pendingList = UserResponse.Data.Where(t => t.Statusi == "Pending").ToList();
                     ViewBag.PendingTransactions = pendingList;
                 }
-
+                else if (OrgResponse != null && OrgResponse.Success && OrgResponse.Data != null && (User.IsInRole("Admin") || User.IsInRole("Manager")))
+                {
+                    var pendingList = OrgResponse.Data.Where(t => t.Statusi == "Pending").ToList();
+                    ViewBag.PendingTransactions = pendingList;
+                }
             }
             catch (Exception ex)
             {

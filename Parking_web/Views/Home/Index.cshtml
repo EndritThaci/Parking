@@ -59,6 +59,8 @@ else
                                                     <span>Hyrja: <strong>@item.KohaHyrjes.ToString("HH:mm")</strong></span>
                                                     <span class="mx-2">|</span>
                                                     <span>Data: @item.KohaHyrjes.ToString("dd/MM")</span>
+                                                    <span class="mx-2">|</span>
+                                                    <span>Perdoruesi: @item.Useri.Emri</span>
                                                 </div>
 
                                                 <a asp-controller="Home" asp-action="Pay" asp-route-id="@item.TransaksioniId"

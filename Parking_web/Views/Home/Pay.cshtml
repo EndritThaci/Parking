@@ -113,7 +113,15 @@
                 </div>
 
                 <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
-                    <p class="text-muted mb-4">Tregoja kodin e mëposhtëm punëtorëve të parkingut për të shtuar shërbime të reja në këtë faturë.</p>
+                    @if (User.IsInRole("Customer"))
+                    {
+                        <p class="text-muted mb-4">Tregoja kodin e mëposhtëm punëtorëve të parkingut për të shtuar shërbime të reja në këtë faturë.</p>
+
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-4">Skano për të shtuar shërbime shtesë</p>
+                    }
 
                     <div id="qr-to-print" class="qr-container my-auto p-3 bg-white border rounded-4 d-inline-block mx-auto shadow-sm">
                         <img id="qrImageDisplay" src="@Url.Action("QRGenerate", "Home", new { id = Model.TransaksioniId })"
@@ -122,9 +130,17 @@
                              style="max-width: 240px; border: 10px solid white;" />
                     </div>
                     
-                    <div class="mt-4 opacity-50 small">
-                        <i class="bi bi-shield-check"></i> Kod i siguruar për ID #@Model.TransaksioniId
-                    </div>
+                    @if (User.IsInRole("Customer"))
+                    {
+                        <div class="mt-4 opacity-50 small">
+                            <i class="bi bi-shield-check"></i> Kod i siguruar për ID #@Model.TransaksioniId
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-action="Edit" asp-route-transaksioniId="@Model.TransaksioniId" class="btn btn-outline-primary btn-lg rounded-pill fw-bold py-3 mt-4 shadow">Shto Shërbimet Shtesë</a>
+                    }
+                    
                 </div>
             </div>
         </div>

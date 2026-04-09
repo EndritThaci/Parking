@@ -202,6 +202,7 @@ namespace Parking_project.Controllers
                     .Include(t => t.Vendi)
                         .ThenInclude(v => v.Lokacioni)
                             .ThenInclude(l => l.NjesiOrg)
+                    .Include(t => t.User)
                     .Where(t => t.UserId == userId)
                     .ToListAsync();
 

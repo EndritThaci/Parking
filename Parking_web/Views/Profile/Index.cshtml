@@ -44,6 +44,21 @@
                     </div>
                 </div>
             </div>
+            
+                @if(User.IsInRole("Manager") || User.IsInRole("Admin"))
+                {
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                        <h5 class="fw-bold mb-3">Veprime të Shpejta</h5>
+                        <div class="d-flex gap-2">
+                            <a asp-controller="Transaksion" asp-action=@(User.IsInRole("Manager")?"IndexManager":"Index") class="btn btn-light border flex-grow-1 col-lg-6 rounded-3">
+                                <i class="bi bi-list-ul d-block mb-1 fs-4"></i> Transaksionet
+                            </a>
+                            <a asp-controller="LibriShitjes" asp-action="GetLibriCustom" class="btn btn-light border flex-grow-1 col-lg-6 rounded-3">
+                                <i class="bi bi-file-earmark-excel d-block mb-1 fs-4"></i> Raportet   
+                            </a>
+                        </div>
+                    </div>
+                }
         </div>
 
         <div class="col-lg-6">
@@ -227,21 +242,6 @@
                         </div>
                     </form>
                 </div>
-
-                @if(User.IsInRole("Manager") || User.IsInRole("Admin"))
-                {
-                    <div class="card border-0 shadow-sm rounded-4 p-4">
-                        <h5 class="fw-bold mb-3">Veprime të Shpejta</h5>
-                        <div class="d-flex gap-2">
-                            <a asp-controller="Transaksion" asp-action=@(User.IsInRole("Manager")?"IndexManager":"Index") class="btn btn-light border flex-grow-1 rounded-3">
-                                <i class="bi bi-list-ul d-block mb-1 fs-4"></i> Transaksionet
-                            </a>
-                            <a asp-controller="LibriShitjes" asp-action="GetLibriCustom" class="btn btn-light border flex-grow-1 rounded-3">
-                                <i class="bi bi-file-earmark-excel d-block mb-1 fs-4"></i> Raportet
-                            </a>
-                        </div>
-                    </div>
-                }
             </div>
         </div>
     </div>

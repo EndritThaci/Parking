@@ -133,6 +133,14 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var authService = scope.ServiceProvider
+        .GetRequiredService<IAuthService>();
+
+    await SuperAdminSeeder.SeedAsync(authService);
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
