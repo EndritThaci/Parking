@@ -4,9 +4,9 @@
 }
 
 <div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div id="layoutWrapper" class="row justify-content-center qr-active">
+        <div id="paymentCol" class="col-md-6 mb-4 position-relative">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100">
                 <div class="bg-primary py-4 text-center text-white">
                     <i class="bi bi-wallet2 display-4"></i>
                     <h3 class="fw-bold">Pagesa e Transaksionit</h3>
@@ -16,7 +16,7 @@
                 <div class="card-body p-4 p-md-5">
                     <div class="d-flex justify-content-between mb-3">
                         <span class="text-muted">Vendi i Parkimit:</span>
-                        <span class="fw-bold">@Model.Vendi.VendiEmri, Kati @Model.Vendi.Lokacioni.Kati, @Model.Cilsimi.NjesiOrg.Emri</span>
+                        <span class="fw-bold text-end">@Model.Vendi.VendiEmri, Kati @Model.Vendi.Lokacioni.Kati, @Model.Cilsimi.NjesiOrg.Emri</span>
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <span class="text-muted">Koha e qëndrimit:</span>
@@ -33,14 +33,10 @@
                     @if (User.IsInRole("Customer"))
                     {
                         <div class="border-dashed my-4"></div>
-                        
                         <div class="mb-4">
                             <h6 class="text-muted text-center small fw-bold mb-3">Zgjidhni Mënyrën e Pagesës</h6>
-
                             <div class="card-slider-container">
-                                @{
-                                    var cards = ViewBag.CardDetails as IEnumerable<Parking_web.Models.CardDetails>;
-                                }
+                                @{ var cards = ViewBag.CardDetails as IEnumerable<Parking_web.Models.CardDetails>; }
 
                                 @if (cards != null && cards.Any())
                                 {
@@ -68,15 +64,8 @@
                                         }
                                     </div>
                                 }
-                                else
-                                {
-                                    <div class="text-center p-3 border rounded-4 bg-light">
-                                        <small class="text-muted">Nuk keni kartela të regjistruara. <a asp-controller="Profile" asp-action="Index" class="fw-bold">Shto një këtu</a>.</small>
-                                    </div>
-                                }
                             </div>
                         </div>
-
                         <input type="hidden" id="selectedCardId" name="selectedCardId" value="" />
                     }
 
@@ -87,9 +76,7 @@
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@Model.TransaksioniId" />
 
-                                <button type="submit" id="submitBtn" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow">
-                                    Paguaj Cash
-                                </button>
+                                <button type="submit" id="submitBtn" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow">Paguaj Cash </button>
                             </form>
                         }
                         else
@@ -99,19 +86,44 @@
                                 <input type="hidden" name="id" value="@Model.TransaksioniId" />
                                 <input type="hidden" name="selectedCardId" id="selectedCardInput" />
 
-                                <button type="submit" id="submitBtn" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow" disabled>
-                                    Zgjedh për pagesë
-                                </button>
+                                <button type="submit" id="submitBtn" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow" disabled>Zgjedh për pagesë </button>
 
                                 <div id="selectionWarning" class="text-danger small text-center mt-2">
                                     <i class="bi bi-info-circle"></i> Ju lutem zgjidhni një kartelë për të vazhduar.
                                 </div>
                             </form>
                         }
+                        <a asp-action="Index" class="btn btn-link text-muted text-decoration-none text-center">Anulo dhe kthehu</a>
+                    </div>
+                </div>
+            </div>
 
-                        <a asp-action="Index" class="btn btn-link text-muted text-decoration-none text-center">
-                            Anulo dhe kthehu
-                        </a>
+            <div class="sherbime-tab shadow-sm" onclick="toggleQR()">
+                <span>Shërbime</span>
+            </div>
+        </div>
+
+        <div id="qrCol" class="col-md-5 mb-4 position-relative">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100 position-relative">
+                <div class="bg-primary py-4 text-center text-white position-relative">
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" onclick="toggleQR()" aria-label="Close"></button>
+                    <i class="bi bi-qr-code-scan display-4"></i>
+                    <h3 class="fw-bold">Shërbime Shtesë</h3>
+                    <p class="mb-0 opacity-0">.</p>
+                </div>
+
+                <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
+                    <p class="text-muted mb-4">Tregoja kodin e mëposhtëm punëtorëve të parkingut për të shtuar shërbime të reja në këtë faturë.</p>
+
+                    <div id="qr-to-print" class="qr-container my-auto p-3 bg-white border rounded-4 d-inline-block mx-auto shadow-sm">
+                        <img id="qrImageDisplay" src="@Url.Action("QRGenerate", "Home", new { id = Model.TransaksioniId })"
+                             alt="QR Code"
+                             class="img-fluid"
+                             style="max-width: 240px; border: 10px solid white;" />
+                    </div>
+                    
+                    <div class="mt-4 opacity-50 small">
+                        <i class="bi bi-shield-check"></i> Kod i siguruar për ID #@Model.TransaksioniId
                     </div>
                 </div>
             </div>
@@ -120,67 +132,57 @@
 </div>
 
 <style>
-    .fw-black {
-        font-weight: 900;
+    .sherbime-tab {
+        position: absolute;
+        right: -30px;
+        top: 50px;
+        background: white;
+        border: 1px solid #0d6efd;
+        border-left: none;
+        padding: 15px 8px;
+        cursor: pointer;
+        border-radius: 0 12px 12px 0;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        font-weight: bold;
+        color: #0d6efd;
+        z-index: 5;
+        display: none;
+        transition: all 0.2s;
     }
 
-    .border-dashed {
-        border-top: 2px dashed #dee2e6;
-        position: relative;
-        margin: 0 -3rem;
+    sherbime-tab:hover { background: #0d6efd; color: white; }
+
+    #layoutWrapper:not(.qr-active) #qrCol { display: none; }
+    #layoutWrapper:not(.qr-active) .sherbime-tab { display: block; }
+    #layoutWrapper.qr-active #qrCol { display: block; }
+
+    .fw-black { font-weight: 900; }
+    .border-dashed { border-top: 2px dashed #dee2e6; position: relative; margin: 0 -3rem; }
+    .border-dashed::before, .border-dashed::after { content: ""; position: absolute; top: -11px; width: 22px; height: 22px; background-color: #f8f9fa; border-radius: 50%; }
+    .border-dashed::before { left: -11px; } .border-dashed::after { right: -11px; }
+    
+    .bg-primary { 
+        background: linear-gradient(45deg, #0d6efd, #0a58ca) !important; 
     }
 
-        .border-dashed::before, .border-dashed::after {
-            content: "";
-            position: absolute;
-            top: -11px;
-            width: 22px;
-            height: 22px;
-            background-color: #f8f9fa;
-            border-radius: 50%;
-        }
+    .card-visual { transition: all 0.3s ease; border: 2px solid transparent !important; }
+    .payment-card-item.active .card-visual { border-color: #0d6efd !important; transform: scale(1.02); box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2) !important; }
+    .payment-card-item.active .selection-indicator { display: block !important; }
+    .tracking-widest { letter-spacing: 2px; }
 
-        .border-dashed::before {
-            left: -11px;
-        }
-
-        .border-dashed::after {
-            right: -11px;
-        }
-
-    .bg-primary {
-        background: linear-gradient(45deg, #0d6efd, #0a58ca) !important;
-    }
-
-    .card-slider-container div::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .card-slider-container div::-webkit-scrollbar-thumb {
-        background: #dee2e6;
-        border-radius: 10px;
-    }
-
-    .card-visual {
-        transition: all 0.3s ease;
-        border: 2px solid transparent !important;
-    }
-
-    .payment-card-item.active .card-visual {
-        border-color: #0d6efd !important;
-        transform: scale(1.02);
-        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2) !important;
-    }
-
-    .payment-card-item.active .selection-indicator {
-        display: block !important;
-    }
-
-    .tracking-widest {
-        letter-spacing: 2px;
+    @@media print {
+        body * { visibility: hidden; }
+        #qr-to-print, #qr-to-print * { visibility: visible; }
+        #qr-to-print { position: absolute; left: 0; top: 1cm; width: 100%; text-align: center; }
     }
 </style>
 <script>
+    function toggleQR() {
+        const wrapper = document.getElementById('layoutWrapper');
+        wrapper.classList.toggle('qr-active');
+    }
+
     function selectCard(element, cardId) {
         document.querySelectorAll('.payment-card-item').forEach(item => {
             item.classList.remove('active');
@@ -193,11 +195,11 @@
         const submitBtn = document.getElementById('submitBtn');
         const warning = document.getElementById('selectionWarning');
 
-        cardInput.value = cardId;
+        if(cardInput) cardInput.value = cardId;
 
         if (cardId) {
-            submitBtn.disabled = false;
-            warning.classList.add('d-none');
+            if(submitBtn) submitBtn.disabled = false;
+            if(warning) warning.classList.add('d-none');
         }
     }
 </script>

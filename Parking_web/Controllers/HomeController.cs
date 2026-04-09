@@ -187,6 +187,8 @@ namespace Parking_web.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Manager , Admin")]
         public async Task<IActionResult> Edit(int transaksioniId)
         {
             if (transaksioniId <= 0)
@@ -202,6 +204,7 @@ namespace Parking_web.Controllers
                 if (response != null && response.Success && response.Data != null)
                 {
                     ViewBag.Sherbimet = sherbimiResponse?.Data;
+                    ViewBag.ExistingSherbim = response.Data.Sherbimi?.Where(s => s.Cmimi != 0).Select(s => s.SherbimiId).ToList() ?? new List<int>();
                     return View(response.Data);
                 }
 
@@ -241,7 +244,7 @@ namespace Parking_web.Controllers
         [HttpGet]
         public async Task<IActionResult> Pay(int id)
         {
-            var response = await _transaksioniService.GetAsync<ApiResponse<TransaksionRead>>(id);
+            var response = await _transaksioniService.GetPriceAsync<ApiResponse<TransaksionRead>>(id);
 
             if (response == null || !response.Success)
             {
@@ -301,16 +304,21 @@ namespace Parking_web.Controllers
             using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
             {
                 string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmm");
+                string server = "https://localhost:7061";
                 string url = "";
 
                 if (selectedCardId != null && id != null)
                 {
                     string signature = GenerateSignature((int)id, timestamp, (int)selectedCardId);
-                    url = $"https://localhost:7061/Home/QRRead?id={id}&t={timestamp}&c={selectedCardId}&s={signature}"; // URL dohet me bo te serverit
+                    url = $"{server}/Home/QRRead?id={id}&t={timestamp}&c={selectedCardId}&s={signature}";
                 }
                 else if (njesiaId != null && vendiId != null)
                 {
-                    url = $"https://localhost:7061/Home/EntryQRReader?njesiaId={njesiaId}&vendiId={vendiId}"; // URL dohet me bo te serverit
+                    url = $"{server}/Home/EntryQRReader?njesiaId={njesiaId}&vendiId={vendiId}";
+                }
+                else if (id != null)
+                {
+                    url = $"{server}/Home/Edit?transaksioniId={id}";
                 }
                 else
                 {

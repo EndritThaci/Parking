@@ -42,7 +42,7 @@ else
                                     <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative pending-card">
                                         <div class="pending-stripe"></div>
                                         <div class="card-body p-4">
-                                            <a asp-controller="Home" asp-action="Edit" asp-route-transaksioniId="@item.TransaksioniId" class="text-decoration-none">
+                                            <a asp-controller="Home" asp-action="Pay" asp-route-id="@item.TransaksioniId" class="text-decoration-none">
                                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                                     <div>
                                                         <h6 class="text-muted small text-uppercase fw-bold mb-1">Vendi i Parkimit</h6>
@@ -61,7 +61,7 @@ else
                                                     <span>Data: @item.KohaHyrjes.ToString("dd/MM")</span>
                                                 </div>
 
-                                                <a asp-controller="Home" asp-action="Edit" asp-route-transaksioniId="@item.TransaksioniId"
+                                                <a asp-controller="Home" asp-action="Pay" asp-route-id="@item.TransaksioniId"
                                                    class="btn btn-outline-warning w-100 rounded-pill fw-bold py-2 shadow-sm transition-all btn-pay">
                                                     Përzgjidh për Mbyllje
                                                 </a>

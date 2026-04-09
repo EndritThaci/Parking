@@ -238,6 +238,98 @@ namespace Parking_project.Controllers
 
         }
 
+        [HttpGet("{transaksioniId:int}/Price")]
+        [ProducesResponseType(typeof(ApiResponse<TransaksionRead>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<TransaksionRead>>> getTransaksioninPrice(int transaksioniId)
+        {
+            try
+            {
+                var gettransaksioni = await _db.TransaksionParkimi.Where(t => t.TransaksioniId == transaksioniId).Include(c => c.Cilsimet).Include(c => c.User).FirstOrDefaultAsync();
+                if (gettransaksioni == null)
+                {
+                    return NotFound(ApiResponse<object>.NotFound($"Transaksioni with id {transaksioniId} not found."));
+                }
+
+                DateTime KohaDaljes = DateTime.UtcNow;
+                TimeSpan difference = KohaDaljes - gettransaksioni.KohaHyrjes;
+                int diff = (int)difference.TotalHours;
+
+                var getDetajet = await _db.Detajet
+                                        .Where(c => gettransaksioni.CilsimiId == c.CilsimetiId)
+                                        .Where(t => (t.ToHour < diff) || (t.FromHour <= diff && t.ToHour > diff) || (t.FromHour <= diff && t.ToHour == null))
+                                        .Include(c => c.CilsimetParkimit).ToListAsync();
+
+                if (getDetajet.Count() == 0)
+                {
+                    return NotFound(ApiResponse<object>.NotFound($"Detajet with cilsim id {gettransaksioni.CilsimiId} not found."));
+                }
+                decimal CmimiParking = 0;
+                ++diff;
+                foreach (var item in getDetajet)
+                {
+                    if (item.ToHour == null)
+                    {
+                        int diffDetaj = diff - item.FromHour;
+                        CmimiParking += diffDetaj * item.Cmimi;
+                    }
+                    else if (item.ToHour < diff)
+                    {
+                        int diffDetaj = (int)item.ToHour - item.FromHour;
+                        CmimiParking += diffDetaj * item.Cmimi;
+                    }
+                    else if (item.ToHour >= diff && item.FromHour < diff)
+                    {
+                        int diffDetaj = diff - item.FromHour;
+                        CmimiParking += diffDetaj * item.Cmimi;
+                    }
+                }
+
+                gettransaksioni.KohaDaljes = DateTime.UtcNow;
+                _db.TransaksionParkimi.Update(gettransaksioni);
+                await _db.SaveChangesAsync();
+
+                var getVendiParkimit = await _db.Vendi.Where(v => v.VendiId == gettransaksioni.VendiParkimitId).Include(l => l.Lokacioni).ThenInclude(n => n.NjesiOrg).FirstOrDefaultAsync();
+
+                var getSherbimet = await _db.TransaksionDetaj.Where(t => t.TransaksionId == transaksioniId).Include(c => c.Sherbimi).ToListAsync();
+
+                var parking = getSherbimet.Where(s => s.SherbimiId == gettransaksioni.Cilsimet.SherbimiId).FirstOrDefault();
+                if (parking != null)
+                {
+                    parking.Cmimi = CmimiParking;
+
+                    _db.TransaksionDetaj.Update(parking);
+                    await _db.SaveChangesAsync();
+                }
+
+
+                List<Sherbimi> getSherbim = getSherbimet.Select(c => c.Sherbimi).ToList();
+
+                TransaksionRead transaksionRead = new TransaksionRead
+                {
+                    TransaksioniId = gettransaksioni.TransaksioniId,
+                    KohaDaljes = gettransaksioni.KohaDaljes,
+                    KohaHyrjes = gettransaksioni.KohaHyrjes,
+                    Cmimi = getSherbimet.Where(i => i.TransaksionId == transaksioniId).Sum(c => c.Cmimi),
+                    Statusi = gettransaksioni.Statusi,
+                    Cilsimi = gettransaksioni.Cilsimet,
+                    Vendi = getVendiParkimit,
+                    Useri = gettransaksioni.User,
+                    Sherbimi = getSherbim.ToList()
+                };
+
+                return Ok(ApiResponse<TransaksionRead>.Ok(transaksionRead, "Transaksion retrived successfully"));
+
+            }
+            catch (Exception ex)
+            {
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+                return StatusCode(500, ApiResponse<object>.Error(500, "An error occurred while processing the request.", innerMessage));
+
+            }
+
+        }
 
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponse<TransaksionetCreateDto>), StatusCodes.Status201Created)]
@@ -258,7 +350,7 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<object>.BadRequest($"Vend Parkimi with id {transaksionetCreateDto.VendiParkimitId} is not free."));
                 }
 
-                var getCilsimi = await _db.CilsimetParkimit.Where(c => c.CilsimetiId == transaksionetCreateDto.CilsimiId).FirstOrDefaultAsync();
+                var getCilsimi = await _db.CilsimetParkimit.Where(c => c.CilsimetiId == transaksionetCreateDto.CilsimiId).Include(s => s.Sherbimi).FirstOrDefaultAsync();
                 if (getCilsimi == null || getCilsimi.NjesiteId != transaksionetCreateDto.NjesiaId)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Cilsimi not Found"));
@@ -276,6 +368,15 @@ namespace Parking_project.Controllers
                 await _db.SaveChangesAsync();
 
                 await _db.TransaksionParkimi.AddAsync(transaksionet);
+                await _db.SaveChangesAsync();
+
+                TransaksionDetaj transaksionParking = new TransaksionDetaj
+                {
+                    TransaksionId = transaksionet.TransaksioniId,
+                    SherbimiId = getCilsimi.Sherbimi.SherbimiId,
+                    Cmimi = 0
+                };
+                await _db.TransaksionDetaj.AddAsync(transaksionParking);
                 await _db.SaveChangesAsync();
 
                 var response = ApiResponse<TransaksionetCreateDto>.CreatedAt(_mapper.Map<TransaksionetCreateDto>(transaksionet), "The data has been added successfully");

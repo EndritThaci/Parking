@@ -1,12 +1,14 @@
 ﻿@model Parking_web.Models.DTO.TransaksionRead
 @{
     ViewData["Title"] = "Mbyllja e Transaksionit";
+
+    var existingIds = ViewBag.ExistingSherbim as List<int> ?? new List<int>();
 }
 
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            <div class="card border-0 shadow-lg overflow-hidden mb-4" style="border-radius: 25px;">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
                 <div class="bg-dark py-4 px-4 text-white">
                     <h3 class="fw-bold mb-0">Detajet dhe Shërbimet</h3>
                     <p class="small opacity-75 mb-0">ID: #@Model.TransaksioniId</p>
@@ -16,14 +18,14 @@
                     <div class="row g-3 mb-5 text-center text-md-start">
                         <div class="col-md-4 border-end">
                             <label class="text-muted small fw-bold text-uppercase">Vendi</label>
-                            <p class="h5 fw-bold text-dark"><i class="bi bi-p-square me-2 text-primary"></i>@Model.Vendi.VendiEmri, Kati @Model.Vendi.Lokacioni.Kati, @Model.Cilsimi.NjesiOrg.Emri</p>
+                            <p class="h6 fw-bold text-dark">@Model.Vendi.VendiEmri, Kati @Model.Vendi.Lokacioni.Kati</p>
                         </div>
                         <div class="col-md-4 border-end">
                             <label class="text-muted small fw-bold text-uppercase">Koha e Hyrjes</label>
                             <p class="h6 text-dark">@Model.KohaHyrjes.ToString("HH:mm")</p>
                         </div>
                         <div class="col-md-4">
-                            <label class="text-muted small fw-bold text-uppercase">Admin</label>
+                            <label class="text-muted small fw-bold text-uppercase">Përdoruesi</label>
                             <p class="h6 text-dark">@User.Identity?.Name</p>
                         </div>
                     </div>
@@ -36,12 +38,13 @@
                                 {
                                     foreach (var s in (IEnumerable<dynamic>)ViewBag.Sherbimet)
                                     {
-                                        if(s.Cmimi != 0){
+                                        if (s.Cmimi != 0 && s.Emri != "Parking")
+                                        {
                                             <button type="button"
                                                     id="btn-avail-@s.SherbimiId"
-                                                    class="btn btn-outline-primary btn-custom-size rounded-pill btn-avail"
+                                                    class="btn btn-outline-primary btn-custom-size rounded-pill @(existingIds.Contains((int)s.SherbimiId) ? "d-none" : "")"
                                                     onclick="selectService('@s.SherbimiId', '@s.Emri', '@s.Cmimi')">
-                                                @s.Emri <span class="badge bg-primary ms-1">@if(s.Cmimi != 0){@s.Cmimi<span>€</span>}</span>
+                                                @s.Emri <span class="badge bg-primary ms-1"> @s.Cmimi €</span>
                                             </button>
                                         }
                                     }
@@ -76,84 +79,82 @@
 </div>
 
 <style>
-    /* Stilimi i unifikuar për të dy llojet */
     .btn-custom-size {
-        padding: 0.375rem 1rem !important; /* Padding fiks */
-        font-size: 0.875rem !important; /* Madhësi teksti e barabartë */
+        padding: 0.375rem 1rem;
+        font-size: 0.875rem;
         font-weight: 600;
-        border-width: 2px !important; /* Trashësi e njëjtë kornize */
         display: inline-flex;
         align-items: center;
-        height: 38px; /* Lartësi fikse për të dy */
+        height: 38px;
         transition: all 0.2s ease;
     }
 
-    /* Kur nuk është i zgjedhur (Outline) */
-    .btn-avail {
-        border-color: #0d6efd !important;
-    }
-
-    /* Kur është i zgjedhur (I mbushur Blu) */
     .btn-selected-item {
-        background-color: #0d6efd !important;
-        border-color: #0d6efd !important;
-        color: white !important;
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
     }
 
-        /* Efekti i kuq kur do ta heqësh */
         .btn-selected-item:hover {
-            background-color: #dc3545 !important;
-            border-color: #dc3545 !important;
-            transform: scale(0.98);
+            background-color: #dc3545;
+            border-color: #dc3545;
         }
 </style>
 
 <script>
     let selectedList = [];
 
+    document.addEventListener("DOMContentLoaded", function() {
+        @if (ViewBag.Sherbimet != null && existingIds.Any())
+        {
+            foreach (var s in (IEnumerable<dynamic>)ViewBag.Sherbimet)
+            {
+                if (existingIds.Contains((int)s.SherbimiId) && s.Emri != "Parking")
+                {
+                    @:selectedList.push({ id: '@s.SherbimiId', emri: '@s.Emri', cmimi: '@s.Cmimi' });
+                }
+            }
+        }
+        updateUI();
+    });
+
+
     function selectService(id, emri, cmimi) {
-        // Kontrollo nëse është zgjedhur tashmë
         if (selectedList.some(s => s.id === id)) return;
 
-        // Shto në listë
         selectedList.push({ id, emri, cmimi });
 
-        // Fshih butonin nga lista "Disponueshme"
         document.getElementById(`btn-avail-${id}`).classList.add('d-none');
 
         updateUI();
     }
 
     function deselectService(id) {
-        // Hiqe nga lista
         selectedList = selectedList.filter(s => s.id !== id);
 
-        // Shfaq butonin përsëri te lista "Disponueshme"
         document.getElementById(`btn-avail-${id}`).classList.remove('d-none');
 
         updateUI();
     }
 
-            function updateUI() {
-        const selectedContainer = document.getElementById('selectedServices');
+    function updateUI() {
+        const container = document.getElementById('selectedServices');
         const hiddenContainer = document.getElementById('hiddenInputsContainer');
         const emptyMsg = document.getElementById('emptyMsg');
 
-        selectedContainer.querySelectorAll('.btn-selected-item').forEach(el => el.remove());
+        container.querySelectorAll('.btn-selected-item').forEach(el => el.remove());
         hiddenContainer.innerHTML = "";
 
         if (selectedList.length > 0) {
             emptyMsg.classList.add('d-none');
-            selectedList.forEach((s, index) => {
+            selectedList.forEach(s => {
                 const btn = document.createElement('button');
                 btn.type = "button";
 
-                // Përdorim klasat e reja që krijuam në CSS
-                btn.className = "btn btn-selected-item btn-custom-size rounded-pill animate__animated animate__fadeIn";
-
-                btn.innerHTML = `${s.emri} <i class="bi bi-x-lg ms-2 small"></i>`;
+                btn.className = "btn btn-selected-item btn-custom-size rounded-pill";
+                btn.innerHTML = `${s.emri} <i class="bi bi-x ms-2"></i>`;
                 btn.onclick = () => deselectService(s.id);
-                selectedContainer.appendChild(btn);
+                container.appendChild(btn);
 
                 hiddenContainer.innerHTML += `<input type="hidden" name="SherbimiId" value="${s.id}" />`;
             });

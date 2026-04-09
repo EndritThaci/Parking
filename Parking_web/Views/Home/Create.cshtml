@@ -33,13 +33,14 @@
                             <span class="fw-bold text-dark">@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</span>
                         </li>
                     </ul>
-
-                    <a asp-action="EntryQR" asp-route-njesiaId="@Model.NjesiaId" asp-route-vendiId="@Model.VendiParkimitId" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
-                        Konfirmo dhe Vazhdo
-                    </a>
-                    <a asp-action="Index" class="btn rounded-pill fw-bold border-0">
-                        Anulo
-                    </a>
+                    <div class="d-grid gap-2">
+                        <a asp-action="EntryQR" asp-route-njesiaId="@Model.NjesiaId" asp-route-vendiId="@Model.VendiParkimitId" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                            Konfirmo dhe Vazhdo
+                        </a>
+                        <a asp-action="Index" class="btn rounded-pill fw-bold border-0">
+                            Anulo
+                        </a>
+                    </div>
                     @* <form asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
 

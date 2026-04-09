@@ -57,6 +57,16 @@ namespace Parking_web.Services
             });
         }
 
+        public Task<T?> GetPriceAsync<T>(int id)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.GET,
+                Url = $"{APIEndPoint}/{id}/Price",
+            });
+        }
+
+
         public Task<T?> UpdateAsync<T>(int id,TransaksionUpdateDto dto)
         {
             return SendAsync<T>(new ApiRequest
