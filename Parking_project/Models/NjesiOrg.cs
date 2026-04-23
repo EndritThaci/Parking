@@ -20,6 +20,9 @@ namespace Parking_project.Models
         [StringLength(200)]
         public string Adresa { get; set; }
 
+        [Required]
+        public int VendeTeLira { get; set; }
+
         public bool active { get; set; } = true;
 
         [Required]

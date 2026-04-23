@@ -18,6 +18,9 @@ namespace Parking_web.Models.DTO
         public string Adresa { get; set; }
 
         [Required]
+        public int VendeTeLira { get; set; }
+
+        [Required]
         public int BiznesId { get; set; }
     }
 }

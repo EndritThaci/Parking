@@ -16,7 +16,7 @@ namespace Parking_project.Models.DTO
 
         public string Statusi { get; set; }
 
-        public Vendi Vendi { get; set; }
+        public NjesiOrg Njesia{ get; set; }
         public CilsimetParkimit Cilsimi { get; set; }
         public List<Sherbimi>? Sherbimi { get; set; }
         public Useri Useri { get; set; }

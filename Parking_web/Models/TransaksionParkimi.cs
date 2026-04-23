@@ -18,12 +18,6 @@ namespace Parking_web.Models
         public string Statusi { get; set; }
 
         [Required]
-        public int VendiParkimitId { get; set; }
-        
-        [ForeignKey(nameof(VendiParkimitId))]
-        public Vendi Vendi { get; set; }
-        
-        [Required]
         public int NjesiaId { get; set; }
         
         [ForeignKey(nameof(NjesiaId))]

@@ -42,12 +42,6 @@ builder.Services.AddAutoMapper(o =>
     o.CreateMap<Detajet, DetajetUpdateDto>().ReverseMap();
     o.CreateMap<DetajetReadDto, DetajetUpdateDto>().ReverseMap();
 
-    o.CreateMap<Lokacioni, LokacioniCreateDTO>().ReverseMap();
-    o.CreateMap<Lokacioni, LokacioniUpdateDTO>().ReverseMap();
-
-    o.CreateMap<Vendi, VendiCreateDTO>().ReverseMap();
-    o.CreateMap<Vendi, VendiUpdateDTO>().ReverseMap();
-
     o.CreateMap<Sherbimi, SherbimiCreateDTO>().ReverseMap();
     o.CreateMap<Sherbimi, SherbimiUpdateDTO>().ReverseMap();
 
@@ -76,8 +70,6 @@ builder.Services.AddScoped<INjesiaService, NjesiaService>();
 builder.Services.AddScoped<ISherbimiService, SherbimiService>();
 builder.Services.AddScoped<ICilsimiService, CilsimiService>();
 builder.Services.AddScoped<IDetajetService, DetajetService>();
-builder.Services.AddScoped<ILokacioniService, LokacioniService>();
-builder.Services.AddScoped<IVendiService, VendiService>();
 builder.Services.AddScoped<ITransaksionService, TransaksionService>();
 builder.Services.AddScoped<ILibriService, LibriService>();
 builder.Services.AddScoped<IUserService, UserService>();

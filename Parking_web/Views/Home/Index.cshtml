@@ -46,7 +46,7 @@ else
                                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                                     <div>
                                                         <h6 class="text-muted small text-uppercase fw-bold mb-1">Vendi i Parkimit</h6>
-                                                        <h4 class="fw-black mb-0">@item.Vendi.VendiEmri, Kati @item.Vendi.Lokacioni.Kati, @item.Cilsimi.NjesiOrg.Emri</h4>
+                                                        <h4 class="fw-black mb-0">@item.Njesia.Emri</h4>
                                                     </div>
 
                                                     <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 rounded-pill">
@@ -54,13 +54,14 @@ else
                                                     </span>
                                                 </div>
 
-                                                <div class="d-flex align-items-center text-muted small mb-4">
+                                                <div class="d-flex align-items-center text-muted small">
                                                     <i class="bi bi-clock-history me-2"></i>
                                                     <span>Hyrja: <strong>@item.KohaHyrjes.ToString("HH:mm")</strong></span>
                                                     <span class="mx-2">|</span>
                                                     <span>Data: @item.KohaHyrjes.ToString("dd/MM")</span>
-                                                    <span class="mx-2">|</span>
-                                                    <span>Perdoruesi: @item.Useri.Emri</span>
+                                                </div>
+                                                <div class="d-flex align-items-center text-muted small mb-4">
+                                                    <span><i class="bi bi-person-fill me-2"></i>Perdoruesi: @item.Useri.Emri @item.Useri.Mbiemri</span>
                                                 </div>
 
                                                 <a asp-controller="Home" asp-action="Pay" asp-route-id="@item.TransaksioniId"
@@ -107,7 +108,7 @@ else
                                     <span class="text-truncate">@njesi.Adresa</span>
                                 </div>
 
-                                <a asp-controller="Home" asp-action="Vendi" asp-route-njesiaId="@njesi.NjesiteId"
+                                <a asp-controller="Home" asp-action="Create" asp-route-njesiaId="@njesi.NjesiteId"
                                     class="btn btn-outline-primary w-100 rounded-pill fw-bold py-2 transition-all btn-unit-action">
                                     Zgjedh Njesinë <i class="bi bi-chevron-right ms-1"></i>
                                 </a>

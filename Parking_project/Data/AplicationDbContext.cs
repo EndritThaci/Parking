@@ -8,8 +8,6 @@ namespace Parking_project.Data
         public DbSet<Organizata> Organizata { get; set; }
         public DbSet<Useri> Useri { get; set; }
         public DbSet<NjesiOrg> NjesiOrg { get; set; }
-        public DbSet<Lokacioni> Lokacioni { get; set; }
-        public DbSet<Vendi> Vendi { get; set; }
         public DbSet<Sherbimi> Sherbimi { get; set; }
         public DbSet<CilsimetParkimit> CilsimetParkimit { get; set; }
         public DbSet<TransaksionParkimi> TransaksionParkimi { get; set; }
@@ -30,25 +28,11 @@ namespace Parking_project.Data
                 .HasForeignKey(n => n.BiznesId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // 2. Lokacioni -> NjesiOrg (Many-to-One)
-            modelBuilder.Entity<Lokacioni>()
-                .HasOne(l => l.NjesiOrg)
-                .WithMany()
-                .HasForeignKey(l => l.NjesiteId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            //2.5 Useri -> Organizata (Many-to-One)
+            //3. Useri -> Organizata (Many-to-One)
             modelBuilder.Entity<Useri>()
                 .HasOne(n => n.Organizata)
                 .WithMany()
                 .HasForeignKey(n => n.BiznesId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // 3. Vendi -> Lokacioni (Many-to-One)
-            modelBuilder.Entity<Vendi>()
-                .HasOne(v => v.Lokacioni)
-                .WithMany()
-                .HasForeignKey(v => v.LokacioniId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // 4. Sherbimi -> Organizata (Many-to-One)
@@ -79,12 +63,6 @@ namespace Parking_project.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // 7. TransaksionParkimi (Multiple FKs)
-            modelBuilder.Entity<TransaksionParkimi>()
-                .HasOne(t => t.Vendi)
-                .WithMany()
-                .HasForeignKey(t => t.VendiParkimitId)
-                .OnDelete(DeleteBehavior.NoAction);
-
             modelBuilder.Entity<TransaksionParkimi>()
                 .HasOne(t => t.Njesia)
                 .WithMany()

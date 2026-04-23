@@ -18,6 +18,8 @@ namespace Parking_project.Models.DTO
         [StringLength(200)]
         public string Adresa { get; set; }
 
+        public int VendeTeLira { get; set; }
+
         [Required]
         public int BiznesId { get; set; }
     }

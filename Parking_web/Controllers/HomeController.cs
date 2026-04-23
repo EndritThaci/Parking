@@ -12,19 +12,15 @@ namespace Parking_web.Controllers
     public class HomeController : Controller
     {
         private readonly INjesiaService _njesiaService;
-        private readonly ILokacioniService _lokacioniService;
-        private readonly IVendiService _vendiService;
         private readonly ITransaksionService _transaksioniService;
         private readonly ICilsimiService _cilsimiService;
         private readonly ISherbimiService _sherbimiService;
         private readonly ICardDetailsService _cardDetailsService;
         private readonly IMapper _mapper;
 
-        public HomeController(INjesiaService njesiaService, ILokacioniService lokacioniService, ITransaksionService transaksioniService, IVendiService vendiService, ISherbimiService sherbimiService, ICilsimiService cilsimiService, IMapper mapper, ICardDetailsService cardDetailsService)
+        public HomeController(INjesiaService njesiaService, ITransaksionService transaksioniService, ISherbimiService sherbimiService, ICilsimiService cilsimiService, IMapper mapper, ICardDetailsService cardDetailsService)
         {
             _njesiaService = njesiaService;
-            _lokacioniService = lokacioniService;
-            _vendiService = vendiService;
             _transaksioniService = transaksioniService;
             _cilsimiService = cilsimiService;
             _sherbimiService = sherbimiService;
@@ -55,6 +51,7 @@ namespace Parking_web.Controllers
                     var pendingList = OrgResponse.Data.Where(t => t.Statusi == "Pending").ToList();
                     ViewBag.PendingTransactions = pendingList;
                 }
+
             }
             catch (Exception ex)
             {
@@ -62,60 +59,63 @@ namespace Parking_web.Controllers
             }
             return View(orgList);
         }
-        public async Task<IActionResult> Vendi(int njesiaId, int? lokacioniId)
-        {
-            ViewBag.SelectedNjesia = njesiaId;
-            List<Vendi> vendet = new();
-            try
-            {
-                var response = await _lokacioniService.GetByNjesiAsync<ApiResponse<List<Lokacioni>>>(njesiaId);
-                if (response != null && response.Success && response.Data != null)
-                {
-                    ViewBag.Lokacionet = response?.Data;
-                }
+        //public async Task<IActionResult> Vendi(int njesiaId, int? lokacioniId)
+        //{
+        //    ViewBag.SelectedNjesia = njesiaId;
+        //    List<Vendi> vendet = new();
+        //    try
+        //    {
+        //        var response = await _lokacioniService.GetByNjesiAsync<ApiResponse<List<Lokacioni>>>(njesiaId);
+        //        if (response != null && response.Success && response.Data != null)
+        //        {
+        //            ViewBag.Lokacionet = response?.Data;
+        //        }
 
-                if (!lokacioniId.HasValue && response.Data.Any())
-                {
-                    lokacioniId = response.Data.OrderBy(l => l.Kati).FirstOrDefault()?.LokacioniId;
-                }
+        //        if (!lokacioniId.HasValue && response.Data.Any())
+        //        {
+        //            lokacioniId = response.Data.OrderBy(l => l.Kati).FirstOrDefault()?.LokacioniId;
+        //        }
 
-                ViewBag.SelectedLokacioni = lokacioniId;
+        //        ViewBag.SelectedLokacioni = lokacioniId;
 
-                if (lokacioniId.HasValue)
-                {
-                    var response1 = await _vendiService.GetByLokacionAsync<ApiResponse<List<Vendi>>>(lokacioniId);
-                    if (response1 != null && response1.Success && response1.Data != null)
-                    {
-                        vendet = response1.Data;
-                    }
-                    ViewBag.SelectedLokacioni = lokacioniId;
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = $"Gabim: {ex.Message}";
-            }
+        //        if (lokacioniId.HasValue)
+        //        {
+        //            var response1 = await _vendiService.GetByLokacionAsync<ApiResponse<List<Vendi>>>(lokacioniId);
+        //            if (response1 != null && response1.Success && response1.Data != null)
+        //            {
+        //                vendet = response1.Data;
+        //            }
+        //            ViewBag.SelectedLokacioni = lokacioniId;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["error"] = $"Gabim: {ex.Message}";
+        //    }
 
-            return View(vendet);
-        }
+        //    return View(vendet);
+        //}
 
-        public async Task<IActionResult> Create(int njesiaId, int vendiId)
+        public async Task<IActionResult> Create(int njesiaId)
         {
             TransaksionetCreateDto createDto = new();
             try
             {
-                var vendiResponse = await _vendiService.GetAsync<ApiResponse<Vendi>>(vendiId);
-                if (vendiResponse == null || vendiResponse.Data == null) return NotFound();
-
-                Vendi vendi = vendiResponse.Data;
-
-                if (!vendi.IsFree)
+                var njesiaResponse = await _njesiaService.GetAsync<ApiResponse<NjesiOrg>>(njesiaId);
+                if (njesiaResponse == null || njesiaResponse.Data == null)
                 {
-                    TempData["error"] = $"Vendi {vendi.VendiEmri} është i zënë";
-                    return RedirectToAction("Vendi", new { njesiaId = njesiaId, lokacioniId = vendi.LokacioniId });
+                    TempData["error"] = "Nuk u gjet njesi";
+                    return View("Index");
                 }
+
+                if (njesiaResponse.Data.VendeTeLira <= 0)
+                {
+                    TempData["error"] = $"Nuk ka vende të lira në njësinë {njesiaResponse.Data.Emri}";
+                    return View("Index");
+                }
+
                 var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
-                var cilsimet = cilsimiResponse.Data;
+                var cilsimet = cilsimiResponse?.Data;
                 var cilsimiActiv = cilsimet?.FirstOrDefault(c => c.Selected);
 
                 if (cilsimiActiv == null)
@@ -124,12 +124,9 @@ namespace Parking_web.Controllers
                     return RedirectToAction("Index");
                 }
 
-                ViewBag.VendiEmri = vendi.VendiEmri;
-                ViewBag.Kati = vendi.Lokacioni?.Kati;
-                ViewBag.NjesiaEmri = cilsimiActiv.NjesiOrg?.Emri;
+                ViewBag.NjesiaEmri = njesiaResponse.Data.Emri;
                 ViewBag.CilsimiEmri = cilsimiActiv.Emri;
 
-                createDto.VendiParkimitId = vendiId;
                 createDto.NjesiaId = njesiaId;
                 createDto.CilsimiId = cilsimiActiv.CilsimetiId;
             }
@@ -142,27 +139,25 @@ namespace Parking_web.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> EntryQR(int njesiaId, int vendiId)
+        public async Task<IActionResult> EntryQR(int njesiaId)
         {
-            ViewBag.VendiId = vendiId;
             return View(njesiaId);
         }
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> EntryQRReader(int njesiaId, int vendiId)
+        public async Task<IActionResult> EntryQRReader(int njesiaId)
         {
-            ViewBag.VendiId = vendiId;
             return View(njesiaId);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateTransacsion(int njesiaId, int vendiId)
+        public async Task<IActionResult> CreateTransacsion(int njesiaId)
         {
             TransaksionetCreateDto createDto = new();
             try
             {
+
                 var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
                 var cilsimet = cilsimiResponse.Data;
                 var cilsimiActiv = cilsimet?.FirstOrDefault(c => c.Selected);
@@ -172,10 +167,9 @@ namespace Parking_web.Controllers
                     TempData["error"] = "Nuk u gjet asnje cilesim aktiv për kete njësi.";
                     return RedirectToAction("Index");
                 }
-                createDto.VendiParkimitId = vendiId;
                 createDto.NjesiaId = njesiaId;
                 createDto.CilsimiId = cilsimiActiv.CilsimetiId;
- 
+
                 var response = await _transaksioniService.CreateAsync<ApiResponse<TransaksionetCreateDto>>(createDto);
                 if (response != null && response.Success && response.Data != null)
                 {
@@ -209,6 +203,7 @@ namespace Parking_web.Controllers
                 if (response != null && response.Success && response.Data != null)
                 {
                     ViewBag.Sherbimet = sherbimiResponse?.Data;
+
                     ViewBag.ExistingSherbim = response.Data.Sherbimi?.Where(s => s.Cmimi != 0).Select(s => s.SherbimiId).ToList() ?? new List<int>();
                     return View(response.Data);
                 }
@@ -304,7 +299,7 @@ namespace Parking_web.Controllers
             return View(id);
         }
 
-        public IActionResult QRGenerate(int? id, int? selectedCardId, int? njesiaId, int? vendiId)
+        public IActionResult QRGenerate(int? id, int? selectedCardId, int? njesiaId)
         {
             using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
             {
@@ -317,9 +312,9 @@ namespace Parking_web.Controllers
                     string signature = GenerateSignature((int)id, timestamp, (int)selectedCardId);
                     url = $"{server}/Home/QRRead?id={id}&t={timestamp}&c={selectedCardId}&s={signature}";
                 }
-                else if (njesiaId != null && vendiId != null)
+                else if (njesiaId != null)
                 {
-                    url = $"{server}/Home/EntryQRReader?njesiaId={njesiaId}&vendiId={vendiId}";
+                    url = $"{server}/Home/EntryQRReader?njesiaId={njesiaId}";
                 }
                 else if (id != null)
                 {
@@ -330,6 +325,7 @@ namespace Parking_web.Controllers
                     TempData["error"] = "Gabim. QR kodi nuk mund te krijohet ";
                     return View("Index");
                 }
+
                 QRCodeData qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
                 PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
                 byte[] qrCodeAsPngByteArr = qrCode.GetGraphic(20);

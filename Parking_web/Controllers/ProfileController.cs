@@ -15,22 +15,18 @@ namespace Parking_web.Controllers
         private readonly ISherbimiService _shebimiService;
         private readonly ICilsimiService _cilsimiService;
         private readonly IDetajetService _detajetService;
-        private readonly ILokacioniService _lokacioniService;
-        private readonly IVendiService _vendiService;
         private readonly IUserService _userService;
         private readonly ICardDetailsService _cardDetailsService;
         private readonly IBankService _bankService;
         private readonly IMapper _mapper;
 
-        public ProfileController(INjesiaService njesiaService, IMapper mapper, ISherbimiService shebimiService, ICilsimiService cilsimiService, IDetajetService detajetService, ILokacioniService lokacioniService, IVendiService vendiService, IUserService userService, ICardDetailsService cardDetailsService, IBankService bankService)
+        public ProfileController(INjesiaService njesiaService, IMapper mapper, ISherbimiService shebimiService, ICilsimiService cilsimiService, IDetajetService detajetService, IUserService userService, ICardDetailsService cardDetailsService, IBankService bankService)
         {
             _njesiaService = njesiaService;
             _mapper = mapper;
             _shebimiService = shebimiService;
             _cilsimiService = cilsimiService;
             _detajetService = detajetService;
-            _lokacioniService = lokacioniService;
-            _vendiService = vendiService;
             _userService = userService;
             _cardDetailsService = cardDetailsService;
             _bankService = bankService;

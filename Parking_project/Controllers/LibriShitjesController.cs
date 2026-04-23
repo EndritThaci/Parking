@@ -45,9 +45,7 @@ namespace Parking_project.Controllers
             var query = _db.TransaksionParkimi.Where(i => i.Njesia.BiznesId == org)
                 .Include(t => t.Cilsimet)
                     .ThenInclude(c => c.Sherbimi)
-                .Include(t => t.Vendi)
-                    .ThenInclude(v => v.Lokacioni)
-                        .ThenInclude(l => l.NjesiOrg)
+                .Include(l => l.Njesia)
                 .Include(t => t.User)
                 .AsQueryable();
 
@@ -90,7 +88,6 @@ namespace Parking_project.Controllers
                 KohaDaljes = t.KohaDaljes,
                 Cmimi = getSherbimet.Where(i => i.TransaksionId == t.TransaksioniId).Sum(c => c.Cmimi),
                 Statusi = t.Statusi,
-                Vendi = t.Vendi,
                 Cilsimi = t.Cilsimet,
                 Useri = t.User,
                 Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList(),

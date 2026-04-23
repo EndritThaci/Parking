@@ -6,9 +6,6 @@ namespace Parking_web.Models.DTO
     public class TransaksionetCreateDto
     {
         [Required]
-        public int VendiParkimitId { get; set; }
-
-        [Required]
         public int NjesiaId { get; set; }
 
         [Required]

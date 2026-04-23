@@ -38,7 +38,11 @@ namespace Parking_project.Controllers
                     return NotFound(ApiResponse<object>.NotFound($"Transaksioni with id {transaksioniId} not found."));
                 }
 
-                var getVendiParkimit = await _db.Vendi.Where(v => v.VendiId == gettransaksioni.VendiParkimitId).Include(l => l.Lokacioni).ThenInclude(n => n.NjesiOrg).FirstOrDefaultAsync();
+                var getNjesia = await _db.NjesiOrg.Where(v => v.NjesiteId == gettransaksioni.NjesiaId).FirstOrDefaultAsync();
+                if (getNjesia == null)
+                {
+                    return NotFound(ApiResponse<object>.NotFound("Njesia not found"));
+                }
 
                 var getSherbimet = await _db.TransaksionDetaj.Where(t => t.TransaksionId == transaksioniId).Include(c => c.Sherbimi).ToListAsync();
 
@@ -51,8 +55,8 @@ namespace Parking_project.Controllers
                     KohaHyrjes = gettransaksioni.KohaHyrjes,
                     Cmimi = getSherbimet.Where(i => i.TransaksionId == transaksioniId).Sum(c=> c.Cmimi),
                     Statusi = gettransaksioni.Statusi,
+                    Njesia = getNjesia,
                     Cilsimi = gettransaksioni.Cilsimet,
-                    Vendi = getVendiParkimit,
                     Useri = gettransaksioni.User,
                     Sherbimi = getSherbim.ToList()
                 };
@@ -84,9 +88,7 @@ namespace Parking_project.Controllers
                 var transaksionet = await _db.TransaksionParkimi
                     .Include(t => t.Cilsimet)
                         .ThenInclude(c => c.Sherbimi)
-                    .Include(t => t.Vendi)
-                        .ThenInclude(v => v.Lokacioni)
-                            .ThenInclude(l => l.NjesiOrg)
+                    .Include(n=> n.Njesia)
                     .Include(t => t.User)
                     .Where(t => t.Cilsimet.Sherbimi.BiznesId == orgId)
                     .ToListAsync();
@@ -107,7 +109,7 @@ namespace Parking_project.Controllers
                     KohaDaljes = t.KohaDaljes,
                     Cmimi = getSherbimet.Where(i => i.TransaksionId == t.TransaksioniId).Sum(c => c.Cmimi),
                     Statusi = t.Statusi,
-                    Vendi = t.Vendi,
+                    Njesia = t.Njesia,
                     Cilsimi = t.Cilsimet,
                     Useri = t.User,
                     Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList(),
@@ -115,7 +117,7 @@ namespace Parking_project.Controllers
 
                 foreach (var rez in result)
                 {
-                    rez.Useri.Passwordi = null;
+                    rez.Useri.Passwordi = "";
                 }
 
                 return Ok(ApiResponse<IEnumerable<TransaksionRead>>.Ok(result, "Transactions retrieved successfully"));
@@ -144,9 +146,7 @@ namespace Parking_project.Controllers
                 var transaksionet = await _db.TransaksionParkimi
                     .Include(t => t.Cilsimet)
                         .ThenInclude(c => c.Sherbimi)
-                    .Include(t => t.Vendi)
-                        .ThenInclude(v => v.Lokacioni)
-                            .ThenInclude(l => l.NjesiOrg)
+                    .Include(n=> n.Njesia)
                     .Include(t => t.User)
                     .Where(t => t.Cilsimet.NjesiteId == njeisaId)
                     .ToListAsync();
@@ -167,7 +167,7 @@ namespace Parking_project.Controllers
                     KohaDaljes = t.KohaDaljes,
                     Cmimi = getSherbimet.Where(i => i.TransaksionId == t.TransaksioniId).Sum(c => c.Cmimi),
                     Statusi = t.Statusi,
-                    Vendi = t.Vendi,
+                    Njesia = t.Njesia,
                     Cilsimi = t.Cilsimet,
                     Useri = t.User,
                     Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList(),
@@ -199,9 +199,7 @@ namespace Parking_project.Controllers
                 var transaksionet = await _db.TransaksionParkimi
                     .Include(t => t.Cilsimet)
                         .ThenInclude(c => c.Sherbimi)
-                    .Include(t => t.Vendi)
-                        .ThenInclude(v => v.Lokacioni)
-                            .ThenInclude(l => l.NjesiOrg)
+                    .Include(n => n.Njesia)
                     .Include(t => t.User)
                     .Where(t => t.UserId == userId)
                     .ToListAsync();
@@ -222,7 +220,7 @@ namespace Parking_project.Controllers
                     KohaDaljes = t.KohaDaljes,
                     Cmimi = getSherbimet.Where(i => i.TransaksionId == t.TransaksioniId).Sum(c => c.Cmimi),
                     Statusi = t.Statusi,
-                    Vendi = t.Vendi,
+                    Njesia = t.Njesia,
                     Cilsimi = t.Cilsimet,
                     Useri = t.User,
                     Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList(),
@@ -247,7 +245,7 @@ namespace Parking_project.Controllers
         {
             try
             {
-                var gettransaksioni = await _db.TransaksionParkimi.Where(t => t.TransaksioniId == transaksioniId).Include(c => c.Cilsimet).Include(c => c.User).FirstOrDefaultAsync();
+                var gettransaksioni = await _db.TransaksionParkimi.Where(t => t.TransaksioniId == transaksioniId).Include(c => c.Cilsimet).Include(c => c.User).Include(n => n.Njesia).FirstOrDefaultAsync(); 
                 if (gettransaksioni == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Transaksioni with id {transaksioniId} not found."));
@@ -291,8 +289,6 @@ namespace Parking_project.Controllers
                 _db.TransaksionParkimi.Update(gettransaksioni);
                 await _db.SaveChangesAsync();
 
-                var getVendiParkimit = await _db.Vendi.Where(v => v.VendiId == gettransaksioni.VendiParkimitId).Include(l => l.Lokacioni).ThenInclude(n => n.NjesiOrg).FirstOrDefaultAsync();
-
                 var getSherbimet = await _db.TransaksionDetaj.Where(t => t.TransaksionId == transaksioniId).Include(c => c.Sherbimi).ToListAsync();
 
                 var parking = getSherbimet.Where(s => s.SherbimiId == gettransaksioni.Cilsimet.SherbimiId).FirstOrDefault();
@@ -315,7 +311,7 @@ namespace Parking_project.Controllers
                     Cmimi = getSherbimet.Where(i => i.TransaksionId == transaksioniId).Sum(c => c.Cmimi),
                     Statusi = gettransaksioni.Statusi,
                     Cilsimi = gettransaksioni.Cilsimet,
-                    Vendi = getVendiParkimit,
+                    Njesia = gettransaksioni.Njesia,
                     Useri = gettransaksioni.User,
                     Sherbimi = getSherbim.ToList()
                 };
@@ -341,14 +337,14 @@ namespace Parking_project.Controllers
             try
             {
                 int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-                var getVendiParkimit = await _db.Vendi.Where(v => v.VendiId == transaksionetCreateDto.VendiParkimitId).Include(l => l.Lokacioni).FirstOrDefaultAsync();
-                if (getVendiParkimit == null || getVendiParkimit.Lokacioni.NjesiteId != transaksionetCreateDto.NjesiaId)
+                var getNjesia = await _db.NjesiOrg.Where(v => v.NjesiteId == transaksionetCreateDto.NjesiaId).FirstOrDefaultAsync();
+                if (getNjesia == null)
                 {
-                    return NotFound(ApiResponse<object>.NotFound($"Vend Parkimi with id {transaksionetCreateDto.VendiParkimitId} not found in this Njesi."));
+                    return NotFound(ApiResponse<object>.NotFound($"Njesia with id {transaksionetCreateDto.NjesiaId} not found."));
                 }
-                if (!getVendiParkimit.IsFree)
+                if (getNjesia.VendeTeLira <= 0)
                 {
-                    return BadRequest(ApiResponse<object>.BadRequest($"Vend Parkimi with id {transaksionetCreateDto.VendiParkimitId} is not free."));
+                    return BadRequest(ApiResponse<object>.BadRequest($"There are no more free spaces"));
                 }
 
                 var getCilsimi = await _db.CilsimetParkimit.Where(c => c.CilsimetiId == transaksionetCreateDto.CilsimiId).Include(s => s.Sherbimi).FirstOrDefaultAsync();
@@ -358,14 +354,12 @@ namespace Parking_project.Controllers
                 }
 
                 var transaksionet = _mapper.Map<TransaksionParkimi>(transaksionetCreateDto);
-                transaksionet.VendiParkimitId = transaksionetCreateDto.VendiParkimitId;
                 transaksionet.Statusi = "Pending";
                 transaksionet.KohaHyrjes = DateTime.UtcNow;
                 transaksionet.KohaDaljes = null;
                 transaksionet.UserId = userId;
 
-                var vendi = _db.Vendi.Where(v=> v.VendiId==transaksionetCreateDto.VendiParkimitId).FirstOrDefault();
-                vendi.IsFree = false;
+                getNjesia.VendeTeLira--;
                 await _db.SaveChangesAsync();
 
                 await _db.TransaksionParkimi.AddAsync(transaksionet);
@@ -414,6 +408,10 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<object>.BadRequest("Transaction is already completed"));
                 }
                 var sherbimiParking = await _db.CilsimetParkimit.Where(c => c.CilsimetiId == findTransaktion.CilsimiId).Include(s => s.Sherbimi).FirstOrDefaultAsync();
+                if (sherbimiParking == null)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("There is no cilsim in this transaction"));
+                }
 
                 List<Sherbimi> getSherbimet = new List<Sherbimi>();
                 if (transaksionUpdateDto.SherbimiId != null)
@@ -526,8 +524,13 @@ namespace Parking_project.Controllers
                     return NotFound(ApiResponse<object>.NotFound($"Transaktion with id {id} not found."));
                 }
 
-                var getLokacionin = await _db.Vendi.Where(v => v.VendiId == findTransaktion.VendiParkimitId).Include(l => l.Lokacioni).ThenInclude(n => n.NjesiOrg).FirstOrDefaultAsync();
-                getLokacionin?.IsFree = true;
+                var getNjesia = await _db.NjesiOrg.Where(v => v.NjesiteId == findTransaktion.NjesiaId).FirstOrDefaultAsync();
+                if (getNjesia == null)
+                {
+                    return NotFound(ApiResponse<object>.NotFound("Njesia could not be found"));
+                }
+                getNjesia.VendeTeLira++;
+
                 await _db.SaveChangesAsync();
 
                 findTransaktion.Statusi = "Completed";

@@ -110,12 +110,6 @@ builder.Services.AddAutoMapper(o =>
     o.CreateMap<Detajet, DetajetCreateDto>().ReverseMap();
     o.CreateMap<Detajet, DetajetUpdateDto>().ReverseMap();
   
-    o.CreateMap<Lokacioni, LokacioniCreateDTO>().ReverseMap();
-    o.CreateMap<Lokacioni, LokacioniUpdateDTO>().ReverseMap();
-
-    o.CreateMap<Vendi, VendiCreateDTO>().ReverseMap();
-    o.CreateMap<Vendi, VendiUpdateDTO>().ReverseMap();
-
     o.CreateMap<Sherbimi, SherbimiCreateDTO>().ReverseMap();
     o.CreateMap<Sherbimi, SherbimiUpdateDTO>().ReverseMap();
 

@@ -224,7 +224,7 @@
                             <div class="col-md-4">
                                 <label class="form-label small text-muted fw-bold">Përzgjedh Bankën</label>
                                 <select name="BankId" class="form-select bg-light border-0"
-                                        asp-items="@(new SelectList(ViewBag.Banks, "Value", "Text"))" required>
+                                        asp-items="@(new SelectList(ViewBag.Banks ?? new List<SelectListItem>(), "Value", "Text"))" required>
                                     <option value="" selected disabled>-- Zgjedh Bankën --</option>
                                 </select>
                             </div>

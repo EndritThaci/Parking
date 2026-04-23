@@ -111,6 +111,10 @@ namespace Parking_project.Controllers
                 {
                     return BadRequest(ApiResponse<object>.BadRequest("Id doesnt match"));
                 }
+                if (njesiOrgDto.VendeTeLira < 0)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Can not have less than 0 free spots"));
+                }
 
                 var getBiznes = await _db.Organizata.FindAsync(njesiOrgDto.BiznesId);
                 if (getBiznes == null)
@@ -165,6 +169,10 @@ namespace Parking_project.Controllers
                 {
                     return BadRequest(ApiResponse<object>.BadRequest("ID mismatch"));
                 }
+                if (njesiUpdateDto.VendeTeLira < 0)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Can not have less than 0 free spots"));
+                }
 
                 var getNjesiOrg = await _db.NjesiOrg.FindAsync(id);
                 if (getNjesiOrg == null)
@@ -207,16 +215,6 @@ namespace Parking_project.Controllers
                 if (getNjesiOrg == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"NjesiOrg with ID {id} not found."));
-                }
-                var getLokacionet = await _db.Lokacioni.Where(n => n.NjesiteId == getNjesiOrg.NjesiteId).ToListAsync();
-                if (getLokacionet != null)
-                {
-                    foreach (var loc in getLokacionet) loc.active = false;
-                }
-                var getVendi = await _db.Vendi.Where(n => n.Lokacioni.NjesiteId == getNjesiOrg.NjesiteId).ToListAsync();
-                if (getVendi != null)
-                {
-                    foreach (var x in getVendi) x.active = false;
                 }
                 var getCilsimi = await _db.CilsimetParkimit.Where(n => n.NjesiteId == getNjesiOrg.NjesiteId).ToListAsync();
                 if (getCilsimi != null)
