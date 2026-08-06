@@ -52,7 +52,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         public async Task<IActionResult> Create()
         {
             await populateViewBag();
@@ -60,18 +60,21 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(DetajetCreateDto createDTO)
         {
-            if (!ModelState.IsValid)
-            {
-                await populateViewBag();
-                return View(createDTO);
-            }
-
             try
             {
+                if (createDTO.FromHour == null)
+                {
+                    createDTO.FromHour = 0;
+                }
+                if (createDTO.Cmimi == null)
+                {
+                    createDTO.Cmimi = 0;
+                }
+
                 var response = await _detajetService.CreateAsync<ApiResponse<DetajetCreateDto>>(createDTO);
                 if (response != null && response.Success && response.Data != null)
                 {
@@ -95,7 +98,7 @@ namespace Parking_web.Controllers
 
 
 
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         public async Task<IActionResult> Delete(int id)
         {
             if (id <= 0)
@@ -126,7 +129,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(DetajetReadDto detaji)
         {
@@ -155,7 +158,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         public async Task<IActionResult> Edit(int id)
         {
             if (id <= 0)
@@ -185,12 +188,21 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id,DetajetUpdateDto detajet)
         {
             try
             {
+                if (detajet.FromHour == null)
+                {
+                    detajet.FromHour = 0;
+                }
+                if (detajet.Cmimi == null)
+                {
+                    detajet.Cmimi = 0;
+                }
+
                 var response = await _detajetService.UpdateAsync<ApiResponse<object>>(id,detajet);
                 if (response != null && response.Success)
                 {

@@ -3,91 +3,64 @@
     ViewData["Title"] = "Fshirja e Organizatës";
 }
 
-<div class="container my-4">
+<div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <span class="fw-semibold h4 pt-1">Fshije Organizaten</span>
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-bottom-5">
+                <div class="card-header bg-danger text-white py-3 text-center rounded-top-5">
+                    <h5 class="mb-0 fw-bold">Konfirmo Fshirjen e Organizatës</h5>
                 </div>
 
-                <div class="card-body">
-                    <form method="post">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
+                        <h4 class="mt-2 text-dark">A jeni i sigurt?</h4>
+                        <p class="text-muted">
+                            Ky veprim do të fshijë përgjithmonë organizatën <strong>@Model.EmriBiznesit</strong> dhe të gjitha të dhënat e ndërlidhura në sistem.
+                        </p>
+                    </div>
+
+                    <div class="bg-light p-3 rounded mb-4 text-start">
+                        <div class="small text-muted text-uppercase fw-bold mb-2">Detajet e Organizatës:</div>
+
+                        <div class="d-flex justify-content-between border-bottom py-2">
+                            <span class="text-secondary">NUI / Biznes ID:</span>
+                            <span class="fw-bold">@Model.NumriUnikIdentifikues</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between border-bottom py-2">
+                            <span class="text-secondary">Numri Fiskal:</span>
+                            <span class="fw-bold text-dark">@Model.NumriFiskal</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between border-bottom py-2">
+                            <span class="text-secondary">Email:</span>
+                            <span class="fw-bold text-dark">@Model.Email</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between py-2">
+                            <span class="text-secondary">Adresa:</span>
+                            <span class="fw-bold text-dark">@Model.Adresa, @Model.Komuna</span>
+                        </div>
+                    </div>
+
+                    <form method="post" asp-action="Delete">
                         <input type="hidden" asp-for="BiznesId" />
-                        <!-- Emri Biznesit -->
-                        <div class="mb-3">
-                            <label asp-for="EmriBiznesit" class="form-label"></label>
-                            <input asp-for="EmriBiznesit" disabled class="form-control" placeholder="Business name" />
-                        </div>
 
-                        <!-- Numri Unik & Numri Biznesit -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="NumriUnikIdentifikues" class="form-label"></label>
-                                <input asp-for="NumriUnikIdentifikues" disabled class="form-control" />
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="NumriBiznesit" class="form-label"></label>
-                                <input asp-for="NumriBiznesit" disabled class="form-control" />
-                            </div>
-                        </div>
-
-                        <!-- Numri Fiskal & Punetoret -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="NumriFiskal" class="form-label"></label>
-                                <input asp-for="NumriFiskal" disabled class="form-control" />
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="NumriPunetoreve" class="form-label"></label>
-                                <input asp-for="NumriPunetoreve" disabled type="number" class="form-control" />
-                            </div>
-                        </div>
-
-                        <!-- Adresa -->
-                        <div class="mb-3">
-                            <label asp-for="Adresa" class="form-label"></label>
-                            <input asp-for="Adresa" disabled class="form-control" />
-                        </div>
-
-                        <!-- Komuna -->
-                        <div class="mb-3">
-                            <label asp-for="Komuna" class="form-label"></label>
-                            <input asp-for="Komuna" disabled class="form-control" />
-                        </div>
-
-                        <!-- Telefoni & Email -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Telefoni" class="form-label"></label>
-                                <input asp-for="Telefoni" disabled class="form-control" />
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Email" class="form-label"></label>
-                                <input asp-for="Email" disabled class="form-control" />
-                            </div>
-                        </div>
-
-                        <!-- Buttons -->
-                        <div class="d-flex gap-2 justify-content-end">
-                            <a asp-action="Index" class="btn btn-secondary">Kthehu</a>
-                            <button type="submit" class="btn btn-danger">
-                                Fshije Organizaten
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg rounded-pill fw-bold shadow-sm">
+                                Po, Fshije Organizatën
                             </button>
+                            <a asp-action="Index" class="btn btn-link text-secondary text-decoration-none">
+                                Anulo, kthehu mbrapa
+                            </a>
                         </div>
-
                     </form>
                 </div>
             </div>
-
+            <p class="text-center text-muted mt-3 small">
+                <i class="bi bi-info-circle"></i> Ky veprim nuk mund të kthehet mbrapa pasi të konfirmohet.
+            </p>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

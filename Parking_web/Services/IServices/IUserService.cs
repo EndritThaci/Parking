@@ -8,6 +8,7 @@ namespace Parking_web.Services.IServices
         Task<T?> GetAsync<T>(int id);
         Task<T?> UpdateAsync<T>(UserUpdateDTO dto);
         Task<T?> ChangePasswordAsync<T>(ChangePasswordDTO dto);
+        Task<T?> ActivateSuperAdminAsync<T>(int orgId);
         Task<T?> DeleteAsync<T>(int id);
     }
 }

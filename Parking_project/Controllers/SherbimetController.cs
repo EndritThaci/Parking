@@ -169,19 +169,38 @@ namespace Parking_project.Controllers
                 if (sherbimi == null)
                     return NotFound(ApiResponse<Sherbimi>.NotFound("Sherbimi not found"));
 
+                var getTransaksion = await _db.TransaksionDetaj.Where(s => s.SherbimiId == id).FirstOrDefaultAsync();
                 var getCilsimi = await _db.CilsimetParkimit.Where(n => n.SherbimiId == sherbimi.SherbimiId).ToListAsync();
-                if (getCilsimi != null)
-                {
-                    foreach (var x in getCilsimi) x.active = false;
-                }
-                var getDetajet = await _db.Detajet.Where(n => n.CilsimetParkimit.SherbimiId == sherbimi.SherbimiId).ToListAsync();
-                if (getDetajet != null)
-                {
-                    foreach (var x in getDetajet) x.active = false;
-                }
+                var cilsimetId = getCilsimi.Select(c => c.CilsimetiId).ToList();
+                var getTransaksionCilsim = await _db.TransaksionParkimi.Where(c => cilsimetId.Contains(c.CilsimiId)).FirstOrDefaultAsync();
 
-                sherbimi.active = false;
-                await _db.SaveChangesAsync();
+                if (getTransaksion == null && getTransaksionCilsim == null)
+                {
+                    if (getCilsimi != null)
+                    {
+                        _db.CilsimetParkimit.RemoveRange(getCilsimi);
+                        await _db.SaveChangesAsync();
+                    }
+
+                    _db.Sherbimi.Remove(sherbimi);
+                    await _db.SaveChangesAsync();
+                }
+                else
+                {
+                    if (getCilsimi != null)
+                    {
+                        foreach (var x in getCilsimi) x.active = false;
+                    }
+                    var getDetajet = await _db.Detajet.Where(n => n.CilsimetParkimit.SherbimiId == sherbimi.SherbimiId).ToListAsync();
+                    if (getDetajet != null)
+                    {
+                        foreach (var x in getDetajet) x.active = false;
+                    }
+
+                    sherbimi.active = false;
+                    await _db.SaveChangesAsync();
+                }
+                
 
                 return Ok(ApiResponse<Sherbimi>.NoContent("Sherbimi deleted successfully"));
             }

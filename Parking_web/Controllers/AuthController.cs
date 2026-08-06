@@ -227,5 +227,24 @@ namespace Parking_web.Controllers
             await PopulateNjesiteViewBag();
             return View(userDTO);
         }
+
+        public static async Task RefreshUserClaims(HttpContext httpContext, string? newBiznesId, string? newBiznesName)
+        {
+            var identity = httpContext.User.Identity as ClaimsIdentity;
+            if (identity == null) return;
+
+            var oldBiznesClaim = identity.FindFirst("BiznesId");
+            if (oldBiznesClaim != null) identity.RemoveClaim(oldBiznesClaim);
+
+            var oldBiznesNameClaim = identity.FindFirst("OrgName");
+            if (oldBiznesNameClaim != null) identity.RemoveClaim(oldBiznesNameClaim);
+
+            identity.AddClaim(new Claim("BiznesId", newBiznesId ?? ""));
+            identity.AddClaim(new Claim("OrgName", newBiznesName ?? ""));
+
+            var principal = new ClaimsPrincipal(identity);
+
+            await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+        }
     }
 }

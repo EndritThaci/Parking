@@ -19,9 +19,14 @@ namespace Parking_web.Controllers
             _mapper = mapper;
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , Super Admin")]
         public async Task<IActionResult> Index()
         {
+            if (User.FindFirst("BiznesId")?.Value == "")
+            {
+                TempData["error"] = "Zgjedh një organizatë";
+                return RedirectToAction("Index", "Organizata");
+            }
 
             List<TransaksionRead> orgList = new();
             try

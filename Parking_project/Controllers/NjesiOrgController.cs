@@ -93,7 +93,7 @@ namespace Parking_project.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , Super Admin")]
         [ProducesResponseType(typeof(ApiResponse<NjesiReadDto>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
@@ -148,6 +148,7 @@ namespace Parking_project.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin , Super Admin")]
         [ProducesResponseType(typeof(ApiResponse<NjesiReadDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
@@ -199,6 +200,7 @@ namespace Parking_project.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin , Super Admin")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
@@ -216,18 +218,29 @@ namespace Parking_project.Controllers
                 {
                     return NotFound(ApiResponse<object>.NotFound($"NjesiOrg with ID {id} not found."));
                 }
-                var getCilsimi = await _db.CilsimetParkimit.Where(n => n.NjesiteId == getNjesiOrg.NjesiteId).ToListAsync();
-                if (getCilsimi != null)
+                var getTransaksion = await _db.TransaksionParkimi.Where(n => n.NjesiaId == id).FirstOrDefaultAsync();
+                if (getTransaksion == null)
                 {
-                    foreach (var x in getCilsimi) x.active = false;
+                    _db.NjesiOrg.Remove(getNjesiOrg);
+                    await _db.SaveChangesAsync();
                 }
-                var getDetajet = await _db.Detajet.Where(n => n.CilsimetParkimit.NjesiteId == getNjesiOrg.NjesiteId).ToListAsync();
-                if (getDetajet != null)
+                else
                 {
-                    foreach (var x in getDetajet) x.active = false;
+                    var getCilsimi = await _db.CilsimetParkimit.Where(n => n.NjesiteId == getNjesiOrg.NjesiteId).ToListAsync();
+                    if (getCilsimi != null)
+                    {
+                        foreach (var x in getCilsimi) x.active = false;
+                    }
+                    var getDetajet = await _db.Detajet.Where(n => n.CilsimetParkimit.NjesiteId == getNjesiOrg.NjesiteId).ToListAsync();
+                    if (getDetajet != null)
+                    {
+                        _db.Detajet.RemoveRange(getDetajet);
+                        await _db.SaveChangesAsync();
+                    }
+                    getNjesiOrg.active = false;
+                    await _db.SaveChangesAsync();
                 }
-                getNjesiOrg.active = false;
-                await _db.SaveChangesAsync();
+                
                 var response = ApiResponse<object>.NoContent($"NjesiOrg with ID {id} has been deleted.");
                 return Ok(response);
             }

@@ -26,9 +26,14 @@ namespace Parking_web.Controllers
         }
         
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , Super Admin")]
         public async Task<IActionResult> Index2()
         {
+            if (User.FindFirst("BiznesId")?.Value == "")
+            {
+                TempData["error"] = "Zgjedh një organizatë";
+                return RedirectToAction("Index", "Organizata");
+            }
             List<NjesiReadDto> orgList = new();
             try
             {
@@ -78,14 +83,14 @@ namespace Parking_web.Controllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , Super Admin")]
         public async Task<IActionResult> Create()
         {
             return View();
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , Super Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(NjesiOrgDto createDTO)
         {
@@ -118,7 +123,7 @@ namespace Parking_web.Controllers
 
 
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , Super Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             if (id <= 0)
@@ -144,7 +149,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , Super Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(NjesiReadDto njesia)
         {
@@ -169,7 +174,7 @@ namespace Parking_web.Controllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , Super Admin")]
         public async Task<IActionResult> Edit(int id)
         {
             if (id <= 0)
@@ -195,7 +200,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , Super Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(NjesiUpdateDto njesi)
         {

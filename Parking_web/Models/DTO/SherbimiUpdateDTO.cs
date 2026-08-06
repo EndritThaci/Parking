@@ -4,7 +4,7 @@
     {
         public int SherbimiId { get; set; }
         public string Emri { get; set; }
-        public decimal Cmimi { get; set; }
+        public decimal? Cmimi { get; set; }
 
     }
 }

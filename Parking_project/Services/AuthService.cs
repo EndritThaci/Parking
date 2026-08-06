@@ -110,7 +110,7 @@ namespace Parking_project.Services
             }
         }
 
-        private string GenerateToken(Useri useri)
+        public string GenerateToken(Useri useri)
         {
             var key = Encoding.ASCII.GetBytes(_configuration.GetSection("JwtSettings")["Secret"]!);
 

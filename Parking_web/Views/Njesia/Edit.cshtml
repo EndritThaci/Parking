@@ -4,64 +4,54 @@
     ViewData["Title"] = "Përditësimi i Njësisë";
 }
 
-<div class="container my-4">
+<div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-
-            <div class="card">
-                <div class="card-header bg-warning text-white">
-                    <span class="fw-semibold h4 pt-1">Përditëso Njësinë</span>
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-warning text-white py-3">
+                    <h5 class="mb-0 fw-bold">Përditëso Detajet e Njësisë</h5>
                 </div>
 
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form method="post">
-
-                        <!-- Hidden ID -->
                         <input type="hidden" asp-for="NjesiteId" />
 
-                        <!-- Emri -->
                         <div class="mb-3">
-                            <label asp-for="Emri" class="form-label"></label>
-                            <input asp-for="Emri" class="form-control" placeholder="Emri i njësisë" />
+                            <label asp-for="Emri" class="form-label fw-semibold">Emri i Njësisë</label>
+                            <input asp-for="Emri" class="form-control" placeholder="Psh. Njësia Lindje" />
                             <span asp-validation-for="Emri" class="text-danger small"></span>
                         </div>
 
-                        <!-- Kodi -->
-                        <div class="mb-3">
-                            <label asp-for="Kodi" class="form-label"></label>
-                            <input asp-for="Kodi" class="form-control" placeholder="Kodi i njësisë" />
-                            <span asp-validation-for="Kodi" class="text-danger small"></span>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Kodi" class="form-label fw-semibold">Kodi</label>
+                                <input asp-for="Kodi" class="form-control" placeholder="Kodi unik" />
+                                <span asp-validation-for="Kodi" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="VendeTeLira" class="form-label fw-semibold">Vende të Lira</label>
+                                <input asp-for="VendeTeLira" type="number" min="0" class="form-control" />
+                                <span asp-validation-for="VendeTeLira" class="text-danger small"></span>
+                            </div>
                         </div>
 
-                        <!-- Adresa -->
-                        <div class="mb-3">
-                            <label asp-for="Adresa" class="form-label"></label>
-                            <input asp-for="Adresa" class="form-control" />
+                        <div class="mb-4">
+                            <label asp-for="Adresa" class="form-label fw-semibold">Adresa</label>
+                            <input asp-for="Adresa" class="form-control" placeholder="Rruga, qyteti..." />
                             <span asp-validation-for="Adresa" class="text-danger small"></span>
                         </div>
 
-                        <!-- BiznesId -->
-                        <input type="hidden" asp-for="BiznesId" />
-
-                        <!-- Vende te lira -->
-                        <div class="mb-3">
-                            <label asp-for="VendeTeLira" class="form-label"></label>
-                            <input asp-for="VendeTeLira" type="number" class="form-control" />
-                            <span asp-validation-for="VendeTeLira" class="text-danger small"></span>
-                        </div>
-
-                        <!-- Buttons -->
-                        <div class="d-flex gap-2 justify-content-end">
-                            <a asp-action="Index2" class="btn btn-secondary">Kthehu</a>
-                            <button type="submit" class="btn btn-warning">
-                                Përditëso Njësinë
+                        <div class="d-flex gap-2 justify-content-end border-top pt-3">
+                            <a asp-action="Index2" class="btn btn-outline-secondary px-4 rounded-pill">Anulo</a>
+                            <button type="submit" class="btn btn-warning text-white px-4 rounded-pill fw-bold shadow-sm">
+                                Ruaj Ndryshimet
                             </button>
                         </div>
 
                     </form>
                 </div>
             </div>
-
         </div>
     </div>
 </div>

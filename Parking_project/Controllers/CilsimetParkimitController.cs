@@ -266,14 +266,24 @@ namespace Parking_project.Controllers
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Cilsimi with id {id} is not found"));
                 }
-                var getDetajet = await _db.Detajet.Where(n => n.CilsimetiId == getCilsimin.CilsimetiId).ToListAsync();
-                if (getDetajet != null)
+                var getTransaksion = await _db.TransaksionParkimi.Where(c => c.CilsimiId == id).FirstOrDefaultAsync();
+                if (getTransaksion == null)
                 {
-                    foreach (var x in getDetajet) x.active = false;
+                    _db.CilsimetParkimit.Remove(getCilsimin);
+                    await _db.SaveChangesAsync();
                 }
+                else
+                {
+                    var getDetajet = await _db.Detajet.Where(n => n.CilsimetiId == getCilsimin.CilsimetiId).ToListAsync();
+                    if (getDetajet != null)
+                    {
+                        _db.Detajet.RemoveRange(getDetajet);
+                        await _db.SaveChangesAsync();
+                    }
 
-                getCilsimin.active = false;
-                await _db.SaveChangesAsync();
+                    getCilsimin.active = false;
+                    await _db.SaveChangesAsync();
+                }
 
                 var response = ApiResponse<object>.NoContent($"Cilsimi with ID {id} has been deleted.");
                 return Ok(response);

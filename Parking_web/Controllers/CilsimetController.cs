@@ -41,7 +41,7 @@ namespace Parking_web.Controllers
             var njesite = njesiteResponse?.Data;
             var sherbimet = sherbimiResponse?.Data;
 
-            var sherbimetMeId = sherbimet?.Select(n => new {
+            var sherbimetMeId = sherbimet?.Where(s => s.Cmimi == 0).Select(n => new {
                 SherbimiId = n.SherbimiId,
                 EmriMeId = $"{n.Emri} (ID: {n.SherbimiId})"
             }).ToList();
@@ -52,7 +52,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin, Admin , Manager")]
         public async Task<IActionResult> Create(int? id)
         {
             await PopulateViewBag(id);
@@ -64,7 +64,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CilsimetCreateDto createDTO)
         {
@@ -108,7 +108,7 @@ namespace Parking_web.Controllers
 
 
 
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         public async Task<IActionResult> Delete(int id)
         {
             if (id <= 0)
@@ -139,7 +139,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(CilsimetReadDto cilsimi)
         {
@@ -168,7 +168,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         public async Task<IActionResult> Edit(int id, int? njesiaId)
         {
             if (id <= 0)
@@ -200,7 +200,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CilsimetUpdateDto cilsimi)
         {
@@ -239,7 +239,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Activate(int id)
         {

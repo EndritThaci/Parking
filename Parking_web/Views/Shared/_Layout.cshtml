@@ -60,7 +60,7 @@
                                         <a class="nav-link text-dark" asp-area="" asp-controller="Organizata" asp-action="Index">Menaxhimi i Organizatave</a>
                                     </li>
                                 }
-                                @if (User.IsInRole("Admin"))
+                                @if (User.IsInRole("Admin") || User.IsInRole("Super Admin"))
                                 {
                                     <li class="nav-item">
                                         <a class="nav-link text-dark" asp-area="" asp-controller="Njesia" asp-action="Index2">Menaxhimi i Njesive</a>

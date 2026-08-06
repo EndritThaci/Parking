@@ -167,5 +167,46 @@ namespace Parking_project.Controllers
             }
         }
 
+        [HttpPut("{orgId:int}/ActivateSuperAdmin")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<string>>> ActivateSuperAdmin(int orgId)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var user = await _db.Useri.FirstOrDefaultAsync(u => u.UserId == userId);
+                if (user == null)
+                    return NotFound(ApiResponse<string>.NotFound($"User with ID {userId} not found"));
+
+                var org = await _db.Organizata.FirstOrDefaultAsync(o => o.BiznesId == orgId);
+                if (org == null)
+                    return NotFound(ApiResponse<string>.NotFound($"Organization with ID {orgId} not found"));
+
+                if (user.BiznesId == orgId)
+                {
+                    user.BiznesId = null;
+                }
+                else
+                {
+                    user.BiznesId = orgId;
+                }
+
+                await _db.SaveChangesAsync();
+
+                var token = _authService.GenerateToken(user);
+
+                return Ok(ApiResponse<string>.Ok(token, "User updated successfully"));
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<Useri>.Error(500, "An Error Occurred while editing user", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
     }
 }

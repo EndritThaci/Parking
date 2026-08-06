@@ -33,14 +33,14 @@ namespace Parking_web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         public async Task<IActionResult> Create()
         {
             return View();
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SherbimiCreateDTO createDTO)
         {
@@ -52,6 +52,10 @@ namespace Parking_web.Controllers
             try
             {
                 createDTO.BiznesId = int.Parse(User.FindFirst("BiznesId")!.Value);
+                if (createDTO.Cmimi == null)
+                {
+                    createDTO.Cmimi = 0;
+                }
                 var response = await _sherbimiService.CreateAsync<ApiResponse<SherbimiCreateDTO>>(createDTO);
                 if (response != null && response.Success && response.Data != null)
                 {
@@ -77,7 +81,7 @@ namespace Parking_web.Controllers
 
 
 
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         public async Task<IActionResult> Delete(int id)
         {
             if (id <= 0)
@@ -108,7 +112,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Sherbimi sherbimi)
         {
@@ -137,7 +141,7 @@ namespace Parking_web.Controllers
         }
 
 
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         public async Task<IActionResult> Edit(int id)
         {
             if (id <= 0)
@@ -167,12 +171,16 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin , Manager")]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(SherbimiUpdateDTO sherbimi)
         {
             try
             {
+                if (sherbimi.Cmimi == null)
+                {
+                    sherbimi.Cmimi = 0;
+                }
                 var response = await _sherbimiService.UpdateAsync<ApiResponse<object>>(sherbimi);
                 if (response != null && response.Success)
                 {

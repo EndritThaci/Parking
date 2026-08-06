@@ -3,22 +3,21 @@ using Parking_web.Models;
 using Parking_web.Models.DTO;
 using Parking_web.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace Parking_web.Controllers
 {
     public class OrganizataController : Controller
     {
         private readonly IOrganizataService _organizataService;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        public OrganizataController(IOrganizataService organizataService, IMapper mapper)
+        public OrganizataController(IOrganizataService organizataService, IUserService userService, IMapper mapper)
         {
             _organizataService = organizataService;
+            _userService = userService;
             _mapper = mapper;
         }
 
@@ -34,7 +33,19 @@ namespace Parking_web.Controllers
                     orgList = response.Data;
                 }
 
-            }catch(Exception ex)
+                string? userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrEmpty(userIdStr))
+                {
+                    int userId = int.Parse(userIdStr);
+                    var userResponse = await _userService.GetAsync<ApiResponse<Useri>>(userId);
+                    if (userResponse != null && userResponse.Success && userResponse.Data != null)
+                    {
+                        ViewBag.OrgId = userResponse.Data.BiznesId;
+                    }
+                }
+
+            }
+            catch (Exception ex)
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
@@ -177,6 +188,52 @@ namespace Parking_web.Controllers
                 {
                     TempData["error"] = $"Gabim: {response?.Message ?? "Diçka shkoi keq."}";
                     return View(org);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"Gabim: {ex.Message}";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Super Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Activate(int orgId, bool activate)
+        {
+            try
+            {
+                var response = await _userService.ActivateSuperAdminAsync<ApiResponse<string>>(orgId);
+                if (response != null && response.Success)
+                {
+                    var orgResponse = await _organizataService.GetAsync<ApiResponse<Organizata>>(orgId);
+                    if (orgResponse != null && orgResponse.Success && orgResponse.Data != null)
+                    {
+                        if (activate)
+                        {
+                            await AuthController.RefreshUserClaims(HttpContext, orgId.ToString(), orgResponse.Data.EmriBiznesit);
+                        }
+                        else
+                        {
+                            await AuthController.RefreshUserClaims(HttpContext, null, null);
+                        }
+
+                        if (!string.IsNullOrEmpty(response.Data))
+                        {
+                            HttpContext.Session.SetString(SD.SessionToken, response.Data);
+                        }
+                        TempData["success"] = "Llogaria u permirsua me sukses";
+                    }
+                    else
+                    {
+                        TempData["error"] = $"Gabim: {response?.Message ?? "Nuk u gjet Organizata."}";
+                    }
+                }
+                else
+                {
+                    TempData["error"] = $"Gabim: {response?.Message ?? "Diçka shkoi keq."}";
                 }
 
             }

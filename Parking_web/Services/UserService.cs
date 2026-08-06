@@ -56,5 +56,14 @@ namespace Parking_web.Services
                 Url = $"{APIEndPoint}/Password",
             });
         }
+
+        public Task<T?> ActivateSuperAdminAsync<T>(int orgId)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.PUT,
+                Url = $"{APIEndPoint}/{orgId}/ActivateSuperAdmin",
+            });
+        }
     }
 }

@@ -29,6 +29,18 @@
             color: #a71d2a;
         }
 
+    .btn-activate-custom {
+        color: #0d6efd;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+        .btn-activate-custom:hover {
+            border-color: #0d6efd !important;
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0a58ca;
+        }
+
     .card-header-main {
         display: flex;
         justify-content: space-between;
@@ -93,6 +105,21 @@
                                     </td>
                                     <td class="text-end pe-4">
                                         <div class="btn-group">
+                                            @if (ViewBag.OrgId != null && ViewBag.OrgId == org.BiznesId)
+                                            {
+                                                <form asp-action="Activate" asp-route-orgId="@org.BiznesId" asp-route-activate="false" method="post" class="d-inline me-2">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-activate-custom fw-semibold">Deaktivizo</button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="Activate" asp-route-orgId="@org.BiznesId" asp-route-activate="true" method="post" class="d-inline me-2">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-activate-custom fw-semibold">Aktivizo</button>
+                                                </form>
+                                            }
+
                                             <a asp-action="Edit" asp-route-id="@org.BiznesId" class="btn btn-sm btn-edit-custom fw-semibold me-2">Përditëso</a>
                                             <a asp-action="Delete" asp-route-id="@org.BiznesId" class="btn btn-sm btn-delete-custom fw-semibold">Fshije</a>
                                         </div>

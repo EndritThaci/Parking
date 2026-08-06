@@ -3,38 +3,36 @@
     ViewData["Title"] = "Krijimi i Shërbimit";
 }
 
-<div class="container my-4">
+<div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <span class="fw-semibold h4 pt-1">Krijo Shërbim të Ri</span>
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3 text-center">
+                    <h5 class="mb-0 fw-bold">Shto Shërbim të Ri</h5>
                 </div>
 
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form method="post">
 
                         <div class="mb-3">
-                            <label asp-for="Emri" class="form-label">Emri i Shërbimit</label>
-                            <input asp-for="Emri" class="form-control" placeholder="Shëno emrin e shërbimit" />
+                            <label asp-for="Emri" class="form-label fw-semibold">Emri i Shërbimit</label>
+                            <input asp-for="Emri" class="form-control" placeholder="Psh. Larje e Jashtme, Ndërrim Vaji, etj." />
                             <span asp-validation-for="Emri" class="text-danger small"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Cmimi" class="form-label">Çmimi (€)</label>
-                            <input asp-for="Cmimi" type="number" step="0.10" class="form-control" placeholder="0.00" />
+                        <div class="mb-4">
+                            <label asp-for="Cmimi" class="form-label fw-semibold">Çmimi i Shërbimit (€)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">€</span>
+                                <input asp-for="Cmimi" type="number" step="0.01" min="0" class="form-control" placeholder="0.00" />
+                            </div>
                             <span asp-validation-for="Cmimi" class="text-danger small"></span>
+                            <div class="form-text text-muted small">Shëno 0.00 nëse shërbimi është pa pagesë ose ka tarifa të detajuara.</div>
                         </div>
 
-                      @*   <div class="mb-3">
-                            <label asp-for="BiznesId" class="form-label">ID e Biznesit</label>
-                            <input asp-for="BiznesId" type="number" class="form-control" />
-                            <span asp-validation-for="BiznesId" class="text-danger small"></span>
-                        </div> *@
-
                         <div class="d-flex gap-2 justify-content-end border-top pt-3">
-                            <a asp-action="Index" class="btn btn-outline-secondary">Anulo</a>
-                            <button type="submit" class="btn btn-primary px-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 rounded-pill">Anulo</a>
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold shadow-sm">
                                 Ruaj Shërbimin
                             </button>
                         </div>
@@ -42,7 +40,6 @@
                     </form>
                 </div>
             </div>
-
         </div>
     </div>
 </div>

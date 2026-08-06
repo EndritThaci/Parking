@@ -5,7 +5,6 @@ using Parking_project.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections;
 
 namespace Parking_project.Controllers
 {
@@ -198,6 +197,10 @@ namespace Parking_project.Controllers
                 {
                     return BadRequest(ApiResponse<object>.BadRequest("Invalid data has been send."));
                 }
+                if (detajeUpdateDto.FromHour < 0 || detajeUpdateDto.ToHour < 0 || detajeUpdateDto.ToHour <= detajeUpdateDto.FromHour)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Invalid Time has been set"));
+                }
 
                 var findDetajet = await _db.Detajet.Where(a => a.active).FirstOrDefaultAsync(d => d.DetajetId == id);
                 if (findDetajet == null)
@@ -214,10 +217,6 @@ namespace Parking_project.Controllers
                 //    || (d.ToHour <= detajeUpdateDto.ToHour && d.FromHour >= detajeUpdateDto.FromHour)
                 //    || (d.ToHour > detajeUpdateDto.FromHour && detajeUpdateDto.ToHour == null)).FirstOrDefaultAsync();
 
-                if(detajeUpdateDto.ToHour > detajeUpdateDto.FromHour)
-                {
-                    return BadRequest(ApiResponse<object>.BadRequest("Invalid Time has been given"));
-                }
 
                 var getDetajet = await _db.Detajet.Where(a => a.active).Where(d => d.CilsimetiId == findDetajet.CilsimetiId)
                     .Where(d => (detajeUpdateDto.ToHour == null || d.FromHour < detajeUpdateDto.ToHour)
