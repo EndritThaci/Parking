@@ -9,5 +9,6 @@ namespace Parking_web.Services.IServices
         Task<T?> PayAsync<T>(int id, decimal amount);
         Task<T?> CreateAsync<T>(CardDetailsCreateDTO dto);
         Task<T?> CreateAccountAsync<T>(CardAcountCreateDTO dto);
+        Task<T?> DeleteAsync<T>(int id);
     }
 }

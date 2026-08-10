@@ -169,4 +169,21 @@
             });
         }
     });
+
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'A jeni i sigurt?',
+            text: "Kjo kartelë do të fshihet përgjithmonë!",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Po, fshije!',
+            cancelButtonText: 'Anulo'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`deleteForm-${id}`).submit();
+            }
+        });
+    }
 </script>

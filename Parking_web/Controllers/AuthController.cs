@@ -136,6 +136,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> RegisterAdmin()
         {
             await PopulateOrgViewBag();
@@ -186,6 +187,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RegisterManager()
         {
             await PopulateNjesiteViewBag();

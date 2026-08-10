@@ -88,5 +88,32 @@ namespace Parking_web.Controllers
             }
             return RedirectToAction("Index");
         }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> ChangeName(UserUpdateDTO dto)
+        {
+            try
+            {
+                dto.UserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                dto.BiznesId = int.Parse(User.FindFirst("BiznesId")?.Value ?? "0");
+                var response = await _userService.UpdateAsync<ApiResponse<Useri>>(dto);
+                if (response != null && response.Success)
+                {
+                    TempData["success"] = "Të dhënat u ndërruan me sukses";
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    TempData["error"] = response?.Message ?? "U shfaq një gabim gjat ndërrimit të të dhënave";
+                    return RedirectToAction("Index");
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "U shfaq një gabim gjat ndërrimit të të dhënave: " + ex.Message;
+            }
+            return RedirectToAction("Index");
+        }
     }
 }

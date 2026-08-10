@@ -21,17 +21,8 @@ namespace Parking_web.Controllers
             _bankService = bankService;
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize]
-        public async Task<IActionResult> createAccount(CardAcountCreateDTO dto)
+        private async Task populateViewBag()
         {
-            var result = await _cardDetailsService.CreateAccountAsync<ApiResponse<CardDetails>>(dto);
-            if (result == null || !result.Success || result.Data == null)
-            {
-                TempData["error"] = result?.Message ?? "U shfaq një gabim";
-            }
-
             var cardDetails = await _cardDetailsService.GetByUserAsync<ApiResponse<IEnumerable<CardDetails>>>();
             if (cardDetails != null && cardDetails.Success)
             {
@@ -47,6 +38,36 @@ namespace Parking_web.Controllers
                     Text = b.Name
                 }).ToList();
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> createAccount(CardAcountCreateDTO dto)
+        {
+            var result = await _cardDetailsService.CreateAccountAsync<ApiResponse<CardDetails>>(dto);
+            if (result == null || !result.Success || result.Data == null)
+            {
+                TempData["error"] = result?.Message ?? "U shfaq një gabim";
+            }
+
+            await populateViewBag();
+
+            return RedirectToAction("index", "Profile");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> deleteAccount(int id)
+        {
+            var result = await _cardDetailsService.DeleteAsync<ApiResponse<CardDetails>>(id);
+            if (result == null || !result.Success || result.Data == null)
+            {
+                TempData["error"] = result?.Message ?? "U shfaq një gabim";
+            }
+            await populateViewBag();
+
             return RedirectToAction("index", "Profile");
         }
     }

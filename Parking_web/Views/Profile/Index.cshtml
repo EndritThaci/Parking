@@ -45,7 +45,7 @@
                 </div>
             </div>
             
-                @if(User.IsInRole("Manager") || User.IsInRole("Admin"))
+                @if(User.IsInRole("Manager") || User.IsInRole("Admin") || User.IsInRole("Super Admin"))
                 {
                     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                         <h5 class="fw-bold mb-3">Veprime të Shpejta</h5>
@@ -65,51 +65,55 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <h5 class="fw-bold mb-4">Të dhënat Personale</h5>
 
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label small text-muted">Emri</label>
-                        <input type="text" class="form-control bg-light border-0" value="@Model.Emri" readonly>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small text-muted">Mbiemri</label>
-                        <input type="text" class="form-control bg-light border-0" value="@Model.Mbiemri" readonly>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label small text-muted">Adresa Email</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-0"><i class="bi bi-envelope"></i></span>
-                            <input type="text" class="form-control bg-light border-0" value="@Model.Email" readonly>
+                <form asp-controller="Profile" asp-action="ChangeName" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Emri</label>
+                            <input type="text" name="Emri" class="form-control bg-light border-0" value="@Model.Emri">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Mbiemri</label>
+                            <input type="text" name="Mbiemri" class="form-control bg-light border-0" value="@Model.Mbiemri">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small text-muted">Adresa Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-envelope"></i></span>
+                                <input type="text" class="form-control bg-light border-0" value="@Model.Email" readonly>
+                            </div>
+                        </div>
+                        <div id="passwordBtnSection" class="col-6 mt-4">
+                            <button type="button" onclick="togglePasswordForm()" class="btn btn-outline-primary btn-sm rounded-pill px-4 py-2 shadow-sm">
+                                <i class="bi bi-key me-1"></i> Ndrysho Passwordin
+                            </button>
+                        </div>
+                        <div id="nameChangeBtn" class="col-6 mt-4 text-end">
+                            <button type="submit" class="btn btn-primary rounded-pill btn-sm px-5 py-2 shadow-sm fw-bold">
+                                Ruaj Ndryshimet
+                            </button>
                         </div>
                     </div>
-                </div>
+                </form>
 
-                <div class="mt-4 pt-3 border-top">
-                    <h5 class="fw-bold mb-3 text-primary small text-uppercase">Siguria</h5>
-
-                    <div id="passwordBtnSection">
-                        <button type="button" onclick="togglePasswordForm()" class="btn btn-outline-primary btn-sm rounded-pill px-4">
-                            <i class="bi bi-key me-1"></i> Ndrysho Passwordin
-                        </button>
-                    </div>
-
-                    <div id="passwordFormSection" style="display: none;">
+                <div id="passwordFormSection" style="display: none;">
+                    <div class="mt-4 pt-3 border-top">
                         <form asp-controller="Profile" asp-action="ChangePassword" method="post" class="bg-light p-3 rounded-4 shadow-sm">
                             @Html.AntiForgeryToken()
                             <div class="row g-2">
                                 <div class="col-12">
-                                    <input type="password" name="OldPassword" class="form-control form-control-sm border-0 shadow-sm" placeholder="Passwordi aktual" required>
+                                    <input type="password" name="OldPassword" class="form-control form-control-sm py-2 border-0 shadow-sm" placeholder="Passwordi aktual" required>
                                 </div>
                                 <div class="col-md-12">
-                                    <input type="password" name="NewPassword" class="form-control form-control-sm border-0 shadow-sm" placeholder="Passwordi i ri" required>
+                                    <input type="password" name="NewPassword" class="form-control form-control-sm py-2 border-0 shadow-sm" placeholder="Passwordi i ri" required>
                                 </div>
                                 <div class="col-md-12">
-                                    <input type="password" name="ConfirmPassword" class="form-control form-control-sm border-0 shadow-sm" placeholder="Konfirmo passwordin" required>
+                                    <input type="password" name="ConfirmPassword" class="form-control form-control-sm py-2 border-0 shadow-sm" placeholder="Konfirmo passwordin" required>
                                 </div>
                                 <div class="col-12 d-flex gap-2 mt-2">
-                                    <button type="submit" class="btn btn-primary btn-sm rounded-pill flex-grow-1">
+                                    <button type="submit" class="btn btn-primary btn-sm py-2 rounded-pill flex-grow-1">
                                         Ruaj Ndryshimet
                                     </button>
-                                    <button type="button" onclick="togglePasswordForm()" class="btn btn-light btn-sm rounded-pill border shadow-sm px-3">
+                                    <button type="button" onclick="togglePasswordForm()" class="btn btn-light btn-sm py-2 rounded-pill border shadow-sm px-3">
                                         Kthehu
                                     </button>
                                 </div>
@@ -137,9 +141,29 @@
                                 <div class="p-3 ps-2 rounded-4 border bg-gradient position-relative overflow-hidden"
                                      style="min-height: 160px;">
 
-                                    <div class="d-flex justify-content-between mb-3">
-                                        <i class="bi bi-sim fs-3 text-primary"></i>
-                                        <span class="fw-bold small text-uppercase opacity-75">@card.BankAccount.Bank.Name</span>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-sim fs-3 text-primary"></i>
+                                            <span class="fw-bold small text-uppercase opacity-75">
+                                                @card.BankAccount.Bank.Name
+                                            </span>
+                                        </div>
+
+                                        <form id="deleteForm-@card.Id"
+                                              method="post"
+                                              asp-action="deleteAccount"
+                                              asp-controller="BankAccount"
+                                              class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@card.Id" />
+
+                                            <button type="button"
+                                                    onclick="confirmDelete(@card.Id)"
+                                                    class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                                                    style="width: 32px; height: 32px;">
+                                                <i class="bi bi-x-lg text-danger"></i>
+                                            </button>
+                                        </form>
                                     </div>
 
                                     
@@ -278,13 +302,18 @@
     function togglePasswordForm() {
         const btnSection = document.getElementById('passwordBtnSection');
         const formSection = document.getElementById('passwordFormSection');
+        const nameChangeBtn = document.getElementById('nameChangeBtn');
 
         if (formSection.style.display === 'none') {
             formSection.style.display = 'block';
             btnSection.style.display = 'none';
+            nameChangeBtn.classList.remove('col-6');
+            nameChangeBtn.classList.add('col-12');
         } else {
             formSection.style.display = 'none';
             btnSection.style.display = 'block';
+            nameChangeBtn.classList.remove('col-12');
+            nameChangeBtn.classList.add('col-6');
         }
     }
 

@@ -3,13 +3,9 @@ using Parking_project.Data;
 using Parking_project.Models;
 using Parking_project.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml.Style;
-using System.Diagnostics.Eventing.Reader;
-using System.Globalization;
-using System.Security.Cryptography;
 
 namespace Parking_project.Controllers
 {

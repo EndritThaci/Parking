@@ -201,5 +201,44 @@ namespace Parking_project.Controllers.Bank
                 return StatusCode(500, ApiResponse<object>.Error(500, "An error occurred while processing your request.", ex.Message));
             }
         }
+
+        [HttpDelete("{id:int}")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<CardDetails>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<CardDetails>>> Delete(int id)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var cardDetails = await _db.CardDetails.Where(cd => cd.Id == id).FirstOrDefaultAsync();
+                if (cardDetails == null || userId != cardDetails.UserId)
+                {
+                    return NotFound(ApiResponse<CardDetails>.NotFound("No card found"));
+                }
+
+                var bankAcc = await _db.BankAccount.Where(b => b.Id == cardDetails.BankAcountId).FirstOrDefaultAsync();
+                if (bankAcc == null || userId != bankAcc.UserId)
+                {
+                    return NotFound(ApiResponse<CardDetails>.NotFound("No Bank Account found"));
+                }
+                var lastCard = await _db.CardDetails.Where(c => c.BankAcountId == bankAcc.Id && c.Id != id).AnyAsync();
+                if (lastCard)
+                {
+                    _db.BankAccount.Remove(bankAcc);
+                    await _db.SaveChangesAsync();
+                }
+
+                _db.CardDetails.Remove(cardDetails);
+                await _db.SaveChangesAsync();
+
+                return Ok(ApiResponse<CardDetails>.Ok(cardDetails, "Successfully Deleted"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.Error(500, "An error occurred while processing your request.", ex.Message));
+            }
+        }
     }
 }
