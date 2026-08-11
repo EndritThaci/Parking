@@ -6,6 +6,7 @@ using Parking_web.Models.DTO;
 using Parking_web.Services.IServices;
 using QRCoder;
 using System.Diagnostics;
+using System.Transactions;
 
 namespace Parking_web.Controllers
 {
@@ -15,17 +16,17 @@ namespace Parking_web.Controllers
         private readonly ITransaksionService _transaksioniService;
         private readonly ICilsimiService _cilsimiService;
         private readonly ISherbimiService _sherbimiService;
-        private readonly ICardDetailsService _cardDetailsService;
+        private readonly ICreditCardService _creditCardService;
         private readonly IMapper _mapper;
 
-        public HomeController(INjesiaService njesiaService, ITransaksionService transaksioniService, ISherbimiService sherbimiService, ICilsimiService cilsimiService, IMapper mapper, ICardDetailsService cardDetailsService)
+        public HomeController(INjesiaService njesiaService, ITransaksionService transaksioniService, ISherbimiService sherbimiService, ICilsimiService cilsimiService, IMapper mapper, ICreditCardService creditCardService)
         {
             _njesiaService = njesiaService;
             _transaksioniService = transaksioniService;
             _cilsimiService = cilsimiService;
             _sherbimiService = sherbimiService;
             _mapper = mapper;
-            _cardDetailsService = cardDetailsService;
+            _creditCardService = creditCardService;
         }
 
         public async Task<IActionResult> Index()
@@ -105,13 +106,13 @@ namespace Parking_web.Controllers
                 if (njesiaResponse == null || njesiaResponse.Data == null)
                 {
                     TempData["error"] = "Nuk u gjet njesi";
-                    return View("Index");
+                    return RedirectToAction("Index");
                 }
 
                 if (njesiaResponse.Data.VendeTeLira <= 0)
                 {
                     TempData["error"] = $"Nuk ka vende të lira në njësinë {njesiaResponse.Data.Emri}";
-                    return View("Index");
+                    return RedirectToAction("Index");
                 }
 
                 var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
@@ -251,7 +252,7 @@ namespace Parking_web.Controllers
                 TempData["error"] = $"Gabim: {response?.Message ?? "Transaksioni nuk u gjet."}";
                 return RedirectToAction("Index");
             }
-            var cardDetails = await _cardDetailsService.GetByUserAsync<ApiResponse<IEnumerable<CardDetails>>>();
+            var cardDetails = await _creditCardService.GetByUserAsync<ApiResponse<IEnumerable<CreditCardReadDto>>>();
             if (cardDetails != null && cardDetails.Success)
             {
                 ViewBag.CardDetails = cardDetails.Data;
@@ -377,7 +378,8 @@ namespace Parking_web.Controllers
             }
             else
             {
-                return BadRequest("Format i gabuar i kohës.");
+                TempData["error"] = "FORMAT I GABUAR I KOHES";
+                return RedirectToAction("Index");
             }
 
             return View(id);
@@ -390,32 +392,37 @@ namespace Parking_web.Controllers
             try
             {
 
-                var transaksioni = await _transaksioniService.GetAsync<ApiResponse<TransaksionRead>>(id);
-                if (transaksioni == null || !transaksioni.Success || transaksioni.Data == null)
+                var transResponse = await _transaksioniService.GetAsync<ApiResponse<TransaksionRead>>(id);
+                if (transResponse == null || !transResponse.Success || transResponse.Data == null)
                 {
-                    TempData["error"] = "QR Code i pavlefshëm.";
+                    TempData["error"] = "Transaksioni nuk u gjet.";
                     return RedirectToAction("Index");
                 }
 
-                var card = await _cardDetailsService.PayAsync<ApiResponse<CardDetails>>(CardId, transaksioni.Data.Cmimi!.Value);
-                if (card == null || !card.Success)
+                decimal amount = transResponse.Data.Cmimi ?? 0;
+                if (amount < 0)
                 {
-                    TempData["error"] = $"Pagesa deshtoi. {card?.Message ?? ""}";
+                    TempData["error"] = "Shuma e transaksionit është e pavlefshme.";
                     return RedirectToAction("Index");
                 }
 
-                //TransaksionUpdateDto update = new();
-                //update.SherbimiId = transaksioni.Data.Sherbimi?.Where(i=> i.SherbimiId != transaksioni.Data.Cilsimi.SherbimiId).Select(i=> i.SherbimiId).ToList();
-                //var response1 = await _transaksioniService.UpdateAsync<ApiResponse<TransaksionRead>>(id, update);
-                var response = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(id);
+                var dto = new PayRequestDto();
+                dto.CreditCardId = CardId;
+                dto.Amount = amount;
+
+                var response = await _creditCardService.PayAsync<ApiResponse<CreditCardReadDto>>(dto);
                 if (response != null && response.Success)
                 {
-                    TempData["success"] = "Transaksioni u mbyll me sukses. Faleminderit për përdorimin e Parkingut tonë";
-                    return RedirectToAction("Index");
+                    var responsePay = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(id);
+                    if (responsePay != null && responsePay.Success)
+                    {
+                        TempData["success"] = "Pagesa u krye automatikisht me sukses!";
+                        return RedirectToAction("Index");
+                    }
                 }
                 else
                 {
-                    TempData["error"] = "QR Code i pavlefshëm.";
+                    TempData["error"] = $"{response?.Message ?? "Pagesa deshtoi"}";
                 }
             }
             catch (Exception ex)

@@ -1,56 +1,42 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Parking_web.Models;
 using Parking_web.Models.DTO;
 using Parking_web.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Parking_web.Controllers
 {
     public class BankAccountController : Controller
     {
-        private readonly ICardDetailsService _cardDetailsService;
-        private readonly IBankService _bankService;
+        private readonly ICreditCardService _creditCardService;
         private readonly IMapper _mapper;
 
-        public BankAccountController(ICardDetailsService cardDetailsService, IMapper mapper, IBankService bankService)
+        public BankAccountController(IMapper mapper, ICreditCardService creditCardService)
         {
-            _cardDetailsService = cardDetailsService;
             _mapper = mapper;
-            _bankService = bankService;
+            _creditCardService = creditCardService;
         }
 
         private async Task populateViewBag()
         {
-            var cardDetails = await _cardDetailsService.GetByUserAsync<ApiResponse<IEnumerable<CardDetails>>>();
+            var cardDetails = await _creditCardService.GetByUserAsync<ApiResponse<IEnumerable<CreditCardReadDto>>>();
             if (cardDetails != null && cardDetails.Success)
             {
                 ViewBag.CardDetails = cardDetails.Data;
-            }
-
-            var banks = await _bankService.GetAllAsync<ApiResponse<IEnumerable<Banka>>>();
-            if (banks != null && banks.Success)
-            {
-                ViewBag.Banks = banks.Data!.Select(b => new SelectListItem
-                {
-                    Value = b.Id.ToString(),
-                    Text = b.Name
-                }).ToList();
             }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> createAccount(CardAcountCreateDTO dto)
+        public async Task<IActionResult> deleteCard(int id)
         {
-            var result = await _cardDetailsService.CreateAccountAsync<ApiResponse<CardDetails>>(dto);
+            var result = await _creditCardService.DeleteAsync<ApiResponse<CreditCardReadDto>>(id);
             if (result == null || !result.Success || result.Data == null)
             {
                 TempData["error"] = result?.Message ?? "U shfaq një gabim";
             }
-
             await populateViewBag();
 
             return RedirectToAction("index", "Profile");
@@ -59,13 +45,27 @@ namespace Parking_web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> deleteAccount(int id)
+        public async Task<IActionResult> createCard(string paymentMethodId)
         {
-            var result = await _cardDetailsService.DeleteAsync<ApiResponse<CardDetails>>(id);
-            if (result == null || !result.Success || result.Data == null)
+            if (string.IsNullOrEmpty(paymentMethodId))
             {
-                TempData["error"] = result?.Message ?? "U shfaq një gabim";
+                TempData["error"] = "Kartela nuk u krijua.";
+                return RedirectToAction("index", "Profile");
             }
+
+            var dto = new CreditCardCreateDto
+            {
+                UserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0"),
+                StripePaymentMethodId = paymentMethodId
+            };
+
+            var result = await _creditCardService.CreateAsync<ApiResponse<CreditCardReadDto>>(dto);
+
+            if (result == null || !result.Success)
+            {
+                TempData["error"] = result?.Message ?? "Gabim gjatë ruajtjes së kartelës";
+            }
+
             await populateViewBag();
 
             return RedirectToAction("index", "Profile");

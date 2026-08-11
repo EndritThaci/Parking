@@ -4,14 +4,14 @@ using Parking_web.Services.IServices;
 
 namespace Parking_web.Services
 {
-    public class CardDetailsService : BaseService, ICardDetailsService
+    public class CreditCardService : BaseService, ICreditCardService
     {
-        private readonly string APIEndPoint = "/api/cardDetails";
-        public CardDetailsService(IHttpClientFactory httpClient, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(httpClient, httpContextAccessor)
+        private readonly string APIEndPoint = "/api/creditCards";
+        public CreditCardService(IHttpClientFactory httpClient, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) : base(httpClient, httpContextAccessor)
         {
         }
 
-        public Task<T?> CreateAsync<T>(CardDetailsCreateDTO dto)
+        public Task<T?> CreateAsync<T>(CreditCardCreateDto dto)
         {
             return SendAsync<T>(new ApiRequest
             {
@@ -21,13 +21,13 @@ namespace Parking_web.Services
             });
         }
 
-        public Task<T?> CreateAccountAsync<T>(CardAcountCreateDTO dto)
+        public Task<T?> PayAsync<T>(PayRequestDto dto)
         {
             return SendAsync<T>(new ApiRequest
             {
                 ApiType = SD.ApiType.POST,
                 Data = dto,
-                Url = $"{APIEndPoint}/Account",
+                Url = $"{APIEndPoint}/Pay",
             });
         }
 
@@ -46,16 +46,6 @@ namespace Parking_web.Services
             {
                 ApiType = SD.ApiType.GET,
                 Url = $"{APIEndPoint}/{id}",
-            });
-        }
-
-        public Task<T?> PayAsync<T>(int id, decimal amount)
-        {
-            return SendAsync<T>(new ApiRequest
-            {
-                ApiType = SD.ApiType.PUT,
-                Data = amount,
-                Url = $"{APIEndPoint}/Pay/{id}",
             });
         }
 

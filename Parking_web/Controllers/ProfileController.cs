@@ -15,12 +15,11 @@ namespace Parking_web.Controllers
         private readonly ISherbimiService _shebimiService;
         private readonly ICilsimiService _cilsimiService;
         private readonly IDetajetService _detajetService;
-        private readonly IUserService _userService;
-        private readonly ICardDetailsService _cardDetailsService;
-        private readonly IBankService _bankService;
+        private readonly IUserService _userService; 
+        private readonly ICreditCardService _creditCardService;
         private readonly IMapper _mapper;
 
-        public ProfileController(INjesiaService njesiaService, IMapper mapper, ISherbimiService shebimiService, ICilsimiService cilsimiService, IDetajetService detajetService, IUserService userService, ICardDetailsService cardDetailsService, IBankService bankService)
+        public ProfileController(INjesiaService njesiaService, IMapper mapper, ISherbimiService shebimiService, ICilsimiService cilsimiService, IDetajetService detajetService, IUserService userService, ICreditCardService creditCardService)
         {
             _njesiaService = njesiaService;
             _mapper = mapper;
@@ -28,8 +27,7 @@ namespace Parking_web.Controllers
             _cilsimiService = cilsimiService;
             _detajetService = detajetService;
             _userService = userService;
-            _cardDetailsService = cardDetailsService;
-            _bankService = bankService;
+            _creditCardService = creditCardService;
         }
 
 
@@ -44,20 +42,10 @@ namespace Parking_web.Controllers
             var user = await _userService.GetAsync<ApiResponse<Useri>>(userId);
             if (user == null) return NotFound();
 
-            var cardDetails = await _cardDetailsService.GetByUserAsync<ApiResponse<IEnumerable<CardDetails>>>();
-            if (cardDetails != null && cardDetails.Success)
+            var creditCards = await _creditCardService.GetByUserAsync<ApiResponse<IEnumerable<CreditCardReadDto>>>();
+            if (creditCards != null && creditCards.Success)
             {
-                ViewBag.CardDetails = cardDetails.Data;
-            }
-
-            var banks = await _bankService.GetAllAsync<ApiResponse<IEnumerable<Banka>>>();
-            if (banks != null && banks.Success)
-            {
-                ViewBag.Banks = banks.Data!.Select(b => new SelectListItem
-                {
-                    Value = b.Id.ToString(),
-                    Text = b.Name
-                }).ToList();
+                ViewBag.CreditCards = creditCards.Data;
             }
 
             return View(user.Data);
@@ -73,18 +61,18 @@ namespace Parking_web.Controllers
                 var response = await _userService.ChangePasswordAsync<ApiResponse<Useri>>(dto);
                 if (response != null && response.Success)
                 {
-                    TempData["success"] = "Passwordi u ndërrua me sukses";
+                    TempData["success"] = "Passwordi u përmirësua me sukses";
                     return RedirectToAction("Index");
                 }
                 else
                 {
-                    TempData["error"] = response.Message ?? "U shfaq një gabim gjat ndërrimit të passwordit";
+                    TempData["error"] = response.Message ?? "U shfaq një gabim gjat përmirësimit të passwordit";
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "U shfaq një gabim gjat ndërrimit të passwordit: " + ex.Message;
+                TempData["Error"] = "U shfaq një gabim gjat përmirësimit të passwordit: " + ex.Message;
             }
             return RedirectToAction("Index");
         }
@@ -100,18 +88,18 @@ namespace Parking_web.Controllers
                 var response = await _userService.UpdateAsync<ApiResponse<Useri>>(dto);
                 if (response != null && response.Success)
                 {
-                    TempData["success"] = "Të dhënat u ndërruan me sukses";
+                    TempData["success"] = "Të dhënat u përmirësuan me sukses";
                     return RedirectToAction("Index");
                 }
                 else
                 {
-                    TempData["error"] = response?.Message ?? "U shfaq një gabim gjat ndërrimit të të dhënave";
+                    TempData["error"] = response?.Message ?? "U shfaq një gabim gjat përmirësimit të të dhënave";
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "U shfaq një gabim gjat ndërrimit të të dhënave: " + ex.Message;
+                TempData["Error"] = "U shfaq një gabim gjat përmirësimit të të dhënave: " + ex.Message;
             }
             return RedirectToAction("Index");
         }

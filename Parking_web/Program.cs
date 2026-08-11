@@ -73,8 +73,7 @@ builder.Services.AddScoped<IDetajetService, DetajetService>();
 builder.Services.AddScoped<ITransaksionService, TransaksionService>();
 builder.Services.AddScoped<ILibriService, LibriService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ICardDetailsService, CardDetailsService>();
-builder.Services.AddScoped<IBankService, BankService>();
+builder.Services.AddScoped<ICreditCardService, CreditCardService>();
 
 var app = builder.Build();
 

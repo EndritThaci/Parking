@@ -129,7 +129,7 @@
                 </h5>
 
                 @{
-                    var cards = ViewBag.CardDetails as IEnumerable<Parking_web.Models.CardDetails>;
+                    var cards = ViewBag.CardDetails as IEnumerable<Parking_web.Models.DTO.CreditCardReadDto>;
                 }
 
                 @if (cards != null && cards.Any())
@@ -143,15 +143,15 @@
 
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <i class="bi bi-sim fs-3 text-primary"></i>
+                                            <i class="bi bi-credit-card text-primary fs-3"></i>
                                             <span class="fw-bold small text-uppercase opacity-75">
-                                                @card.BankAccount.Bank.Name
+                                                @card.Brand
                                             </span>
                                         </div>
 
                                         <form id="deleteForm-@card.Id"
                                               method="post"
-                                              asp-action="deleteAccount"
+                                              asp-action="deleteCard"
                                               asp-controller="BankAccount"
                                               class="m-0">
                                             @Html.AntiForgeryToken()
@@ -167,21 +167,9 @@
                                     </div>
 
                                     
-                                    @if (card.CardNumber.Length == 16) 
-                                    {
-                                        <h5 class="mb-3 tracking-widest text-center"> 
-                                            @card.CardNumber.Substring(0,4) 
-                                            @card.CardNumber.Substring(4,4)
-                                            @card.CardNumber.Substring(8,4)
-                                            @card.CardNumber.Substring(12,4)
-                                        </h5>
-                                    }
-                                    else
-                                    {
-                                        <h5 class="mb-3 tracking-widest text-center">
-                                            @card.CardNumber
-                                        </h5>
-                                    }
+                                    <h5 class="mb-3 tracking-widest text-center">
+                                        **** **** **** @card.Last4
+                                    </h5>
                                     
 
                                     <div class="d-flex justify-content-between align-items-end mt-auto">
@@ -191,7 +179,7 @@
                                         </div>
                                         <div class="text-end">
                                             <small class="d-block opacity-50" style="font-size: 0.7rem;">SKADIMI</small>
-                                            <span class="small fw-semibold">@card.ExpirationDate.ToString("MM/yy")</span>
+                                            <span class="small fw-semibold">@($"{card.ExpMonth:D2}/{card.ExpYear % 100:D2}")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -214,56 +202,20 @@
                         <i class="bi bi-credit-card-2-front me-2 text-primary"></i>Lidhu me Kartelën Bankare
                     </h5>
 
-                    <form asp-controller="BankAccount" asp-action="createAccount" method="post">
+                    <form id="stripe-form" asp-controller="BankAccount" asp-action="createCard" method="post">
                         @Html.AntiForgeryToken()
 
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label small text-muted fw-bold">Numri i Llogarisë (IBAN)</label>
-                                <input type="text" name="AccountNumber" class="form-control bg-light border-0" placeholder="XK00..." required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small text-muted fw-bold">Numri i Kartelës</label>
-                                <input type="text"
-                                       id="cardVisualInput"
-                                       class="form-control bg-light border-0"
-                                       placeholder="0000 0000 0000 0000"
-                                       required>
-
-                                <input type="hidden" name="CardNumber" id="cardRealInput">
-
-                                <div id="cardError" class="text-danger" style="font-size: 0.7rem; display: none;">
-                                    Duhen saktësisht 16 shifra.
-                                </div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted fw-bold">Shuma e Parave</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-0">€</span>
-                                    <input type="number" step="0.01" name="Amount" class="form-control bg-light border-0" value="0.00" required>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted fw-bold">Përzgjedh Bankën</label>
-                                <select name="BankId" class="form-select bg-light border-0"
-                                        asp-items="@(new SelectList(ViewBag.Banks ?? new List<SelectListItem>(), "Value", "Text"))" required>
-                                    <option value="" selected disabled>-- Zgjedh Bankën --</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted fw-bold">Data e Skadimit</label>
-                                <input type="date" name="ExpirationDate" class="form-control bg-light border-0" required>
-                            </div>
-
-                            <div class="col-12 mt-4 text-end">
-                                <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm fw-bold">
-                                    <i class="bi bi-plus-circle me-2"></i>Krijo Llogarinë
-                                </button>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Kartela</label>
+                            <div id="card-element" class="form-control"></div>
+                            <div id="card-errors" class="text-danger small mt-1"></div>
                         </div>
+
+                        <input type="hidden" name="paymentMethodId" id="paymentMethodId" />
+
+                        <button type="submit" class="btn btn-primary">
+                            Ruaj Kartelën
+                        </button>
                     </form>
                 </div>
             </div>
@@ -335,5 +287,36 @@
         } else {
             errorDiv.style.display = 'none';
         }
+    });
+</script>
+
+<script src="https://js.stripe.com/v3/"></script>
+
+<script>
+    const stripe = Stripe("pk_test_51T6URw2KyY4CWYf6n7QDoHhRq749SJuvwzfzSNLLLcMqyF0MiDccEVCq9jXFx46Jb3I11KqEvBIWNCpnkhWfKmPN002onMdS88");
+    const elements = stripe.elements();
+
+    const card = elements.create("card");
+    card.mount("#card-element");
+
+    const form = document.getElementById("stripe-form");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const { paymentMethod, error } = await stripe.createPaymentMethod({
+            type: "card",
+            card: card
+        });
+
+        if (error) {
+            document.getElementById("card-errors").textContent = error.message;
+            return;
+        }
+
+        console.log("PM ID:", paymentMethod.id);
+
+        document.getElementById("paymentMethodId").value = paymentMethod.id;
+        form.submit();
     });
 </script>

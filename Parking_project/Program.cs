@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using OfficeOpenXml;
@@ -117,9 +116,8 @@ builder.Services.AddAutoMapper(o =>
     o.CreateMap<TransaksionParkimi, TransaksionUpdateDto>().ReverseMap();
     o.CreateMap<TransaksionParkimi, TransaksionRead>().ReverseMap();
 
-    o.CreateMap<CardDetails, CardDetailsCreateDTO>().ReverseMap();
-
-    o.CreateMap<BankAccount, BankAccountCreateDTO>().ReverseMap();
+    o.CreateMap<CreditCard, CreditCardCreateDto>().ReverseMap();
+    o.CreateMap<CreditCard, CreditCardReadDto>().ReverseMap();
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();

@@ -36,7 +36,9 @@
                         <div class="mb-4">
                             <h6 class="text-muted text-center small fw-bold mb-3">Zgjidhni Mënyrën e Pagesës</h6>
                             <div class="card-slider-container">
-                                @{ var cards = ViewBag.CardDetails as IEnumerable<Parking_web.Models.CardDetails>; }
+                                @{
+                                    var cards = ViewBag.CardDetails as IEnumerable<Parking_web.Models.DTO.CreditCardReadDto>;
+                                }
 
                                 @if (cards != null && cards.Any())
                                 {
@@ -46,15 +48,19 @@
                                             <div class="payment-card-item" onclick="selectCard(this, '@card.Id')" style="flex: 0 0 260px; scroll-snap-align: start; cursor: pointer;">
                                                 <div class="p-3 rounded-4 border bg-light text-black shadow-sm position-relative card-visual h-100">
                                                     <div class="d-flex justify-content-between mb-2">
-                                                        <i class="bi bi-sim text-primary fs-4"></i>
-                                                        <span class="bankName small opacity-75">@card.BankAccount.Bank.Name</span>
+                                                        <i class="bi bi-credit-card text-primary fs-4"></i>
+                                                        <span class="bankName small opacity-75">@card.Brand</span>
                                                     </div>
                                                     <div class="mb-3 tracking-widest small text-center py-2">
-                                                        **** **** **** @(card.CardNumber.Length > 4 ? card.CardNumber.Substring(card.CardNumber.Length - 4) : card.CardNumber)
+                                                        **** **** **** @card.Last4
                                                     </div>
                                                     <div class="d-flex justify-content-between align-items-end mt-2">
-                                                        <span style="font-size: 0.65rem;" class="text-uppercase fw-bold">@Model.Useri.Emri @Model.Useri.Mbiemri</span>
-                                                        <span style="font-size: 0.65rem;">@card.ExpirationDate.ToString("MM/yy")</span>
+                                                        <span style="font-size: 0.65rem;" class="text-uppercase fw-bold">
+                                                            @Model.Useri.Emri @Model.Useri.Mbiemri
+                                                        </span>
+                                                        <span style="font-size: 0.65rem;">
+                                                            @($"{card.ExpMonth:D2}/{card.ExpYear % 100:D2}")
+                                                        </span>
                                                     </div>
                                                     <div class="selection-indicator position-absolute top-0 end-0 m-2 d-none">
                                                         <i class="bi bi-check-circle-fill text-primary fs-5"></i>
@@ -67,7 +73,10 @@
                                 else
                                 {
                                     <div class="d-grid gap-2">
-                                    <a asp-controller="Profile" asp-action="Index" class="btn btn-link rounded-pill py-3 text-center">Shto një kartelë bankare</a></div>
+                                    <a asp-controller="Profile" asp-action="Index" class="btn btn-link rounded-pill py-3 text-center">
+                                            Shto një kartelë bankare
+                                        </a>
+                                    </div>
                                 }
                             </div>
                         </div>
