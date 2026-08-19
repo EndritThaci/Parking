@@ -22,7 +22,7 @@
                         <div class="form-floating mb-3">
                             <input asp-for="Email" class="form-control" placeholder="name@example.com" />
                             <label asp-for="Email" class="form-label">
-                                <i class="bi bi-envelope me-2"></i>Email adresa
+                                <i class="bi bi-envelope me-2"></i>Email
                             </label>
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
@@ -30,7 +30,7 @@
                         <div class="form-floating mb-4">
                             <input asp-for="Password" class="form-control" placeholder="Password" type="password" />
                             <label asp-for="Password" class="form-label">
-                                <i class="bi bi-lock me-2"></i>Paswordi
+                                <i class="bi bi-lock me-2"></i>Fjalkalimi
                             </label>
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
@@ -59,3 +59,10 @@
         </div>
     </div>
 </div>
+
+<style>
+    .form-floating > .form-control::placeholder {
+        font-size: 0.85rem;
+        color: #adb5bd;
+    }
+</style>

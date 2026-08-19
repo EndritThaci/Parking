@@ -143,9 +143,9 @@ public class CreditCardController : Controller
             if (request == null || request.CreditCardId <= 0 || request.Amount <= 0)
                 return BadRequest(ApiResponse<object>.BadRequest("Invalid request"));
 
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            //var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            var card = await _db.CreditCards.FirstOrDefaultAsync(c => c.Id == request.CreditCardId && c.UserId == userId);
+            var card = await _db.CreditCards.FirstOrDefaultAsync(c => c.Id == request.CreditCardId); //&& c.UserId == userId);
             if (card == null)
                 return NotFound(ApiResponse<object>.NotFound("Card not found"));
 

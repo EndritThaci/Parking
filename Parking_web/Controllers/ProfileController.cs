@@ -42,10 +42,10 @@ namespace Parking_web.Controllers
             var user = await _userService.GetAsync<ApiResponse<Useri>>(userId);
             if (user == null) return NotFound();
 
-            var creditCards = await _creditCardService.GetByUserAsync<ApiResponse<IEnumerable<CreditCardReadDto>>>();
-            if (creditCards != null && creditCards.Success)
+            var cardDetails = await _creditCardService.GetByUserAsync<ApiResponse<IEnumerable<CreditCardReadDto>>>();
+            if (cardDetails != null && cardDetails.Success)
             {
-                ViewBag.CreditCards = creditCards.Data;
+                ViewBag.CardDetails = cardDetails.Data;
             }
 
             return View(user.Data);

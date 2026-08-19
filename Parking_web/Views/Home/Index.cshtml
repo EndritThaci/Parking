@@ -28,7 +28,14 @@ else
                      aria-controls="activeTransactions">
 
                     <div class="spinner-grow text-warning spinner-grow-sm me-2" role="status"></div>
-                    <h5 class="fw-bold text-dark mb-0">Transaksionet tuaja aktive (@sum)</h5>
+                    @if (User.IsInRole("Customer"))
+                    {
+                        <h5 class="fw-bold text-dark mb-0">Transaksionet tuaja aktive (@sum)</h5>
+                    }
+                    else
+                    {
+                        <h5 class="fw-bold text-dark mb-0">Transaksionet aktive (@sum)</h5>
+                    }
                     <i class="bi bi-chevron-down ms-2 transition-all collapse-arrow"></i>
                 </div>
 
@@ -125,6 +132,7 @@ else
 <style>
     .unit-card {
         border-radius: 20px;
+        transition: all 0.3s ease;
         background: #ffffff;
         cursor: pointer;
     }
@@ -135,33 +143,15 @@ else
             border: 1px solid #0d6efd !important;
         }
 
-    /* Shiriti anësor dekorativ (Blunë e Njësisë) */
     .unit-stripe {
         position: absolute;
         top: 0;
         left: 0;
         width: 6px;
         height: 100%;
-        background: #0d6efd; /* Ngjyra primare */
+        background: #0d6efd;
     }
 
-    /* Ikona rrethore e vogël në cep */
-    .unit-icon-circle {
-        width: 45px;
-        height: 45px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-        font-size: 1.2rem;
-    }
-
-    .fw-black {
-        font-weight: 800;
-        letter-spacing: -0.5px;
-    }
-
-    /* Butoni i veprimit */
     .btn-unit-action:hover {
         background-color: #0d6efd !important;
         color: white !important;
@@ -171,14 +161,12 @@ else
     .tracking-wider {
         letter-spacing: 1px;
     }
-</style>
 
-<style>
-    /* Stili për Kartat e Transaksioneve */
     .pending-card {
         border-radius: 20px;
         transition: all 0.3s ease;
         background: #fff;
+        cursor: pointer;
     }
 
         .pending-card:hover {
@@ -187,7 +175,6 @@ else
             border: 1px solid #ffc107 !important;
         }
 
-    /* Shiriti anësor dekorativ që i bën të duken si njoftime */
     .pending-stripe {
         position: absolute;
         top: 0;
@@ -197,30 +184,11 @@ else
         background: #ffc107;
     }
 
-    .checkOut-card {
-        border-radius: 20px;
-        transition: all 0.3s ease;
-        background: #fff;
-    }
-
-        .checkOut-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-            border: 1px solid #ff5157 !important;
-        }
-
-    .checkOut-stripe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 6px;
-        height: 100%;
-        background: #ff5157;
-    }
-
     .fw-black {
         font-weight: 900;
         color: #2b2b2b;
+        font-weight: 800;
+        letter-spacing: -0.5px;
     }
 
     .btn-pay:hover {
@@ -234,12 +202,10 @@ else
         color: #fff !important;
     }
 
-    /* Animacioni i pikës pulsuese */
     .spinner-grow {
         animation-duration: 1.5s;
     }
 
-    /* Opsionale: bëje titullin pak më të ndjeshëm në hover */
     [data-bs-toggle="collapse"]:hover h5 {
         color: #ffc107 !important;
     }

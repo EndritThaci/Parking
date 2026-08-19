@@ -45,7 +45,7 @@
                                     <div class="d-flex flex-nowrap gap-3 p-1 pb-3" style="overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;">
                                         @foreach (var card in cards)
                                         {
-                                            <div class="payment-card-item" onclick="selectCard(this, '@card.Id')" style="flex: 0 0 260px; scroll-snap-align: start; cursor: pointer;">
+                                            <div class="payment-card-item" data-card-id="@card.Id" onclick="selectCard(this, '@card.Id')" style="flex: 0 0 260px; scroll-snap-align: start; cursor: pointer;">
                                                 <div class="p-3 rounded-4 border bg-light text-black shadow-sm position-relative card-visual h-100">
                                                     <div class="d-flex justify-content-between mb-2">
                                                         <i class="bi bi-credit-card text-primary fs-4"></i>
@@ -209,15 +209,37 @@
     }
 </style>
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const wrapper = document.getElementById('layoutWrapper');
+        const qrState = sessionStorage.getItem("qrActive");
+
+        if (qrState === "false") {
+            wrapper.classList.remove('qr-active');
+        } else if (qrState === "true") {
+            wrapper.classList.add('qr-active');
+        }
+
+        const savedCardId = sessionStorage.getItem("selectedCardId");
+        if (savedCardId) {
+            const cardElement = document.querySelector(`[data-card-id="${savedCardId}"]`);
+            if (cardElement) {
+                selectCard(cardElement, savedCardId);
+            }
+        }
+
+        setInterval(function() {
+            location.reload();
+        }, 30000); // e ban refresh qdo 30sekonda
+    });
+
     function toggleQR() {
         const wrapper = document.getElementById('layoutWrapper');
         wrapper.classList.toggle('qr-active');
+        sessionStorage.setItem("qrActive", wrapper.classList.contains('qr-active'));
     }
 
     function selectCard(element, cardId) {
-        document.querySelectorAll('.payment-card-item').forEach(item => {
-            item.classList.remove('active');
-        });
+        document.querySelectorAll('.payment-card-item').forEach(item => item.classList.remove('active'));
 
         element.classList.add('active');
 
@@ -228,9 +250,9 @@
 
         if(cardInput) cardInput.value = cardId;
 
-        if (cardId) {
-            if(submitBtn) submitBtn.disabled = false;
-            if(warning) warning.classList.add('d-none');
-        }
+        if (submitBtn) submitBtn.disabled = false;
+        if (warning) warning.classList.add('d-none');
+
+        sessionStorage.setItem("selectedCardId", cardId);
     }
 </script>

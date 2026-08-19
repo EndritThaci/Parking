@@ -33,7 +33,7 @@ namespace Parking_web.Controllers
         public async Task<IActionResult> deleteCard(int id)
         {
             var result = await _creditCardService.DeleteAsync<ApiResponse<CreditCardReadDto>>(id);
-            if (result == null || !result.Success || result.Data == null)
+            if (result == null || !result.Success)
             {
                 TempData["error"] = result?.Message ?? "U shfaq një gabim";
             }
@@ -68,6 +68,7 @@ namespace Parking_web.Controllers
 
             await populateViewBag();
 
+            TempData["success"] = "Kartela u shtua me sukses.";
             return RedirectToAction("index", "Profile");
         }
     }

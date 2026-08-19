@@ -11,5 +11,6 @@ namespace Parking_web.Models.DTO
         [Required]
         public int CilsimiId { get; set; }
 
+        public int? UserId { get; set; }
     }
 }

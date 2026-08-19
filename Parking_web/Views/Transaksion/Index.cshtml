@@ -3,7 +3,7 @@
     ViewData["Title"] = "Transaksionet";
 }
 
-<div class="container-fluid px-0">
+<div class="container-fluid px-2 px-md-4 py-3">
     @{
         var totaliGjithsej = Model?.Where(t => t.Cmimi.HasValue).Sum(t => t.Cmimi!.Value) ?? 0;
 
@@ -19,34 +19,29 @@
         var njesite = Model?.Where(n => n != null).Select(t => new { t.Cilsimi.NjesiOrg.NjesiteId, t.Cilsimi.NjesiOrg.Emri }).Distinct().OrderBy(n => n.Emri).ToList();
     }
 
-    
-
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-black text-white pt-4 px-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="card border-0 shadow-sm overflow-hidden">
+        <div class="card-header bg-black text-white pt-4 px-3 px-md-4">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-3 gap-3">
                 <div>
                     <h4 class="fw-bold mb-0">Historia e Transaksioneve</h4>
                     <small class="opacity-75">Regjistri i hyrjeve dhe daljeve</small>
                 </div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="action-button-area d-flex gap-2 me-3">
-                        <a asp-controller="LibriShitjes" asp-action="GetLibriCustom" class="btn btn-outline-light px-4 rounded-pill fw-bold">Gjenero Librin e Shitjes</a>
+                <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2">
+                    <div class="action-button-area">
+                        <a asp-controller="LibriShitjes" asp-action="GetLibriCustom" class="btn btn-outline-light px-4 rounded-pill fw-bold w-100">Gjenero Librin</a>
                     </div>
-                    <div style="min-width: 250px;">
-                    
-                        <div class="input-group shadow-sm">
-                            <select id="filterNjesia" class="form-select bg-black fw-bold text-white rounded-pill">
-                                <option value="">Të gjitha Njësitë</option>
-                                @if (njesite != null)
-                                {
-                                    foreach (var njesi in njesite)
+                    <div style="min-width: 220px;">
+                        <select id="filterNjesia" class="form-select bg-black fw-bold text-white rounded-pill border-secondary">
+                            <option value="">Të gjitha Njësitë</option>
+                            @if (njesite != null)
+                            {
+                                foreach (var njesi in njesite)
                                     {
                                         <option value="@njesi.NjesiteId">@njesi.Emri</option>
                                     }
                                 }
                             }
-                            </select>
-                        </div>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -56,13 +51,13 @@
                 <table class="table table-hover align-middle mb-0 w-100" id="transaksionetTable">
                     <thead>
                         <tr>
-                            <th class="ps-4">Vend Parkimi</th>
-                            <th>Perdoruesi</th>
+                            <th class="ps-3 ps-md-4">Vend Parkimi</th>
+                            <th class="d-none d-md-table-cell">Perdoruesi</th>
                             <th>Hyrja</th>
-                            <th>Dalja</th>
-                            <th>Statusi</th>
-                            <th>Shërbimet</th>
-                            <th class="text-end pe-4">Pagesa</th>
+                            <th class="d-none d-lg-table-cell">Dalja</th>
+                            <th class="d-none d-sm-table-cell">Statusi</th>
+                            <th class="d-none d-xl-table-cell">Shërbimet</th>
+                            <th class="text-end pe-3 pe-md-4">Pagesa</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,38 +73,36 @@
                                     data-cmimi="@(t.Cmimi ?? 0)"
                                     data-muaji="@t.KohaHyrjes.Month"
                                     data-viti="@t.KohaHyrjes.Year">
-                                    <td class="ps-4">
+                                    <td class="ps-3 ps-md-4">
                                         <span class="fw-bold text-dark">@t.Njesia.Emri</span>
                                     </td>
-                                    <td>@t.Useri?.Emri @t.Useri?.Mbiemri</td>
-                                    <td>@t.KohaHyrjes.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>@(t.KohaDaljes.HasValue? t.KohaDaljes.Value.ToString("dd/MM/yyyy HH:mm") : "--:--")</td>
-                                    <td>
-                                        <span class="badge @(t.Statusi?.ToLower() == "completed" ? "bg-primary-subtle text-primary" : "bg-warning-subtle text-secondary") rounded-pill px-3">
+                                    <td class="d-none d-md-table-cell">@t.Useri?.Emri @t.Useri?.Mbiemri</td>
+                                    <td class="small">@t.KohaHyrjes.ToString("dd/MM/yy HH:mm")</td>
+                                    <td class="d-none small d-lg-table-cell">@(t.KohaDaljes.HasValue ? t.KohaDaljes.Value.ToString("dd/MM/yy HH:mm") : "--:--")</td>
+                                    <td class="d-none d-sm-table-cell">
+                                        <span class="badge @(t.Statusi?.ToLower() == "completed" ? "bg-primary-subtle text-primary" : "bg-warning-subtle text-secondary") rounded-pill">
                                             @t.Statusi
                                         </span>
                                     </td>
-                                    <td>
+                                    <td class="d-none d-xl-table-cell">
                                         @if (t.Sherbimi != null)
                                         {
                                             foreach (var s in t.Sherbimi)
                                             {
-                                                <span class="badge bg-light text-dark border fw-normal">@s.Emri</span>
+                                                <span class="badge bg-light text-dark border fw-normal me-1">@s.Emri</span>
                                             }
                                         }
                                     </td>
-                                    @if (t.Cmimi.HasValue && t.Cmimi > 0)
-                                    {
-                                        <td class="text-end pe-4 fw-bold text-primary">
+                                    <td class="text-end pe-3 pe-md-4 fw-bold text-primary">
+                                        @if (t.Cmimi.HasValue && t.Cmimi > 0)
+                                        {
                                             @(t.Cmimi.Value.ToString("N2") + " €")
-                                        </td>                    
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end pe-4 text-dark">
-                                            Në proces
-                                        </td>
-                                    }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fw-normal small">Në proces</span>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         }
@@ -118,38 +111,32 @@
             </div>
         </div>
     </div>
-    <div class="row g-3 mb-4 mt-4">
-        <div class="col-md-4">
+    <div class="row g-3 mb-4 mt-2">
+        <div class="col-12 col-md-4">
             <div id="btnRaportMuaji" class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel transition-up" style="cursor:pointer;">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali Për këtë Muaj</h6>
-                    </div>
+                    <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Për këtë Muaj</h6>
                     <h2 class="fw-bold mb-0"><span id="summaryMuaji">@totaliMuaji.ToString("N2")</span> €</h2>
-                    <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
+                    <small class="text-white mt-2 d-block fw-bold opacity-50"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
             <div id="btnRaportViti" class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel transition-up" style="cursor:pointer;">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali Për këtë Vit</h6>
-                    </div>
+                    <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Për këtë Vit</h6>
                     <h2 class="fw-bold mb-0"><span id="summaryViti">@totaliViti.ToString("N2")</span> €</h2>
-                    <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
+                    <small class="text-white mt-2 d-block fw-bold opacity-50"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
             <div id="btnRaportGjithsej" class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel transition-up" style="cursor:pointer;">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Total Gjithsej</h6>
-                    </div>
+                    <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Total Gjithsej</h6>
                     <h2 class="fw-bold mb-0"><span id="summaryGjithsej">@totaliGjithsej.ToString("N2")</span> €</h2>
-                    <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
+                    <small class="text-white mt-2 d-block fw-bold opacity-50"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
                 </div>
             </div>
         </div>
@@ -164,9 +151,7 @@
 
             if (njesiaNgaUrl) {
                 const filterSelect = document.getElementById('filterNjesia');
-
                 filterSelect.value = njesiaNgaUrl;
-
                 filterSelect.dispatchEvent(new Event('change'));
             }
         });
@@ -203,26 +188,24 @@
                 }
             });
 
-            document.getElementById('summaryGjithsej').innerText = totalGjithsej.toLocaleString('sq-AL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('summaryMuaji').innerText = totalMuaji.toLocaleString('sq-AL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('summaryViti').innerText = totalViti.toLocaleString('sq-AL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const localeOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+            document.getElementById('summaryGjithsej').innerText = totalGjithsej.toLocaleString('sq-AL', localeOptions);
+            document.getElementById('summaryMuaji').innerText = totalMuaji.toLocaleString('sq-AL', localeOptions);
+            document.getElementById('summaryViti').innerText = totalViti.toLocaleString('sq-AL', localeOptions);
         });
 
         function downloadReport(params) {
-                const njesiaId = document.getElementById('filterNjesia').value;
-                let url = "/LibriShitjes/GetLibri?";
-
-                let queryParts = [];
-                for (let key in params) {
-                    queryParts.push(`${key}=${params[key]}`);
-                }
-
-                if (njesiaId) {
-                    queryParts.push(`njesia=${encodeURIComponent(njesiaId)}`);
-                }
-
-                window.location.href = url + queryParts.join('&');
+            const njesiaId = document.getElementById('filterNjesia').value;
+            let url = "/LibriShitjes/GetLibri?";
+            let queryParts = [];
+            for (let key in params) {
+                queryParts.push(`${key}=${params[key]}`);
             }
+            if (njesiaId) {
+                queryParts.push(`njesia=${encodeURIComponent(njesiaId)}`);
+            }
+            window.location.href = url + queryParts.join('&');
+        }
 
         document.getElementById('btnRaportMuaji').addEventListener('click', function() {
             const now = new Date();
@@ -245,34 +228,51 @@
         });
     </script>
 }
+
 <style>
-     .transition-up {
-         transition: transform 0.2s ease-in-out;
-         display: block;
-     }
+    .transition-up {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
 
-         .transition-up:hover {
-             transform: translateY(-5px);
+        .transition-up:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
          }
 
-     .btn-hover-excel {
-         border: 1px solid transparent !important;
-         transition: all 0.3s ease;
-     }
+    .btn-hover-excel:hover {
+        background-color: #1a1a1a !important;
+    }
 
-         .btn-hover-excel:hover {
-             background-color: #1a1a1a !important;
-         }
+    .table-responsive {
+        max-height: 70vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
 
-     .table-responsive {
-         max-height: 600px;
-         overflow-y: auto;
-     }
+    thead th {
+        position: sticky;
+        top: 0;
+        background-color: lightgray !important;
+        color: #000;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        z-index: 10;
+        border-bottom: 2px solid #dee2e6;
+    }
 
-     thead th {
-         position: sticky;
-         top: 0;
-         background-color: lightgray !important;
-         z-index: 1;
+    @@media (max-width: 768px) {
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        .card-header h4 {
+            font-size: 1.1rem;
+        }
+
+        .table {
+            font-size: 0.85rem;
+        }
      }
 </style>

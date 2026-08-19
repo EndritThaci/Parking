@@ -38,7 +38,7 @@
                         <div class="form-floating mb-3">
                             <input asp-for="Email" class="form-control" placeholder="emri@shembull.com" />
                             <label asp-for="Email" class="form-label">
-                                <i class="bi bi-envelope me-2"></i> Adresa Email
+                                <i class="bi bi-envelope me-2"></i> Email
                             </label>
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
@@ -50,14 +50,6 @@
                             </label>
                             <span asp-validation-for="Passwordi" class="text-danger"></span>
                         </div>
-
-                        @* <div class="form-floating mb-3">
-                            <input asp-for="BiznesId" class="form-control" placeholder="ID e Biznesit" type="number" />
-                            <label asp-for="BiznesId" class="form-label">
-                                <i class="bi bi-building me-2"></i> ID e Biznesit
-                            </label>
-                            <span asp-validation-for="BiznesId" class="text-danger"></span>
-                        </div> *@
 
                         <div class="form-floating mb-3">
                             <select asp-for="NjesiaId" class="form-select" id="njesiaSelect"
@@ -96,3 +88,10 @@
         </div>
     </div>
 </div>
+
+<style>
+    .form-floating > .form-control::placeholder {
+        font-size: 0.85rem;
+        color: #adb5bd;
+    }
+</style>

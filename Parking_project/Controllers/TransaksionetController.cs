@@ -336,7 +336,8 @@ namespace Parking_project.Controllers
         {
             try
             {
-                int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                int userId = transaksionetCreateDto.UserId == null ? int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value) : transaksionetCreateDto.UserId.Value;
+                
                 var getNjesia = await _db.NjesiOrg.Where(v => v.NjesiteId == transaksionetCreateDto.NjesiaId).FirstOrDefaultAsync();
                 if (getNjesia == null)
                 {
@@ -523,7 +524,10 @@ namespace Parking_project.Controllers
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Transaktion with id {id} not found."));
                 }
-
+                if (findTransaktion.Statusi == "Completed")
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest($"Transaktion with id {id} is Completed."));
+                }
                 var getNjesia = await _db.NjesiOrg.Where(v => v.NjesiteId == findTransaktion.NjesiaId).FirstOrDefaultAsync();
                 if (getNjesia == null)
                 {

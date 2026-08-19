@@ -6,7 +6,7 @@ using Parking_web.Models.DTO;
 using Parking_web.Services.IServices;
 using QRCoder;
 using System.Diagnostics;
-using System.Transactions;
+using System.Security.Claims;
 
 namespace Parking_web.Controllers
 {
@@ -60,43 +60,7 @@ namespace Parking_web.Controllers
             }
             return View(orgList);
         }
-        //public async Task<IActionResult> Vendi(int njesiaId, int? lokacioniId)
-        //{
-        //    ViewBag.SelectedNjesia = njesiaId;
-        //    List<Vendi> vendet = new();
-        //    try
-        //    {
-        //        var response = await _lokacioniService.GetByNjesiAsync<ApiResponse<List<Lokacioni>>>(njesiaId);
-        //        if (response != null && response.Success && response.Data != null)
-        //        {
-        //            ViewBag.Lokacionet = response?.Data;
-        //        }
-
-        //        if (!lokacioniId.HasValue && response.Data.Any())
-        //        {
-        //            lokacioniId = response.Data.OrderBy(l => l.Kati).FirstOrDefault()?.LokacioniId;
-        //        }
-
-        //        ViewBag.SelectedLokacioni = lokacioniId;
-
-        //        if (lokacioniId.HasValue)
-        //        {
-        //            var response1 = await _vendiService.GetByLokacionAsync<ApiResponse<List<Vendi>>>(lokacioniId);
-        //            if (response1 != null && response1.Success && response1.Data != null)
-        //            {
-        //                vendet = response1.Data;
-        //            }
-        //            ViewBag.SelectedLokacioni = lokacioniId;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        TempData["error"] = $"Gabim: {ex.Message}";
-        //    }
-
-        //    return View(vendet);
-        //}
-
+        
         public async Task<IActionResult> Create(int njesiaId)
         {
             TransaksionetCreateDto createDto = new();
@@ -142,25 +106,33 @@ namespace Parking_web.Controllers
         [Authorize]
         public async Task<IActionResult> EntryQR(int njesiaId)
         {
+            ViewBag.UserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             return View(njesiaId);
         }
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> EntryQRReader(int njesiaId)
+        public async Task<IActionResult> EntryQRReader(int njesiaId, int u, string s)
         {
+            string expectedSignature = GenerateSignature(njesiaId: njesiaId, userId: u);
+            if (s != expectedSignature)
+            {
+                TempData["error"] = "Ky QR Kod është i pavlefshëm.";
+                return RedirectToAction("Index");
+            }
+            ViewBag.UserId = u;
             return View(njesiaId);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateTransacsion(int njesiaId)
+        public async Task<IActionResult> CreateTransacsion(int njesiaId, int userId)
         {
             TransaksionetCreateDto createDto = new();
             try
             {
 
                 var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
-                var cilsimet = cilsimiResponse.Data;
+                var cilsimet = cilsimiResponse?.Data;
                 var cilsimiActiv = cilsimet?.FirstOrDefault(c => c.Selected);
 
                 if (cilsimiActiv == null)
@@ -170,6 +142,7 @@ namespace Parking_web.Controllers
                 }
                 createDto.NjesiaId = njesiaId;
                 createDto.CilsimiId = cilsimiActiv.CilsimetiId;
+                createDto.UserId = userId;
 
                 var response = await _transaksioniService.CreateAsync<ApiResponse<TransaksionetCreateDto>>(createDto);
                 if (response != null && response.Success && response.Data != null)
@@ -294,13 +267,28 @@ namespace Parking_web.Controllers
 
         [HttpGet]
         [Authorize]
-        public IActionResult QRShow(int id, int selectedCardId)
+        public async Task<IActionResult> QRShow(int id, int selectedCardId)
         {
-            ViewBag.SelectedCardId = selectedCardId;
-            return View(id);
+            var response = await _creditCardService.GetAsync<ApiResponse<CreditCardReadDto>>(selectedCardId);
+            if (response != null && response.Success && response.Data != null)
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (response.Data.UserId == userId)
+                {
+                    ViewBag.SelectedCardId = selectedCardId;
+                    return View(id);
+                }
+                else
+                {
+                    TempData["error"] = $"Gabim: Karta nuk ekziston.";
+                    return RedirectToAction("Index");
+                }
+            }
+            TempData["error"] = $"Gabim1234: {response?.Message ?? "Karta nuk ekziston."}";
+            return RedirectToAction("Index");
         }
 
-        public IActionResult QRGenerate(int? id, int? selectedCardId, int? njesiaId)
+        public IActionResult QRGenerate(int? id, int? selectedCardId, int? njesiaId, int? userId)
         {
             using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
             {
@@ -310,12 +298,13 @@ namespace Parking_web.Controllers
 
                 if (selectedCardId != null && id != null)
                 {
-                    string signature = GenerateSignature((int)id, timestamp, (int)selectedCardId);
+                    string signature = GenerateSignature(id: id, timestamp: timestamp, cardId: selectedCardId);
                     url = $"{server}/Home/QRRead?id={id}&t={timestamp}&c={selectedCardId}&s={signature}";
                 }
-                else if (njesiaId != null)
+                else if (njesiaId != null && userId != null)
                 {
-                    url = $"{server}/Home/EntryQRReader?njesiaId={njesiaId}";
+                    string signature = GenerateSignature(njesiaId: njesiaId, userId: userId);
+                    url = $"{server}/Home/EntryQRReader?njesiaId={njesiaId}&u={userId}&s={signature}";
                 }
                 else if (id != null)
                 {
@@ -335,10 +324,18 @@ namespace Parking_web.Controllers
             }
         }
 
-        private string GenerateSignature(int id, string timestamp, int cardId)
+        private string GenerateSignature(int? id = null, string? timestamp = null, int? cardId = null, int? njesiaId = null, int? userId = null)
         {
             string secretKey = "hfxycvrdsxr653eed6>";
-            string payload = $"{id}-{timestamp}-{cardId}";
+            string payload = "";
+            if (id != null && timestamp != null && cardId != null)
+            {
+                payload = $"{id}-{timestamp}-{cardId}";
+            }
+            else if (njesiaId != null && userId != null)
+            {
+                payload = $"{njesiaId}-{userId}";
+            }
 
             using (var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes(secretKey)))
             {
@@ -357,7 +354,7 @@ namespace Parking_web.Controllers
                 return RedirectToAction("Index");
             }
 
-            string expectedSignature = GenerateSignature(id, t, c);
+            string expectedSignature = GenerateSignature(id: id, timestamp: t, cardId: c);
             if (s != expectedSignature)
             {
                 TempData["error"] = "Ky QR Kod është i pavlefshëm.";

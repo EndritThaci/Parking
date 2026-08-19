@@ -3,7 +3,7 @@
     ViewData["Title"] = "Transaksionet";
 }
 
-<div class="container-fluid px-0">
+<div class="container-fluid px-0 px-md-2">
     @{
         var totaliGjithsej = Model?.Where(t => t.Cmimi.HasValue).Sum(t => t.Cmimi!.Value) ?? 0;
 
@@ -19,32 +19,32 @@
         var njesite = Model?.Select(t => t.Cilsimi?.NjesiOrg?.Emri).Where(n => n != null).Distinct().OrderBy(n => n).ToList();
     }
 
-
-
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-black text-white pt-4 px-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="card-header bg-black text-white pt-4 px-3 px-md-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3">
                 <div>
                     <h4 class="fw-bold mb-0">Historia e Transaksioneve</h4>
                     <small class="opacity-75">Regjistri i hyrjeve dhe daljeve</small>
                 </div>
-                <div class="action-button-area d-flex gap-2 me-3">
-                    <a asp-controller="LibriShitjes" asp-action="GetLibriCustom" class="btn btn-outline-light px-4 rounded-pill fw-bold">Gjenero Librin e Shitjes</a>
+                <div class="action-button-area">
+                    <a asp-controller="LibriShitjes" asp-action="GetLibriCustom" class="btn btn-outline-light px-4 rounded-pill fw-bold w-100 w-md-auto">
+                        Gjenero Librin e Shitjes
+                    </a>
                 </div>
             </div>
         </div>
         <div class="card-body p-0">
-            <div class="table-responsive">
+            <div class="table-responsive custom-scrollbar">
                 <table class="table table-hover align-middle mb-0 w-100" id="transaksionetTable">
                     <thead class="bg-light">
                         <tr>
-                            <th class="ps-4">Vend Parkimi</th>
-                            <th>Perdoruesi</th>
+                            <th class="ps-3 ps-md-4">Vend Parkimi</th>
+                            <th class="d-none d-lg-table-cell">Perdoruesi</th>
                             <th>Hyrja</th>
-                            <th>Dalja</th>
-                            <th>Statusi</th>
-                            <th>Shërbimet</th>
-                            <th class="text-end pe-4">Pagesa</th>
+                            <th class="d-none d-md-table-cell">Dalja</th>
+                            <th class="d-none d-sm-table-cell">Statusi</th>
+                            <th class="d-none d-xl-table-cell">Shërbimet</th>
+                            <th class="text-end pe-3 pe-md-4">Pagesa</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -59,38 +59,36 @@
                                     data-cmimi="@(t.Cmimi ?? 0)"
                                     data-muaji="@t.KohaHyrjes.Month"
                                     data-viti="@t.KohaHyrjes.Year">
-                                    <td class="ps-4">
+                                    <td class="ps-3 ps-md-4">
                                         <span class="fw-bold text-dark">@t.Njesia.Emri</span>
                                     </td>
-                                    <td>@t.Useri?.Emri @t.Useri?.Mbiemri</td>
-                                    <td>@t.KohaHyrjes.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>@(t.KohaDaljes.HasValue? t.KohaDaljes.Value.ToString("dd/MM/yyyy HH:mm") : "--:--")</td>
-                                    <td>
+                                    <td class="d-none d-lg-table-cell text-muted">@t.Useri?.Emri @t.Useri?.Mbiemri</td>
+                                    <td class="text-nowrap small">@t.KohaHyrjes.ToString("dd/MM/yy HH:mm")</td>
+                                    <td class="d-none d-md-table-cell small">@(t.KohaDaljes.HasValue ? t.KohaDaljes.Value.ToString("dd/MM/yy HH:mm") : "--:--")</td>
+                                    <td class="d-none d-sm-table-cell">
                                         <span class="badge @(t.Statusi?.ToLower() == "completed" ? "bg-primary-subtle text-primary" : "bg-warning-subtle text-secondary") rounded-pill px-3">
                                             @t.Statusi
                                         </span>
                                     </td>
-                                    <td>
+                                    <td class="d-none d-xl-table-cell">
                                         @if (t.Sherbimi != null)
                                         {
                                             foreach (var s in t.Sherbimi)
                                             {
-                                                <span class="badge bg-light text-dark border fw-normal">@s.Emri</span>
+                                                <span class="badge bg-light text-dark border fw-normal me-1">@s.Emri</span>
                                             }
                                         }
                                     </td>
-                                    @if (t.Cmimi.HasValue && t.Cmimi > 0)
-                                    {
-                                        <td class="text-end pe-4 fw-bold text-primary">
-                                            @(t.Cmimi.Value.ToString("N2") + " €")
-                                        </td>
-                                    }
-                                    else
-                                    {
-                                        <td class="text-end pe-4 text-dark">
-                                            Në proces
-                                        </td>
-                                    }
+                                    <td class="text-end pe-3 pe-md-4 fw-bold text-primary">
+                                        @if (t.Cmimi.HasValue && t.Cmimi > 0)
+                                        {
+                                            <span>@(t.Cmimi.Value.ToString("N2")) €</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fw-normal small">Në proces</span>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         }
@@ -99,54 +97,38 @@
             </div>
         </div>
     </div>
-    <div class="row g-3 mb-4 mt-4">
-        <div class="col-md-4">
-            <a asp-controller="LibriShitjes"
-                   asp-action="GetLibri"
-                   asp-route-month="@DateTime.Now.Month"
-                   asp-route-year="@DateTime.Now.Year"
-                   class="text-decoration-none transition-up">
+    <div class="row g-3 mb-4 mt-2 mt-md-4">
+        <div class="col-12 col-md-4">
+            <a asp-controller="LibriShitjes" asp-action="GetLibri" asp-route-month="@DateTime.Now.Month" asp-route-year="@DateTime.Now.Year" class="text-decoration-none transition-up">
                 <div class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel">
                     <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali Për këtë Muaj</h6>
-                        </div>
+                        <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Këtë Muaj</h6>
                         <h2 class="fw-bold mb-0">@totaliMuaji.ToString("N2") €</h2>
-                        <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
+                        <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Raporti</small>
                     </div>
                 </div>
             </a>
         </div>
 
-        <div class="col-md-4">
-            <a asp-controller="LibriShitjes"
-                   asp-action="GetLibri"
-                   asp-route-year="@DateTime.Now.Year"
-                   class="text-decoration-none transition-up">
+        <div class="col-12 col-md-4">
+            <a asp-controller="LibriShitjes" asp-action="GetLibri" asp-route-year="@DateTime.Now.Year" class="text-decoration-none transition-up">
                 <div class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel">
                     <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Totali Për këtë Vit</h6>
-                        </div>
+                        <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Këtë Vit</h6>
                         <h2 class="fw-bold mb-0">@totaliViti.ToString("N2") €</h2>
-                        <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
+                        <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Raporti</small>
                     </div>
                 </div>
             </a>
         </div>
 
-        <div class="col-md-4">
-            <a asp-controller="LibriShitjes"
-                   asp-action="GetLibri"
-                   asp-route-all="true"
-                   class="text-decoration-none transition-up">
+        <div class="col-12 col-md-4">
+            <a asp-controller="LibriShitjes" asp-action="GetLibri" asp-route-all="true" class="text-decoration-none transition-up">
                 <div class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel">
                     <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Total Gjithsej</h6>
-                        </div>
+                        <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Gjithsej</h6>
                         <h2 class="fw-bold mb-0">@totaliGjithsej.ToString("N2") €</h2>
-                        <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
+                        <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Raporti</small>
                     </div>
                 </div>
             </a>
@@ -164,6 +146,7 @@
         });
     });
 </script>
+
 <style>
     .transition-up {
         transition: transform 0.2s ease-in-out;
@@ -186,12 +169,30 @@
     .table-responsive {
         max-height: 600px;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     thead th {
         position: sticky;
         top: 0;
         background-color: lightgray !important;
-        z-index: 1;
+        z-index: 2;
+        box-shadow: inset 0 -1px 0 #dee2e6;
+        white-space: nowrap;
+    }
+
+
+    @@media (max-width: 576px) {
+        h4 {
+            font-size: 1.1rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        .table {
+            font-size: 0.85rem;
+        }
     }
 </style>

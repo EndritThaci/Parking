@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
-using Parking_web.Models;
 using Parking_web.Models.DTO;
-using Parking_web.Services;
 using Parking_web.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 using System.Globalization;
 
 namespace Parking_web.Controllers
@@ -57,6 +54,11 @@ namespace Parking_web.Controllers
         [Authorize]
         public async Task<IActionResult> GetLibriCustom()
         {
+            if (User.IsInRole("Super Admin") && string.IsNullOrEmpty(User.FindFirst("BiznesId")?.Value))
+            {
+                TempData["error"] = "Zgjedh një organizatë";
+                return RedirectToAction("Index", "Organizata");
+            }
             if (User.IsInRole("Manager"))
             {
                 var njesiId = int.Parse(User.FindFirst("NjesiaId")?.Value ?? "");
