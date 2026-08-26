@@ -30,7 +30,7 @@ namespace Parking_web.Controllers
             dto.month = month;
             dto.year = year;
             dto.all = all;
-            dto.njesia = njesia;
+            dto.njesia = njesia == -1 ? null : njesia;
 
             if (User.IsInRole("Manager"))
             {

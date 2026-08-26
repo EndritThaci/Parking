@@ -1,23 +1,13 @@
-﻿@model IEnumerable<Parking_web.Models.DTO.TransaksionRead>
+﻿@model Parking_web.Models.DTO.TransaksionPage
 @{
     ViewData["Title"] = "Transaksionet";
 }
 
+@{
+    int.TryParse(Context.Request.Query["njesia"], out int selectedNjesia);
+}
+
 <div class="container-fluid px-2 px-md-4 py-3">
-    @{
-        var totaliGjithsej = Model?.Where(t => t.Cmimi.HasValue).Sum(t => t.Cmimi!.Value) ?? 0;
-
-        var totaliMuaji = Model?.Where(t => t.Cmimi.HasValue &&
-        t.KohaHyrjes.Month == DateTime.Now.Month &&
-        t.KohaHyrjes.Year == DateTime.Now.Year)
-        .Sum(t => t.Cmimi!.Value) ?? 0;
-
-        var totaliViti = Model?.Where(t => t.Cmimi.HasValue &&
-        t.KohaHyrjes.Year == DateTime.Now.Year)
-        .Sum(t => t.Cmimi!.Value) ?? 0;
-
-        var njesite = Model?.Where(n => n != null).Select(t => new { t.Cilsimi.NjesiOrg.NjesiteId, t.Cilsimi.NjesiOrg.Emri }).Distinct().OrderBy(n => n.Emri).ToList();
-    }
 
     <div class="card border-0 shadow-sm overflow-hidden">
         <div class="card-header bg-black text-white pt-4 px-3 px-md-4">
@@ -32,14 +22,13 @@
                     </div>
                     <div style="min-width: 220px;">
                         <select id="filterNjesia" class="form-select bg-black fw-bold text-white rounded-pill border-secondary">
-                            <option value="">Të gjitha Njësitë</option>
-                            @if (njesite != null)
+                            <option value="-1">Të gjitha Njësitë</option>
+
+                            @foreach (var njesi in Model.Njesite)
                             {
-                                foreach (var njesi in njesite)
-                                    {
-                                        <option value="@njesi.NjesiteId">@njesi.Emri</option>
-                                    }
-                                }
+                                <option value="@njesi.NjesiteId" selected="@(njesi.NjesiteId == selectedNjesia)">
+                                    @njesi.Emri
+                                </option>
                             }
                         </select>
                     </div>
@@ -63,7 +52,7 @@
                     <tbody>
                         @if (Model != null)
                         {
-                            foreach (var t in Model.OrderByDescending(x => x.KohaHyrjes))
+                            foreach (var t in Model.Data.OrderByDescending(x => x.KohaHyrjes))
                             {
                                 <tr class="transaksion-row"
                                     style="cursor: pointer;"
@@ -109,6 +98,116 @@
                     </tbody>
                 </table>
             </div>
+            @if (Model != null)
+            {
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 p-3 border-top">
+
+                    <div class="text-muted small">
+                        Duke shfaqur
+                        <strong> @((Model.PageNumber - 1) * Model.PageSize + 1) </strong>
+                        -
+                        <strong> @(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalRecords)) </strong>
+                        nga
+                        <strong>@Model.TotalRecords</strong>
+                        transaksione
+                    </div>
+
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                    asp-action="Index"
+                                    asp-route-pageNumber="@(Model.PageNumber - 1)"
+                                    asp-route-pageSize="@Model.PageSize"
+                                    asp-route-njesia="@Context.Request.Query["njesia"]">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+
+                            @{
+                                int startPage = Math.Max(1, Model.PageNumber - 2);
+                                int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                            }
+
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link"
+                                    asp-action="Index"
+                                    asp-route-pageNumber="1"
+                                    asp-route-pageSize="@Model.PageSize"
+                                    asp-route-njesia="@Context.Request.Query["njesia"]">
+                                        1
+                                    </a>
+                                </li>
+
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                            }
+
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link"
+                                    asp-action="Index"
+                                    asp-route-pageNumber="@i"
+                                    asp-route-pageSize="@Model.PageSize"
+                                    asp-route-njesia="@Context.Request.Query["njesia"]">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            @if (endPage < Model.TotalPages)
+                            {
+                                @if (endPage < Model.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                                
+                                <li class="page-item">
+                                    <a class="page-link"
+                                    asp-action="Index"
+                                    asp-route-pageNumber="@Model.TotalPages"
+                                    asp-route-pageSize="@Model.PageSize"
+                                    asp-route-njesia="@Context.Request.Query["njesia"]">
+                                        @Model.TotalPages
+                                    </a>
+                                </li>
+                            }
+
+                            <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                    asp-action="Index"
+                                    asp-route-pageNumber="@(Model.PageNumber + 1)"
+                                    asp-route-pageSize="@Model.PageSize"
+                                    asp-route-njesia="@Context.Request.Query["njesia"]">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small text-muted">Shfaq:</span>
+
+                        <select class="form-select form-select-sm"
+                                style="width: 80px;"
+                                onchange="changePageSize(this.value)">
+                            <option value="10" selected="@(Model.PageSize == 10)">10</option>
+                            <option value="25" selected="@(Model.PageSize == 25)">25</option>
+                            <option value="50" selected="@(Model.PageSize == 50)">50</option>
+                            <option value="100" selected="@(Model.PageSize == 100)">100</option>
+                        </select>
+                    </div>
+                </div>
+            }
         </div>
     </div>
     <div class="row g-3 mb-4 mt-2">
@@ -116,7 +215,7 @@
             <div id="btnRaportMuaji" class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel transition-up" style="cursor:pointer;">
                 <div class="card-body p-4">
                     <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Për këtë Muaj</h6>
-                    <h2 class="fw-bold mb-0"><span id="summaryMuaji">@totaliMuaji.ToString("N2")</span> €</h2>
+                    <h2 class="fw-bold mb-0"><span id="summaryMuaji">@Model.MonthlyAmount.ToString("N2")</span> €</h2>
                     <small class="text-white mt-2 d-block fw-bold opacity-50"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
                 </div>
             </div>
@@ -126,7 +225,7 @@
             <div id="btnRaportViti" class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel transition-up" style="cursor:pointer;">
                 <div class="card-body p-4">
                     <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Për këtë Vit</h6>
-                    <h2 class="fw-bold mb-0"><span id="summaryViti">@totaliViti.ToString("N2")</span> €</h2>
+                    <h2 class="fw-bold mb-0"><span id="summaryViti">@Model.YearlyAmount.ToString("N2")</span> €</h2>
                     <small class="text-white mt-2 d-block fw-bold opacity-50"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
                 </div>
             </div>
@@ -135,7 +234,7 @@
             <div id="btnRaportGjithsej" class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel transition-up" style="cursor:pointer;">
                 <div class="card-body p-4">
                     <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Total Gjithsej</h6>
-                    <h2 class="fw-bold mb-0"><span id="summaryGjithsej">@totaliGjithsej.ToString("N2")</span> €</h2>
+                    <h2 class="fw-bold mb-0"><span id="summaryGjithsej">@Model.TotalAmount.ToString("N2")</span> €</h2>
                     <small class="text-white mt-2 d-block fw-bold opacity-50"><i class="bi bi-download me-1"></i> Shkarko Raportin</small>
                 </div>
             </div>
@@ -145,63 +244,31 @@
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const njesiaNgaUrl = urlParams.get('njesiaId');
-
-            if (njesiaNgaUrl) {
-                const filterSelect = document.getElementById('filterNjesia');
-                filterSelect.value = njesiaNgaUrl;
-                filterSelect.dispatchEvent(new Event('change'));
-            }
-        });
-
         document.getElementById('filterNjesia').addEventListener('change', function() {
-            const selectedNjesiId  = this.value;
-            const rows = document.querySelectorAll('.transaksion-row');
-            const now = new Date();
-            const currentMonth = now.getMonth() + 1;
-            const currentYear = now.getFullYear();
+            const njesia = this.value;
 
-            let totalGjithsej = 0;
-            let totalMuaji = 0;
-            let totalViti = 0;
+            const url = new URL(window.location.href);
 
-            rows.forEach(row => {
-                const rowNjesiaId = row.getAttribute('data-njesi-id');
-                const cmimi = parseFloat(row.getAttribute('data-cmimi')) || 0;
-                const rreshtMuaji = parseInt(row.getAttribute('data-muaji'));
-                const rreshtViti = parseInt(row.getAttribute('data-viti'));
+            url.searchParams.set("pageNumber", "1");
 
-                if (selectedNjesiId === "" || rowNjesiaId === selectedNjesiId) {
-                    row.style.display = "";
+            if (njesia === "" || njesia === "-1") {
+                url.searchParams.delete("njesia");
+            } else {
+                url.searchParams.set("njesia", njesia);
+            }
 
-                    totalGjithsej += cmimi;
-                    if (rreshtViti === currentYear) {
-                        totalViti += cmimi;
-                        if (rreshtMuaji === currentMonth) {
-                            totalMuaji += cmimi;
-                        }
-                    }
-                } else {
-                    row.style.display = "none";
-                }
-            });
-
-            const localeOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
-            document.getElementById('summaryGjithsej').innerText = totalGjithsej.toLocaleString('sq-AL', localeOptions);
-            document.getElementById('summaryMuaji').innerText = totalMuaji.toLocaleString('sq-AL', localeOptions);
-            document.getElementById('summaryViti').innerText = totalViti.toLocaleString('sq-AL', localeOptions);
+            window.location.href = url.toString();
         });
 
         function downloadReport(params) {
             const njesiaId = document.getElementById('filterNjesia').value;
+            console.log(njesiaId);
             let url = "/LibriShitjes/GetLibri?";
             let queryParts = [];
             for (let key in params) {
                 queryParts.push(`${key}=${params[key]}`);
             }
-            if (njesiaId) {
+            if (njesiaId && njesiaId != -1) {
                 queryParts.push(`njesia=${encodeURIComponent(njesiaId)}`);
             }
             window.location.href = url + queryParts.join('&');
@@ -226,6 +293,15 @@
                 if(id) window.location.href = `/LibriShitjes/GetLibri?id=${id}`;
             });
         });
+
+        function changePageSize(size) {
+            const url = new URL(window.location.href);
+
+            url.searchParams.set("pageNumber", "1");
+            url.searchParams.set("pageSize", size);
+
+            window.location.href = url.toString();
+        }
     </script>
 }
 

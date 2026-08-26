@@ -34,9 +34,25 @@ namespace Parking_web.Controllers
             List<NjesiReadDto> orgList = new();
             try
             {
-                var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiReadDto>>>();
+                var response = new ApiResponse<List<NjesiReadDto>>();
+                if (User.IsInRole("Manager"))
+                {
+                    var njesiaId = int.Parse(User.FindFirst("NjesiaId")!.Value);
+                    var result = await _njesiaService.GetAsync<ApiResponse<NjesiReadDto>>(njesiaId);
+                    if (result != null && result.Success && result.Data != null)
+                    {
+                        response = ApiResponse<List<NjesiReadDto>>.Ok(
+                            new List<NjesiReadDto> { result.Data },
+                            result.Message
+                        );
+                    }
+                }
+                else
+                {
+                    response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiReadDto>>>();
+                }
                 var UserResponse = await _transaksioniService.GetByUserAsync<ApiResponse<List<TransaksionRead>>>();
-                var OrgResponse = await _transaksioniService.GetByOrgAsync<ApiResponse<List<TransaksionRead>>>();
+                var OrgResponse = await _transaksioniService.GetAsync<ApiResponse<TransaksionPage>>(1,1000); //NEED TO FIX
 
                 if (response != null && response.Success && response.Data != null)
                 {
@@ -49,7 +65,7 @@ namespace Parking_web.Controllers
                 }
                 else if (OrgResponse != null && OrgResponse.Success && OrgResponse.Data != null && (User.IsInRole("Admin") || User.IsInRole("Manager")))
                 {
-                    var pendingList = OrgResponse.Data.Where(t => t.Statusi == "Pending").ToList();
+                    var pendingList = OrgResponse.Data.Data.Where(t => t.Statusi == "Pending").ToList();
                     ViewBag.PendingTransactions = pendingList;
                 }
 

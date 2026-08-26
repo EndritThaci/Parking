@@ -75,32 +75,92 @@ namespace Parking_project.Controllers
 
         [HttpGet]
         [Authorize]
-        [Route("ByOrg")]
         [ProducesResponseType(typeof(ApiResponse<TransaksionRead>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<IEnumerable<TransaksionRead>>>> GetTransaksioninByOrg()
+        public async Task<ActionResult<ApiResponse<IEnumerable<TransaksionRead>>>> GetTransaksionin(int pageNumber = 1, int pageSize = 10, int njesiaId = -1)
         {
             try
             {
+                if (pageNumber <= 0 || pageSize <= 0)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Page number and page size must be greater than zero."));
+                }
+
                 int orgId = int.Parse(User.FindFirst("BiznesId")!.Value);
 
-                var transaksionet = await _db.TransaksionParkimi
+                var query = _db.TransaksionParkimi
+                    .AsNoTracking()
                     .Include(t => t.Cilsimet)
                         .ThenInclude(c => c.Sherbimi)
-                    .Include(n=> n.Njesia)
+                    .Include(t => t.Cilsimet)
+                        .ThenInclude(c => c.NjesiOrg)
+                    .Include(t => t.Njesia)
                     .Include(t => t.User)
-                    .Where(t => t.Cilsimet.Sherbimi.BiznesId == orgId)
+                    .Where(t => t.Cilsimet.Sherbimi.BiznesId == orgId);
+
+                var transaksionQuery = _db.TransaksionDetaj.Where(d => d.TransaksionParkimi.Cilsimet.Sherbimi.BiznesId == orgId && d.TransaksionParkimi.Statusi != "Pending");
+                if (njesiaId >= 0)
+                {
+                    njesiaId = njesiaId == 0 ? int.Parse(User.FindFirst("NjesiaId")!.Value) : njesiaId;
+                    query = query.Where(t => t.Cilsimet.NjesiteId == njesiaId);
+                    transaksionQuery = transaksionQuery.Where(t=> t.TransaksionParkimi.Cilsimet.NjesiteId == njesiaId);
+                }
+
+                var njesite = await _db.NjesiOrg.ToListAsync();
+
+                var totalRecords = await query.CountAsync();
+
+                if (totalRecords == 0)
+                {
+                    var rez = new TransaksionPage
+                    {
+                        PageNumber = pageNumber,
+                        PageSize = pageSize,
+                        TotalPages = 0,
+                        TotalRecords = totalRecords,
+                        TotalAmount = 0,
+                        MonthlyAmount = 0,
+                        YearlyAmount = 0,
+                        Njesite = njesite,
+                        Data = new List<TransaksionRead>()
+                    };
+                    return Ok(ApiResponse<TransaksionPage>.Ok(rez, "No transactions found."));
+                }
+
+                var totalPages = (int)Math.Ceiling(
+                    totalRecords / (double)pageSize!
+                );
+
+                var totalAmount = await transaksionQuery.SumAsync(d => d.Cmimi);
+
+                var now = DateTime.Now;
+                var monthlyAmount = await transaksionQuery
+                    .Where(d =>
+                        d.TransaksionParkimi.KohaHyrjes.Month == now.Month &&
+                        d.TransaksionParkimi.KohaHyrjes.Year == now.Year)
+                    .SumAsync(d => d.Cmimi);
+                
+                var yearlyAmount = await transaksionQuery
+                    .Where(d => d.TransaksionParkimi.KohaHyrjes.Year == now.Year)
+                    .SumAsync(d => d.Cmimi);
+
+                var transaksionet = await query
+                    .OrderByDescending(t => t.TransaksioniId)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
 
-                var transaksionIds = transaksionet.Select(t => t.TransaksioniId).ToList();
+                var transaksionIds = transaksionet
+                    .Select(t => t.TransaksioniId)
+                    .ToList();
 
-                var getSherbimet = await _db.TransaksionDetaj.Where(c => transaksionIds.Contains(c.TransaksionId)).Include(c => c.Sherbimi).ToListAsync();
-
-                if (transaksionet.Count() == 0)
-                {
-                    return NotFound(ApiResponse<object>.NotFound("No transactions found."));
-                }
+                var getSherbimet = await _db.TransaksionDetaj
+                    .AsNoTracking()
+                    .Where(c => transaksionIds.Contains(c.TransaksionId))
+                    .Include(c => c.Sherbimi)
+                    .ToListAsync();
 
                 var result = transaksionet.Select(t => new TransaksionRead
                 {
@@ -112,23 +172,34 @@ namespace Parking_project.Controllers
                     Njesia = t.Njesia,
                     Cilsimi = t.Cilsimet,
                     Useri = t.User,
-                    Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList(),
-                });
+                    Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList()
+                }).ToList();
 
                 foreach (var rez in result)
                 {
                     rez.Useri.Passwordi = "";
                 }
 
-                return Ok(ApiResponse<IEnumerable<TransaksionRead>>.Ok(result, "Transactions retrieved successfully"));
+                var page = new TransaksionPage
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = totalPages,
+                    TotalRecords = totalRecords,
+                    TotalAmount = totalAmount,
+                    MonthlyAmount = monthlyAmount,
+                    YearlyAmount = yearlyAmount,
+                    Njesite = njesite,
+                    Data = result
+                };
+
+                return Ok(ApiResponse<TransaksionPage>.Ok(page, "Transactions retrieved successfully"));
             }
             catch (Exception ex)
             {
                 var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
                 return StatusCode(500, ApiResponse<object>.Error(500, "An error occurred while processing the request.", innerMessage));
-
             }
-
         }
 
         [HttpGet]

@@ -5,7 +5,7 @@ namespace Parking_web.Services.IServices
     public interface ITransaksionService
     {
         Task<T?> GetAsync<T>(int id);
-        Task<T?> GetByOrgAsync<T>();
+        Task<T?> GetAsync<T>(int pageNumber = 1, int pageSize = 10, int njesiaId = -1);
         Task<T?> GetByNjesiAsync<T>();
         Task<T?> GetByUserAsync<T>();
         Task<T?> GetPriceAsync<T>(int id);

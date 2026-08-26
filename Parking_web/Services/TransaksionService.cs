@@ -1,6 +1,7 @@
 ﻿using Parking_web.Models;
 using Parking_web.Models.DTO;
 using Parking_web.Services.IServices;
+using System.Drawing.Printing;
 
 namespace Parking_web.Services
 {
@@ -21,12 +22,12 @@ namespace Parking_web.Services
             });
         }
 
-        public Task<T?> GetByOrgAsync<T>()
+        public Task<T?> GetAsync<T>(int pageNumber = 1, int pageSize = 10, int njesia = -1)
         {
             return SendAsync<T>(new ApiRequest
             {
                 ApiType = SD.ApiType.GET,
-                Url = $"{APIEndPoint}/ByOrg",
+                Url = $"{APIEndPoint}?pageNumber={pageNumber}&pageSize={pageSize}&njesiaId={njesia}",
             });
         }
 

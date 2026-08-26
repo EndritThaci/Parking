@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Parking_web.Models;
 using Parking_web.Models.DTO;
 using Parking_web.Services;
 using Parking_web.Services.IServices;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using System.Drawing.Printing;
 
 namespace Parking_web.Controllers
 {
@@ -20,7 +21,7 @@ namespace Parking_web.Controllers
         }
 
         [Authorize(Roles = "Admin , Super Admin")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, int njesia = -1)
         {
             if (User.FindFirst("BiznesId")?.Value == "")
             {
@@ -28,13 +29,12 @@ namespace Parking_web.Controllers
                 return RedirectToAction("Index", "Organizata");
             }
 
-            List<TransaksionRead> orgList = new();
             try
             {
-                var response = await _transaksionService.GetByOrgAsync<ApiResponse<IEnumerable<TransaksionRead>>>();
+                var response = await _transaksionService.GetAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, njesia);
                 if (response != null && response.Success && response.Data != null)
                 {
-                    foreach (var t in response.Data)
+                    foreach (var t in response.Data.Data)
                     {
                         if (t.Statusi == "Pending")
                         {
@@ -43,114 +43,65 @@ namespace Parking_web.Controllers
                             t.Sherbimi = null;
                         }
                     }
-                    orgList = response.Data.ToList();
+                    return View(response.Data);
                 }
             }
             catch (Exception ex)
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
-            return View(orgList);
+
+            return View(new TransaksionPage
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = 0,
+                TotalRecords = 0,
+                TotalAmount = 0,
+                MonthlyAmount = 0,
+                YearlyAmount = 0,
+                Njesite = new List<NjesiOrg>(),
+                Data = new List<TransaksionRead>()
+            });
         }
 
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> IndexManager()
+        public async Task<IActionResult> IndexManager(int pageNumber = 1, int pageSize = 10)
         {
-
-            List<TransaksionRead> orgList = new();
             try
             {
-                var response = await _transaksionService.GetByNjesiAsync<ApiResponse<IEnumerable<TransaksionRead>>>();
+                var response = await _transaksionService.GetAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, 0);
                 if (response != null && response.Success && response.Data != null)
                 {
-                    orgList = response.Data.ToList();
+                    foreach (var t in response.Data.Data)
+                    {
+                        if (t.Statusi == "Pending")
+                        {
+                            t.Cmimi = null;
+                            t.KohaDaljes = null;
+                            t.Sherbimi = null;
+                        }
+                    }
+                    return View(response.Data);
                 }
             }
             catch (Exception ex)
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
-            return View(orgList);
+
+            return View(new TransaksionPage
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = 0,
+                TotalRecords = 0,
+                TotalAmount = 0,
+                MonthlyAmount = 0,
+                YearlyAmount = 0,
+                Njesite = new List<NjesiOrg>(),
+                Data = new List<TransaksionRead>()
+            });
         }
-
-        //[Authorize(Roles = "Admin")]
-        //public async Task<IActionResult> Create()
-        //{
-        //    return View();
-        //}
-
-        //[HttpPost]
-        //[Authorize(Roles = "Admin")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Create(TransaksionetCreateDto createDTO)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return View(createDTO);
-        //    }
-
-        //    try
-        //    {
-        //        var response = await _transaksionService.CreateAsync<ApiResponse<TransaksionetCreateDto>>(createDTO);
-        //        if (response != null && response.Success && response.Data != null)
-        //        {
-        //            TempData["success"] = "Transaksioni u krijua me sukses";
-        //            return RedirectToAction("Index");
-        //        }
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        TempData["error"] = $"Gabim: {ex.Message}";
-        //    }
-        //    return View(createDTO);
-        //}
-
-
-        //[Authorize(Roles = "Admin")]
-        //public async Task<IActionResult> Edit(int id)
-        //{
-        //    if (id <= 0)
-        //    {
-        //        TempData["error"] = "ID e gabuar.";
-        //        return RedirectToAction("Index");
-        //    }
-
-        //    try
-        //    {
-        //        var response = await _transaksionService.GetAsync<ApiResponse<TransaksionRead>>(id);
-        //        if (response != null && response.Success && response.Data != null)
-        //        {
-        //            return View(_mapper.Map<TransaksionUpdateDto>(response.Data));
-        //        }
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        TempData["error"] = $"Gabim: {ex.Message}";
-        //    }
-        //    return View();
-        //}
-
-        //[HttpPost]
-        //[Authorize(Roles = "Admin")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(int id,TransaksionUpdateDto transaksion)
-        //{
-        //    try
-        //    {
-        //        var response = await _transaksionService.UpdateAsync<ApiResponse<object>>(id,transaksion);
-        //        if (response != null && response.Success)
-        //        {
-        //            TempData["success"] = "Transaksioni u kompletua me sukses";
-        //        }
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        TempData["error"] = $"Gabim: {ex.Message}";
-        //    }
-        //    return RedirectToAction("Index");
-        //}
     }
 }

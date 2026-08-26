@@ -1,24 +1,9 @@
-﻿@model IEnumerable<Parking_web.Models.DTO.TransaksionRead>
+﻿@model Parking_web.Models.DTO.TransaksionPage
 @{
     ViewData["Title"] = "Transaksionet";
 }
 
 <div class="container-fluid px-0 px-md-2">
-    @{
-        var totaliGjithsej = Model?.Where(t => t.Cmimi.HasValue).Sum(t => t.Cmimi!.Value) ?? 0;
-
-        var totaliMuaji = Model?.Where(t => t.Cmimi.HasValue &&
-        t.KohaHyrjes.Month == DateTime.Now.Month &&
-        t.KohaHyrjes.Year == DateTime.Now.Year)
-        .Sum(t => t.Cmimi!.Value) ?? 0;
-
-        var totaliViti = Model?.Where(t => t.Cmimi.HasValue &&
-        t.KohaHyrjes.Year == DateTime.Now.Year)
-        .Sum(t => t.Cmimi!.Value) ?? 0;
-
-        var njesite = Model?.Select(t => t.Cilsimi?.NjesiOrg?.Emri).Where(n => n != null).Distinct().OrderBy(n => n).ToList();
-    }
-
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-black text-white pt-4 px-3 px-md-4">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3">
@@ -50,7 +35,7 @@
                     <tbody>
                         @if (Model != null)
                         {
-                            foreach (var t in Model.OrderByDescending(x => x.KohaHyrjes))
+                            foreach (var t in Model.Data.OrderByDescending(x => x.KohaHyrjes))
                             {
                                 <tr class="transaksion-row"
                                     style="cursor: pointer;"
@@ -95,6 +80,111 @@
                     </tbody>
                 </table>
             </div>
+            @if (Model != null)
+            {
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 p-3 border-top">
+
+                    <div class="text-muted small">
+                        Duke shfaqur
+                        <strong> @((Model.PageNumber - 1) * Model.PageSize + 1) </strong>
+                        -
+                        <strong> @(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalRecords)) </strong>
+                        nga
+                        <strong>@Model.TotalRecords</strong>
+                        transaksione
+                    </div>
+
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="IndexManager"
+                                   asp-route-pageNumber="@(Model.PageNumber - 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+
+                            @{
+                                int startPage = Math.Max(1, Model.PageNumber - 2);
+                                int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                            }
+
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-action="IndexManager"
+                                       asp-route-pageNumber="1"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        1
+                                    </a>
+                                </li>
+
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                            }
+
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="IndexManager"
+                                       asp-route-pageNumber="@i"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            @if (endPage < Model.TotalPages)
+                            {
+                                @if (endPage < Model.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-action="IndexManager"
+                                       asp-route-pageNumber="@Model.TotalPages"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        @Model.TotalPages
+                                    </a>
+                                </li>
+                            }
+
+                            <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="IndexManager"
+                                   asp-route-pageNumber="@(Model.PageNumber + 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small text-muted">Shfaq:</span>
+
+                        <select class="form-select form-select-sm"
+                                style="width: 80px;"
+                                onchange="changePageSize(this.value)">
+                            <option value="10" selected="@(Model.PageSize == 10)">10</option>
+                            <option value="25" selected="@(Model.PageSize == 25)">25</option>
+                            <option value="50" selected="@(Model.PageSize == 50)">50</option>
+                            <option value="100" selected="@(Model.PageSize == 100)">100</option>
+                        </select>
+                    </div>
+                </div>
+            }
         </div>
     </div>
     <div class="row g-3 mb-4 mt-2 mt-md-4">
@@ -103,7 +193,7 @@
                 <div class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel">
                     <div class="card-body p-4">
                         <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Këtë Muaj</h6>
-                        <h2 class="fw-bold mb-0">@totaliMuaji.ToString("N2") €</h2>
+                        <h2 class="fw-bold mb-0">@Model.MonthlyAmount.ToString("N2") €</h2>
                         <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Raporti</small>
                     </div>
                 </div>
@@ -115,7 +205,7 @@
                 <div class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel">
                     <div class="card-body p-4">
                         <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Këtë Vit</h6>
-                        <h2 class="fw-bold mb-0">@totaliViti.ToString("N2") €</h2>
+                        <h2 class="fw-bold mb-0">@Model.YearlyAmount.ToString("N2") €</h2>
                         <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Raporti</small>
                     </div>
                 </div>
@@ -127,7 +217,7 @@
                 <div class="card border-0 shadow-sm bg-black text-white h-100 btn-hover-excel">
                     <div class="card-body p-4">
                         <h6 class="text-uppercase small fw-bold opacity-75 mb-1">Gjithsej</h6>
-                        <h2 class="fw-bold mb-0">@totaliGjithsej.ToString("N2") €</h2>
+                        <h2 class="fw-bold mb-0">@Model.TotalAmount.ToString("N2") €</h2>
                         <small class="text-white mt-2 d-block fw-bold"><i class="bi bi-download me-1"></i> Raporti</small>
                     </div>
                 </div>
@@ -145,6 +235,15 @@
             }
         });
     });
+
+    function changePageSize(size) {
+        const url = new URL(window.location.href);
+
+        url.searchParams.set("pageNumber", "1");
+        url.searchParams.set("pageSize", size);
+
+        window.location.href = url.toString();
+    }
 </script>
 
 <style>
