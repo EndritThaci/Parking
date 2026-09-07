@@ -1,4 +1,4 @@
-﻿@model Parking_web.Models.Useri
+﻿@model Parking_web.Models.DTO.UserReadDTO
 
 @{
     ViewData["Title"] = "Profili";
@@ -25,7 +25,21 @@
                         </div>
                         <div>
                             <small class="text-muted d-block">Biznesi / Organizata</small>
-                            <span class="fw-semibold">@(Model.Organizata?.EmriBiznesit ?? "Pa Organizatë")</span>
+                            @if (ViewBag.UserOrg != null && ViewBag.UserOrg.Count > 0)
+                            {
+                                foreach (var userOrg in ViewBag.UserOrg)
+                                {
+                                    <span class="fw-semibold d-block">
+                                        @(userOrg.Organizata?.EmriBiznesit ?? "Pa Organizatë")
+                                    </span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="fw-semibold">
+                                    Pa Organizatë
+                                </span>
+                            }
                         </div>
                     </div>
                     <div class="d-flex align-items-center">
@@ -37,28 +51,53 @@
                             </div>
                             <div>
                                 <small class="text-muted d-block">Njësia Organizative</small>
-                                <span class="fw-semibold">@(Model.Njesi?.Emri ?? "Pa Njësi")</span>
+                                 @if (ViewBag.UserOrg != null &&
+                                        ViewBag.UserOrg.Count > 0)
+                                {
+                                    foreach (var userOrg in ViewBag.UserOrg)
+                                    {
+                                        <span class="fw-semibold d-block">
+                                            @(userOrg.Njesi?.Emri ?? "Pa Njësi")
+                                        </span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="fw-semibold">
+                                        Pa Njësi
+                                    </span>
+                                }
                             </div>
                         }
-                        
                     </div>
                 </div>
             </div>
             
-                @if(User.IsInRole("Manager") || User.IsInRole("Admin") || User.IsInRole("Super Admin"))
-                {
-                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
-                        <h5 class="fw-bold mb-3">Veprime të Shpejta</h5>
-                        <div class="d-flex gap-2">
-                            <a asp-controller="Transaksion" asp-action=@(User.IsInRole("Manager")?"IndexManager":"Index") class="btn btn-light border flex-grow-1 col-lg-6 rounded-3">
-                                <i class="bi bi-list-ul d-block mb-1 fs-4"></i> Transaksionet
-                            </a>
-                            <a asp-controller="LibriShitjes" asp-action="GetLibriCustom" class="btn btn-light border flex-grow-1 col-lg-6 rounded-3">
-                                <i class="bi bi-file-earmark-excel d-block mb-1 fs-4"></i> Raportet   
-                            </a>
-                        </div>
+            @if(User.IsInRole("Manager") || User.IsInRole("Admin") || User.IsInRole("Super Admin"))
+            {
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold mb-3">Veprime të Shpejta</h5>
+                    <div class="d-flex gap-2">
+                        <a asp-controller="Transaksion" asp-action=@(User.IsInRole("Manager")?"IndexManager":"Index") class="btn btn-light border flex-grow-1 col-lg-6 rounded-3">
+                            <i class="bi bi-list-ul d-block mb-1 fs-4"></i> Transaksionet
+                        </a>
+                        <a asp-controller="LibriShitjes" asp-action="GetLibriCustom" class="btn btn-light border flex-grow-1 col-lg-6 rounded-3">
+                            <i class="bi bi-file-earmark-excel d-block mb-1 fs-4"></i> Raportet   
+                        </a>
                     </div>
-                }
+                </div>
+            }
+            else if (User.IsInRole("Customer"))
+            {
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold mb-3">Konfigurimet</h5>
+                    <div class="d-flex gap-2">
+                        <a asp-controller="Profile" asp-action="UserOrgs" class="btn btn-light border flex-grow-1 col-lg-12 rounded-3">
+                            <i class="bi bi-gear d-block mb-1 fs-4"></i> Zgjedh Organizatat
+                        </a>
+                    </div>
+                </div>
+            }
         </div>
 
         <div class="col-lg-6">
@@ -122,103 +161,107 @@
                     </div>
                 </div>
             </div>
+            
+            @if (User.IsInRole("Customer"))
+            {
 
-            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
-                <h5 class="fw-bold mb-4">
-                    <i class="bi bi-credit-card-2-front me-2 text-primary"></i>Llogaritë dhe Kartelat
-                </h5>
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold mb-4">
+                        <i class="bi bi-credit-card-2-front me-2 text-primary"></i>Llogaritë dhe Kartelat
+                    </h5>
 
-                @{
-                    var cards = ViewBag.CardDetails as IEnumerable<Parking_web.Models.DTO.CreditCardReadDto>;
-                }
+                    @{
+                        var cards = ViewBag.CardDetails as IEnumerable<Parking_web.Models.DTO.CreditCardReadDto>;
+                    }
 
-                @if (cards != null && cards.Any())
-                {
-                    <div class="row g-3 mb-4">
-                        @foreach (var card in cards)
-                        {
-                            <div class="col-md-6">
-                                <div class="p-3 ps-2 rounded-4 border bg-gradient position-relative overflow-hidden"
-                                     style="min-height: 160px;">
+                    @if (cards != null && cards.Any())
+                    {
+                        <div class="row g-3 mb-4">
+                            @foreach (var card in cards)
+                            {
+                                <div class="col-md-6">
+                                    <div class="p-3 ps-2 rounded-4 border bg-gradient position-relative overflow-hidden"
+                                    style="min-height: 160px;">
 
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="bi bi-credit-card text-primary fs-3"></i>
-                                            <span class="fw-bold small text-uppercase opacity-75">
-                                                @card.Brand
-                                            </span>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-credit-card text-primary fs-3"></i>
+                                                <span class="fw-bold small text-uppercase opacity-75">
+                                                    @card.Brand
+                                                </span>
+                                            </div>
+
+                                            <form id="deleteForm-@card.Id"
+                                            method="post"
+                                            asp-action="deleteCard"
+                                            asp-controller="BankAccount"
+                                            class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@card.Id" />
+
+                                                <button type="button"
+                                                onclick="confirmDelete(@card.Id, 'Largo Katelën?', 'A jeni i sigurt që dëshironi ta largoni këtë kartelë?')"
+                                                class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                                                style="width: 32px; height: 32px;">
+                                                    <i class="bi bi-x-lg text-danger"></i>
+                                                </button>
+                                            </form>
                                         </div>
 
-                                        <form id="deleteForm-@card.Id"
-                                              method="post"
-                                              asp-action="deleteCard"
-                                              asp-controller="BankAccount"
-                                              class="m-0">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@card.Id" />
 
-                                            <button type="button"
-                                                    onclick="confirmDelete(@card.Id)"
-                                                    class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                                                    style="width: 32px; height: 32px;">
-                                                <i class="bi bi-x-lg text-danger"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                        <h5 class="mb-3 tracking-widest text-center">
+                                            **** **** **** @card.Last4
+                                        </h5>
 
-                                    
-                                    <h5 class="mb-3 tracking-widest text-center">
-                                        **** **** **** @card.Last4
-                                    </h5>
-                                    
 
-                                    <div class="d-flex justify-content-between align-items-end mt-auto">
-                                        <div>
-                                            <small class="d-block opacity-50" style="font-size: 0.7rem;">PRONARI</small>
-                                            <span class="small fw-semibold">@Model.Emri @Model.Mbiemri</span>
-                                        </div>
-                                        <div class="text-end">
-                                            <small class="d-block opacity-50" style="font-size: 0.7rem;">SKADIMI</small>
-                                            <span class="small fw-semibold">@($"{card.ExpMonth:D2}/{card.ExpYear % 100:D2}")</span>
+                                        <div class="d-flex justify-content-between align-items-end mt-auto">
+                                            <div>
+                                                <small class="d-block opacity-50" style="font-size: 0.7rem;">PRONARI</small>
+                                                <span class="small fw-semibold">@Model.Emri @Model.Mbiemri</span>
+                                            </div>
+                                            <div class="text-end">
+                                                <small class="d-block opacity-50" style="font-size: 0.7rem;">SKADIMI</small>
+                                                <span class="small fw-semibold">@($"{card.ExpMonth:D2}/{card.ExpYear % 100:D2}")</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="alert alert-light border-0 small rounded-3 mb-4 text-center py-3">
-                        <i class="bi bi-wallet2 fs-2 d-block mb-2 text-muted"></i>
-                        Nuk keni asnjë kartelë të regjistruar.
-                    </div>
-                }
-            </div>
-        
-            <div>
-                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
-                    <h5 class="fw-bold mb-4">
-                        <i class="bi bi-credit-card-2-front me-2 text-primary"></i>Regjistro Kartelën Bankare
-                    </h5>
-
-                    <form id="stripe-form" asp-controller="BankAccount" asp-action="createCard" method="post">
-                        @Html.AntiForgeryToken()
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Kartela</label>
-                            <div id="card-element" class="form-control"></div>
-                            <div id="card-errors" class="text-danger small mt-1"></div>
+                            }
                         </div>
-
-                        <input type="hidden" name="paymentMethodId" id="paymentMethodId" />
-
-                        <button type="submit" class="btn btn-primary">
-                            Ruaj Kartelën
-                        </button>
-                    </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light border-0 small rounded-3 mb-4 text-center py-3">
+                            <i class="bi bi-wallet2 fs-2 d-block mb-2 text-muted"></i>
+                            Nuk keni asnjë kartelë të regjistruar.
+                        </div>
+                    }
                 </div>
-            </div>
+        
+                <div>
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-credit-card-2-front me-2 text-primary"></i>Regjistro Kartelën Bankare
+                        </h5>
+
+                        <form id="stripe-form" asp-controller="BankAccount" asp-action="createCard" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Kartela</label>
+                                <div id="card-element" class="form-control"></div>
+                                <div id="card-errors" class="text-danger small mt-1"></div>
+                            </div>
+
+                            <input type="hidden" name="paymentMethodId" id="paymentMethodId" />
+
+                            <button type="submit" class="btn btn-primary">
+                                Ruaj Kartelën
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>

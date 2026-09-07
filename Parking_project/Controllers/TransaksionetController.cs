@@ -5,7 +5,6 @@ using Parking_project.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel;
 using System.Security.Claims;
 
 namespace Parking_project.Controllers
@@ -108,7 +107,7 @@ namespace Parking_project.Controllers
                     transaksionQuery = transaksionQuery.Where(t=> t.TransaksionParkimi.Cilsimet.NjesiteId == njesiaId);
                 }
 
-                var njesite = await _db.NjesiOrg.ToListAsync();
+                var njesite = await _db.NjesiOrg.Where(o=> o.BiznesId == orgId).ToListAsync();
 
                 var totalRecords = await query.CountAsync();
 
@@ -129,10 +128,7 @@ namespace Parking_project.Controllers
                     return Ok(ApiResponse<TransaksionPage>.Ok(rez, "No transactions found."));
                 }
 
-                var totalPages = (int)Math.Ceiling(
-                    totalRecords / (double)pageSize!
-                );
-
+                var totalPages = (int)Math.Ceiling(totalRecords/(double)pageSize!);
                 var totalAmount = await transaksionQuery.SumAsync(d => d.Cmimi);
 
                 var now = DateTime.Now;

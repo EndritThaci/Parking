@@ -21,8 +21,6 @@ namespace Parking_web.Models.DTO
         [StringLength(255)]
         public string Passwordi { get; set; }
 
-        
-        public int? BiznesId { get; set; }
-        public int? NjesiaId { get; set; }
+        public List<UserOrgCreateDto>? UserOrgs { get; set; }
     }
 }

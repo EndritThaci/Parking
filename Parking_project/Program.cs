@@ -92,6 +92,7 @@ builder.Services.AddAutoMapper(o =>
 {
     o.CreateMap<Organizata, OrgCreateDTO>().ReverseMap();
     o.CreateMap<Organizata, OrgUpdateDTO>().ReverseMap();
+    o.CreateMap<Organizata, OrgDTO>().ReverseMap();
 
     o.CreateMap<Useri, UserReadDTO>().ReverseMap();
     o.CreateMap<UserCreateDTO, Useri>().ReverseMap();
@@ -118,6 +119,8 @@ builder.Services.AddAutoMapper(o =>
 
     o.CreateMap<CreditCard, CreditCardCreateDto>().ReverseMap();
     o.CreateMap<CreditCard, CreditCardReadDto>().ReverseMap();
+
+    o.CreateMap<UserOrg, UserOrgCreateDto>().ReverseMap();
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();

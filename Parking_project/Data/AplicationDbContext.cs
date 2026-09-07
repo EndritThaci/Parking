@@ -14,6 +14,7 @@ namespace Parking_project.Data
         public DbSet<Detajet> Detajet { get; set; }
         public DbSet<TransaksionDetaj> TransaksionDetaj { get; set; }
         public DbSet<CreditCard> CreditCards { get; set; }
+        public DbSet<UserOrg> UserOrg { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -21,13 +22,6 @@ namespace Parking_project.Data
 
             // 1. NjesiOrg -> Organizata (Many-to-One)
             modelBuilder.Entity<NjesiOrg>()
-                .HasOne(n => n.Organizata)
-                .WithMany()
-                .HasForeignKey(n => n.BiznesId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            //3. Useri -> Organizata (Many-to-One)
-            modelBuilder.Entity<Useri>()
                 .HasOne(n => n.Organizata)
                 .WithMany()
                 .HasForeignKey(n => n.BiznesId)
@@ -95,6 +89,27 @@ namespace Parking_project.Data
                 .HasForeignKey(td => td.SherbimiId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // 8. UserOrg (Many-to-Many Join Table with Composite Key)
+            modelBuilder.Entity<UserOrg>()
+                .HasKey(uo => new { uo.UserId, uo.BiznesId });
+
+            modelBuilder.Entity<UserOrg>()
+                .HasOne(uo => uo.User)
+                .WithMany(u => u.UserOrgs)
+                .HasForeignKey(uo => uo.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserOrg>()
+                .HasOne(uo => uo.Organizata)
+                .WithMany()
+                .HasForeignKey(uo => uo.BiznesId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserOrg>()
+                .HasOne(uo => uo.Njesi)
+                .WithMany()
+                .HasForeignKey(uo => uo.NjesiaId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
 
     }

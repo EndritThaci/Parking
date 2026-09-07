@@ -27,7 +27,7 @@ namespace Parking_web.Controllers
             List<Organizata> orgList = new();
             try
             {
-                var response = await _organizataService.GetAllAsync<ApiResponse<List<Organizata>>>();
+                 var response = await _organizataService.GetAllAsync<ApiResponse<List<Organizata>>>();
                 if (response != null && response.Success && response.Data != null)
                 {
                     orgList = response.Data;
@@ -40,7 +40,7 @@ namespace Parking_web.Controllers
                     var userResponse = await _userService.GetAsync<ApiResponse<Useri>>(userId);
                     if (userResponse != null && userResponse.Success && userResponse.Data != null)
                     {
-                        ViewBag.OrgId = userResponse.Data.BiznesId;
+                        ViewBag.OrgId = userResponse.Data.UserOrgs.FirstOrDefault()?.BiznesId;
                     }
                 }
 

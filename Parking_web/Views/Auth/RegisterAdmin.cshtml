@@ -52,16 +52,16 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <select asp-for="BiznesId" class="form-select" id="orgSelect"
-                                    asp-items="ViewBag.OrgList" aria-label="Zgjedh Organizatën">
-                                <option value="" selected disabled>-- Zgjedh Organizatën --</option>
+                            <select name="biznesId" class="form-select" id="orgSelect" asp-items="ViewBag.OrgList" required>
+                                <option value="">-- Zgjedh Organizatën --</option>
                             </select>
 
-                            <label asp-for="BiznesId">
+                            <label for="orgSelect">
                                 <i class="bi bi-building me-2"></i> Organizata
                             </label>
 
-                            <span asp-validation-for="BiznesId" class="text-danger small"></span>
+                            <span class="text-danger small"
+                                  data-valmsg-for="biznesId"></span>
                         </div>
 
                         <div class="d-grid mb-3">

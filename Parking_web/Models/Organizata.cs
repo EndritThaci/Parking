@@ -43,5 +43,7 @@ namespace Parking_web.Models
         [EmailAddress]
         [StringLength(150)]
         public string Email { get; set; }
+
+        public bool AllowCustomers { get; set; } = true;
     }
 }

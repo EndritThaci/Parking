@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -43,22 +41,7 @@ namespace Parking_web.Controllers
                 var response = await _authService.LoginAsync<ApiResponse<LoginResponseDTO>>(loginDTO);
                 if (response != null && response.Success && response.Data != null)
                 {
-                    LoginResponseDTO model = response.Data;
-
-                    var handler = new JwtSecurityTokenHandler();
-                    var jwt = handler.ReadJwtToken(model.Token);
-
-                    var identety = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-                    identety.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value ?? string.Empty));
-                    identety.AddClaim(new Claim(ClaimTypes.NameIdentifier, jwt.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value ?? string.Empty));
-                    identety.AddClaim(new Claim("Emri", jwt.Claims.FirstOrDefault(c => c.Type == "emri")?.Value ?? string.Empty));
-                    identety.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(c => c.Type == "role")?.Value ?? string.Empty));
-                    identety.AddClaim(new Claim("BiznesId", jwt.Claims.FirstOrDefault(c => c.Type == "BiznesId")?.Value ?? string.Empty));
-                    identety.AddClaim(new Claim("NjesiaId", jwt.Claims.FirstOrDefault(c => c.Type == "NjesiaId")?.Value ?? string.Empty));
-                    identety.AddClaim(new Claim("OrgName", jwt.Claims.FirstOrDefault(c => c.Type == "OrgName")?.Value ?? string.Empty));
-                    var principal = new ClaimsPrincipal(identety);
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-                    HttpContext.Session.SetString(SD.SessionToken, model.Token!);
+                    LogInClaims(response.Data);
                     return RedirectToAction("Index", "Home");
                 }
                 else
@@ -74,6 +57,24 @@ namespace Parking_web.Controllers
             return View();
         }
 
+        private async void LogInClaims(LoginResponseDTO model)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(model.Token);
+
+            var identety = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+            identety.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value ?? string.Empty));
+            identety.AddClaim(new Claim(ClaimTypes.NameIdentifier, jwt.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value ?? string.Empty));
+            identety.AddClaim(new Claim("Emri", jwt.Claims.FirstOrDefault(c => c.Type == "emri")?.Value ?? string.Empty));
+            identety.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(c => c.Type == "role")?.Value ?? string.Empty));
+            identety.AddClaim(new Claim("BiznesId", jwt.Claims.FirstOrDefault(c => c.Type == "BiznesId")?.Value ?? string.Empty));
+            identety.AddClaim(new Claim("NjesiaId", jwt.Claims.FirstOrDefault(c => c.Type == "NjesiaId")?.Value ?? string.Empty));
+            identety.AddClaim(new Claim("OrgName", jwt.Claims.FirstOrDefault(c => c.Type == "OrgName")?.Value ?? string.Empty));
+            var principal = new ClaimsPrincipal(identety);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            HttpContext.Session.SetString(SD.SessionToken, model.Token!);
+        }
+
         private async Task PopulateOrgViewBag()
         {
             var orgResponse = await _orgService.GetAllAsync<ApiResponse<List<Organizata>>>();
@@ -85,7 +86,6 @@ namespace Parking_web.Controllers
         [HttpGet]
         public async Task<IActionResult> Register()
         {
-            await PopulateOrgViewBag();
             return View(new UserCreateDTO
             {
                 Email = string.Empty,
@@ -99,16 +99,22 @@ namespace Parking_web.Controllers
         {
             try
             {
-                userDTO.NjesiaId = null;
                 ApiResponse<UserReadDTO>? response = await _authService.RegisterAsync<ApiResponse<UserReadDTO>>(userDTO);
                 if (response != null && response.Success && response.Data != null)
                 {
+                    var loginDTO = new LoginDTO () { Email = userDTO.Email , Password = userDTO.Passwordi };
+                    var loginResponse = await _authService.LoginAsync<ApiResponse<LoginResponseDTO>>(loginDTO);
+                    if (loginResponse != null && loginResponse.Success && loginResponse.Data != null)
+                    {
+                        LogInClaims(loginResponse.Data);
+                        return RedirectToAction("UserOrgs", "Profile");
+                    }
+
                     TempData["success"] = "Regjistrimi u be me sukses! Ju lutem shtypni te dhenat tuaja.";
                     return RedirectToAction("LogIn");
                 }
                 else
                 {
-
                     TempData["error"] = response?.Message ?? "Regjistrimi deshtoj. Ju lutem provoni perseri.";
                     await PopulateOrgViewBag();
                     return View(userDTO);
@@ -150,11 +156,19 @@ namespace Parking_web.Controllers
         [HttpPost]
         [Authorize(Roles = "Super Admin")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RegisterAdmin(UserCreateDTO userDTO)
+        public async Task<IActionResult> RegisterAdmin(UserCreateDTO userDTO, int biznesId)
         {
+            if (biznesId <= 0)
+            {
+                ModelState.AddModelError( "biznesId", "Ju lutem zgjidhni një organizatë.");
+                await PopulateOrgViewBag();
+                return View(userDTO);
+            }
             try
             {
-                userDTO.NjesiaId = null;
+                var userOrg = new UserOrgCreateDto { BiznesId = biznesId, NjesiaId = null };
+                userDTO.UserOrgs = new List<UserOrgCreateDto> { userOrg };
+
                 ApiResponse<UserReadDTO>? response = await _authService.RegisterAdminAsync<ApiResponse<UserReadDTO>>(userDTO);
                 if (response != null && response.Success && response.Data != null)
                 {
@@ -201,11 +215,20 @@ namespace Parking_web.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RegisterManager(UserCreateDTO userDTO)
+        public async Task<IActionResult> RegisterManager(UserCreateDTO userDTO, int njesiaId)
         {
+            if (njesiaId <= 0)
+            {
+                ModelState.AddModelError( "njesiaId", "Ju lutem zgjidhni një njësi.");
+                await PopulateNjesiteViewBag();
+                return View(userDTO);
+            }
             try
             {
-                userDTO.BiznesId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "BiznesId")?.Value ?? "0");
+                var userOrg = new UserOrgCreateDto();
+                userOrg.BiznesId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "BiznesId")?.Value ?? "0");
+                userOrg.NjesiaId = njesiaId;
+                userDTO.UserOrgs = new List<UserOrgCreateDto> { userOrg };
                 ApiResponse<UserReadDTO>? response = await _authService.RegisterManagerAsync<ApiResponse<UserReadDTO>>(userDTO);
                 if (response != null && response.Success && response.Data != null)
                 {

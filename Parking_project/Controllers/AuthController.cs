@@ -1,9 +1,5 @@
-﻿using AutoMapper;
-using Parking_project.Data;
-using Parking_project.Models;
-using Parking_project.Models.DTO;
+﻿using Parking_project.Models.DTO;
 using Parking_project.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Parking_project.Controllers
@@ -50,7 +46,7 @@ namespace Parking_project.Controllers
             }
             catch (Exception ex)
             {
-                var errorResponse = ApiResponse<UserCreateDTO>.Error(500, "An Error Occurred while registering", ex.Message);
+                var errorResponse = ApiResponse<UserReadDTO>.Error(500, "An Error Occurred while registering", ex.Message);
                 return StatusCode(500, errorResponse);
             }
         }
@@ -73,6 +69,11 @@ namespace Parking_project.Controllers
                 if (await _authService.IsEmailExistsAsync(userDTO.Email))
                 {
                     return Conflict(ApiResponse<UserReadDTO>.Conflict("Email already exists"));
+                }
+
+                if (userDTO.UserOrgs != null && userDTO.UserOrgs.Count > 1)
+                {
+                    return BadRequest(ApiResponse<UserReadDTO>.BadRequest("Admin can have only one organization"));
                 }
 
                 var user = await _authService.RegisterAsync(userDTO, "Admin");
@@ -109,6 +110,11 @@ namespace Parking_project.Controllers
                 if (await _authService.IsEmailExistsAsync(userDTO.Email))
                 {
                     return Conflict(ApiResponse<UserReadDTO>.Conflict("Email already exists"));
+                }
+
+                if (userDTO.UserOrgs != null && userDTO.UserOrgs.Count > 1)
+                {
+                    return BadRequest(ApiResponse<UserReadDTO>.BadRequest("Manager can have only one organization"));
                 }
 
                 var user = await _authService.RegisterAsync(userDTO, "Manager");

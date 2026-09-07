@@ -36,7 +36,7 @@ namespace Parking_project.Services
         {
             try
             {
-                var user = await _db.Useri.Where(a => a.active).FirstOrDefaultAsync(u => u.Email.ToLower() == loginDTO.Email.ToLower());
+                var user = await _db.Useri.Where(a => a.active).Include(u=> u.UserOrgs).FirstOrDefaultAsync(u => u.Email.ToLower() == loginDTO.Email.ToLower());
 
                 if (user == null || _passwordHasher.VerifyHashedPassword(user, user.Passwordi, loginDTO.Password) == PasswordVerificationResult.Failed)
                 {
@@ -71,6 +71,7 @@ namespace Parking_project.Services
                     throw new InvalidOperationException($"User with email '{userCreate.Email}' already exists");
                 }
 
+
                 Useri user = new()
                 {
                     Email = userCreate.Email,
@@ -78,9 +79,18 @@ namespace Parking_project.Services
                     Mbiemri = userCreate.Mbiemri,
                     Passwordi = _passwordHasher.HashPassword(null, userCreate.Passwordi),
                     Role = role,
-                    BiznesId = userCreate.BiznesId,
-                    NjesiaId = userCreate.NjesiaId
+                    UserOrgs = new List<UserOrg>()
                 };
+
+                if (userCreate.UserOrgs != null && userCreate.UserOrgs.Any())
+                {
+                    user.UserOrgs = _mapper.Map<List<UserOrg>>(userCreate.UserOrgs);
+
+                    foreach (var userOrg in user.UserOrgs)
+                    {
+                        userOrg.User = user;
+                    }
+                }
 
                 await _db.Useri.AddAsync(user);
                 await _db.SaveChangesAsync();
@@ -114,7 +124,16 @@ namespace Parking_project.Services
         {
             var key = Encoding.ASCII.GetBytes(_configuration.GetSection("JwtSettings")["Secret"]!);
 
-            var org = _db.Organizata.FindAsync(useri.BiznesId);
+            var singleOrg = new UserOrg();
+            try
+            {
+                singleOrg = useri.UserOrgs.SingleOrDefault();
+            }
+            catch {
+                singleOrg?.BiznesId = 0;
+                singleOrg?.NjesiaId = 0;
+            }
+            var org = _db.Organizata.FindAsync(singleOrg?.BiznesId);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -123,9 +142,9 @@ namespace Parking_project.Services
                     new Claim(ClaimTypes.Email, useri.Email),
                     new Claim(ClaimTypes.Name, useri.Emri),
                     new Claim(ClaimTypes.Role, useri.Role),
-                    new Claim("BiznesId", useri.BiznesId.ToString() ?? ""),
-                    new Claim("NjesiaId", useri.NjesiaId.ToString() ?? ""),
-                    new Claim("OrgName", org.Result?.EmriBiznesit.ToString() ?? string.Empty),
+                    new Claim("BiznesId", singleOrg?.BiznesId.ToString() ?? "0"),
+                    new Claim("NjesiaId", singleOrg?.NjesiaId.ToString() ?? "0"),
+                    new Claim("OrgName", org.Result?.EmriBiznesit.ToString() ?? "Parking"),
                 }),
                 Expires = DateTime.UtcNow.AddHours(3),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

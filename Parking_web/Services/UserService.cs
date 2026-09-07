@@ -19,6 +19,14 @@ namespace Parking_web.Services
                 Url = $"{APIEndPoint}/{id}",
             });
         }
+        public Task<T?> DeleteUserOrgAsync<T>(int userId)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.DELETE,
+                Url = $"{APIEndPoint}/userOrg/{userId}",
+            });
+        }
 
         public Task<T?> GetAllAsync<T>()
         {
@@ -35,6 +43,24 @@ namespace Parking_web.Services
             {
                 ApiType = SD.ApiType.GET,
                 Url = $"{APIEndPoint}/{id}",
+            });
+        }
+
+        public Task<T?> GetUserOrgByUserAsync<T>(int id)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.GET,
+                Url = $"{APIEndPoint}/UserOrg/{id}",
+            });
+        }
+
+        public Task<T?> GetUsersPaginationAsync<T>(int? orgId, string? search, string? role, bool active, int page = 1, int pageSize = 10)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.GET,
+                Url = $"{APIEndPoint}/Pagination?orgId={orgId}&search={search}&role={role}&active={active}&page={page}&pageSize={pageSize}",
             });
         }
 

@@ -1,0 +1,469 @@
+﻿@using Parking_web.Models.DTO
+@model UserPage
+
+@{
+    ViewData["Title"] = "Përdoruesit";
+
+    var search = ViewBag.Search as string;
+    var selectedRole = ViewBag.Role as string;
+
+    var currentPage = Model?.PageNumber ?? 1;
+    var pageSize = Model?.PageSize ?? 10;
+    var totalPages = Model?.TotalPages ?? 0;
+    var totalCount = Model?.TotalCount ?? 0;
+
+    var users = Model?.Data ?? new List<Useri>();
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="bi bi-people me-2"></i>
+                Përdoruesit
+            </h3>
+
+            <p class="text-muted mb-0">
+                Menaxhoni përdoruesit e organizatës.
+            </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">
+                @totalCount përdorues
+            </span>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <form asp-controller="Users" asp-action="Index" method="get">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6 col-lg-5">
+                        <label class="form-label fw-semibold">
+                            Kërko përdorues
+                        </label>
+
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="bi bi-search"></i>
+                            </span>
+
+                            <input type="text"
+                                   name="search"
+                                   value="@search"
+                                   class="form-control border-start-0"
+                                   placeholder="Emri, mbiemri, email..." />
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-lg-3">
+                        <label class="form-label fw-semibold">
+                            Roli
+                        </label>
+
+                        <select name="role" class="form-select">
+                            <option value="">Të gjitha rolet</option>
+                            <option value="Admin" selected="@(selectedRole == "Admin")">
+                                Admin
+                            </option>
+                            <option value="Manager" selected="@(selectedRole == "Manager")">
+                                Menaxher
+                            </option>
+                            <option value="Customer" selected="@(selectedRole == "Customer")">
+                                Klientë
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2 col-lg-2">
+                        <label class="form-label fw-semibold">
+                            Për faqe
+                        </label>
+
+                        <select name="pageSize"  class="form-select">
+                            <option value="10" selected="@(pageSize == 10)">
+                                10
+                            </option>
+                            <option value="25" selected="@(pageSize == 25)">
+                                25
+                            </option>
+                            <option value="50" selected="@(pageSize == 50)">
+                                50
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12 col-lg-2">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 flex-grow-1">
+                                <i class="bi bi-funnel me-1"></i>
+                                Filtro
+                            </button>
+
+                            <a asp-controller="Users"
+                               asp-action="Index"
+                               class="btn btn-outline-secondary rounded-pill"
+                               title="Pastro filtrat">
+
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            @if (users.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="px-4 py-3"> Përdoruesi </th>
+                                <th> Email </th>
+                                <th> Roli </th>
+                                <th> Statusi </th>
+                                <th class="text-end px-4"> Veprime </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var user in users)
+                            {
+                                <tr>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="user-avatar">
+                                                @(user.Emri?.FirstOrDefault().ToString().ToUpper())
+                                                @(user.Mbiemri?.FirstOrDefault().ToString().ToUpper())
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">
+                                                    @user.Emri @user.Mbiemri
+                                                </div>
+
+                                                @if (User.IsInRole("Super Admin"))
+                                                {
+                                                    <small class="text-muted">
+                                                        ID: @user.UserId
+                                                    </small>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="text-muted">
+                                            @user.Email
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        @if (user.Role == "Admin")
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger rounded-pill px-3">
+                                                Admin
+                                            </span>
+                                        }
+                                        else if (user.Role == "Manager")
+                                        {
+                                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3">
+                                                Menaxher
+                                            </span>
+                                        }
+                                        else if (user.Role == "Customer")
+                                        {
+                                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3">
+                                                Klientë
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3">
+                                                @user.Role
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (user.active)
+                                        {
+                                            <span class="badge bg-success-subtle text-success rounded-pill px-3">
+                                                <i class="bi bi-check-circle me-1"></i>
+                                                Aktiv
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger rounded-pill px-3">
+                                                <i class="bi bi-x-circle me-1"></i>
+                                                Joaktiv
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end px-4"> 
+                                        <div class="dropdown">
+                                            <button class="btn btn-light rounded-circle"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                                <li>
+                                                    @* FIX LATER ----------------------------------------------------- DONT FORGET IDIOT *@
+                                                    <a class="dropdown-item"
+                                                       asp-controller="Users"
+                                                       asp-action="Details"
+                                                       asp-route-id="@user.UserId">
+
+                                                        <i class="bi bi-eye me-2"></i>
+                                                        Shiko
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <form asp-controller="Users"
+                                                          asp-action="RemoveUserFromOrg"
+                                                          method="post"
+                                                          id="deleteForm-@user.UserId">
+
+                                                        @Html.AntiForgeryToken()
+
+                                                        <input type="hidden"
+                                                               name="userId"
+                                                               value="@user.UserId" />
+
+                                                        <button type="button"
+                                                                class="dropdown-item text-danger"
+                                                                onclick="confirmDelete('@user.UserId', 'Largo përdoruesin?', 'A jeni i sigurt që dëshironi ta largoni këtë përdorues nga organizata?')">
+
+                                                            <i class="bi bi-trash me-2"></i>
+                                                            Largo
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h5 class="fw-bold mt-3">
+                        Nuk u gjet asnjë përdorues
+                    </h5>
+                    <p class="text-muted mb-3">
+                        Nuk ka përdorues që përputhen me filtrat e zgjedhur.
+                    </p>
+                    <a asp-controller="Users"
+                       asp-action="Index"
+                       class="btn btn-outline-primary rounded-pill px-4">
+
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+                        Pastro filtrat
+                    </a>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <div class="card-footer bg-white border-0 px-4 py-3">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <div class="text-muted small">
+                        Faqja
+                        <strong>@currentPage</strong>
+                        nga
+                        <strong>@totalPages</strong>
+                        <span class="mx-2">•</span>
+                        @totalCount rezultate
+                    </div>
+
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <!-- Previous -->
+                            <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                                <a class="page-link rounded-start-pill"
+                                   asp-controller="Users"
+                                   asp-action="Index"
+                                   asp-route-page="@(currentPage - 1)"
+                                   asp-route-pageSize="@pageSize"
+                                   asp-route-search="@search"
+                                   asp-route-role="@selectedRole">
+
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+
+                            @{
+                                int startPage = Math.Max(1, currentPage - 2);
+                                int endPage = Math.Min(totalPages, currentPage + 2);
+                            }
+
+                            <!-- First page -->
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-controller="Users"
+                                       asp-action="Index"
+                                       asp-route-page="1"
+                                       asp-route-pageSize="@pageSize"
+                                       asp-route-search="@search"
+                                       asp-route-role="@selectedRole">
+
+                                        1
+                                    </a>
+                                </li>
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">
+                                            ...
+                                        </span>
+                                    </li>
+                                }
+                            }
+
+                            <!-- Pages -->
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+
+                                    <a class="page-link"
+                                       asp-controller="Users"
+                                       asp-action="Index"
+                                       asp-route-page="@i"
+                                       asp-route-pageSize="@pageSize"
+                                       asp-route-search="@search"
+                                       asp-route-role="@selectedRole">
+
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- Last page -->
+                            @if (endPage < totalPages)
+                            {
+                                @if (endPage < totalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">
+                                            ...
+                                        </span>
+                                    </li>
+                                }
+
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-controller="Users"
+                                       asp-action="Index"
+                                       asp-route-page="@totalPages"
+                                       asp-route-pageSize="@pageSize"
+                                       asp-route-search="@search"
+                                       asp-route-role="@selectedRole">
+
+                                        @totalPages
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- Next -->
+                            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+
+                                <a class="page-link rounded-end-pill"
+                                   asp-controller="Users"
+                                   asp-action="Index"
+                                   asp-route-page="@(currentPage + 1)"
+                                   asp-route-pageSize="@pageSize"
+                                   asp-route-search="@search"
+                                   asp-route-role="@selectedRole">
+
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .user-avatar {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 50%;
+        background: #e7f1ff;
+        color: #0d6efd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: .9rem;
+        text-transform: uppercase;
+    }
+
+    .table > :not(caption) > * > * {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .table-hover tbody tr {
+        transition: background-color .15s ease;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8faff;
+    }
+
+    .empty-state {
+        padding: 70px 20px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto;
+        border-radius: 50%;
+        background: #e7f1ff;
+        color: #0d6efd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+    }
+
+    .pagination .page-link {
+        border: none;
+        margin: 0 2px;
+        border-radius: 10px;
+        min-width: 38px;
+        text-align: center;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: #0d6efd;
+        color: #fff;
+    }
+
+</style>

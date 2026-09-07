@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Parking_project.Models.DTO;
+using System.ComponentModel.DataAnnotations;
 
 
 namespace Parking_project.Models
@@ -32,14 +32,6 @@ namespace Parking_project.Models
 
         public bool active { get; set; } = true;
 
-        public int? BiznesId { get; set; }
-        public int? NjesiaId { get; set; }
-
-
-        [ForeignKey(nameof(BiznesId))]
-        public Organizata? Organizata { get; set; }
-
-        [ForeignKey(nameof(NjesiaId))]
-        public NjesiOrg? Njesi { get; set; }
+        public List<UserOrg> UserOrgs { get; set; } = new();
     }
 }

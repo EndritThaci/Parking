@@ -1,5 +1,5 @@
 ﻿@using Parking_web.Models.DTO
-@model IEnumerable<NjesiReadDto>
+@model OrgPage
 @if (User.Identity == null || !User.Identity.IsAuthenticated)
 {
     Context.Response.Redirect(Url.Action("Login", "Auth")!);
@@ -14,8 +14,7 @@ else
 
     ViewData["Title"] = "Shtepia";
 
-<div class="container py-5">
-
+    <div class="container py-5">
         @if ((pendingList != null && pendingList.Any()))
         {
             var sum = pendingList.Count;
@@ -86,47 +85,166 @@ else
                 <hr class="mt-5 mb-4 opacity-10">
             </div>
         }
-    <div class="text-center mb-4 mt-5">
-        
-        <h3 class="fw-bold text-dark">Njësitë</h3>
-        <p>Zgjedh Njësinë për të regjistruar nje transaksion</p>
-    </div>
+        <div class="text-center mb-4 mt-5">
+            <h3 class="fw-bold text-dark"> Organizatat </h3>
+            <p> Zgjedh organizatën për të përzgjedhur njësinë </p>
+        </div>
+        <form method="get" asp-controller="Home" asp-action="Index" class="mb-4">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"> <i class="bi bi-search text-muted"></i> </span>
+                        <input type="text" name="Search" value="@Context.Request.Query["Search"]" class="form-control border-start-0" placeholder="Kërko organizatë..." />
+                        <button type="submit" class="btn btn-primary px-4">
+                            Kërko
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
 
-    <div class="row g-3 justify-content-center">
-        @if (Model != null && Model.Any())
-        {
-            foreach (var njesi in Model)
+        <div class="row g-3 justify-content-center">
+            @if (Model != null && Model.Data != null && Model.Data.Any())
             {
-                <div class="col-md-6 col-lg-4">
-                    <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative unit-card transition-all">
-                        <div class="unit-stripe"></div>
+                foreach (var org in Model.Data)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative unit-card"
+                             style="cursor:pointer;"
+                             onclick="openNjesiteModal(@org.BiznesId, '@Html.Raw(org.EmriBiznesit.Replace("'", "\\'"))')">
 
-                        <div class="card-body p-4">
-                            <a asp-controller="Home" asp-action="Create" asp-route-njesiaId="@njesi.NjesiteId" class=" text-decoration-none">
+                            <div class="unit-stripe"></div>
+
+                            <div class="card-body p-4">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
-                                        <h6 class="text-muted small text-uppercase fw-bold mb-1">Kodi: @njesi.Kodi</h6>
-                                        <h4 class="fw-black mb-0 text-dark">@njesi.Emri</h4>
+                                        <h6 class="text-muted small text-uppercase fw-bold mb-1"> Nr. i Biznesit: @org.NumriBiznesit </h6>
+                                        <h4 class="fw-black mb-0 text-dark"> @org.EmriBiznesit </h4>
                                     </div>
+
+                                    <div class="org-icon"> <i class="bi bi-building"></i> </div>
                                 </div>
 
                                 <div class="d-flex align-items-center text-muted small mb-4">
                                     <i class="bi bi-geo-alt me-2 text-primary"></i>
-                                    <span class="text-truncate">@njesi.Adresa</span>
+                                    <span class="text-truncate"> @org.Adresa </span>
                                 </div>
 
-                                <a asp-controller="Home" asp-action="Create" asp-route-njesiaId="@njesi.NjesiteId"
-                                    class="btn btn-outline-primary w-100 rounded-pill fw-bold py-2 transition-all btn-unit-action">
-                                    Zgjedh Njesinë <i class="bi bi-chevron-right ms-1"></i>
-                                </a>
-                            </a>
+                                <div class="btn btn-outline-primary w-100 rounded-pill fw-bold py-2">
+                                    Zgjedh Njësinë <i class="bi bi-chevron-right ms-1"></i>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="bi bi-building-x display-4 text-muted"></i>
+                        <h5 class="fw-bold mt-3"> Nuk u gjet asnjë organizatë </h5>
                     </div>
                 </div>
             }
+        </div>
+        @if (Model != null && (Model.TotalPages > 1 || Model.TotalRecords > 8))
+        {
+            var currentSearch = Context.Request.Query["Search"].ToString();
+            var currentPageSize = Model.PageSize;
+
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-5 gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small"> Shfaq: </span>
+
+                    <select class="form-select form-select-sm" style="width:80px;" onchange="changePageSize(this.value)">
+                        <option value="6" selected="@(currentPageSize == 6)"> 6 </option>
+                        <option value="9" selected="@(currentPageSize == 9)"> 9 </option>
+                        <option value="21" selected="@(currentPageSize == 21)"> 21 </option>
+                        <option value="60" selected="@(currentPageSize == 60)"> 60 </option>
+                    </select>
+                    <span class="text-muted small"> për faqe </span>
+                </div>
+                <div class="text-muted small">
+                    @{
+                        var from = ((Model.PageNumber - 1) * Model.PageSize) + 1;
+                        var to = Math.Min(
+                            Model.PageNumber * Model.PageSize,
+                            Model.TotalRecords);
+                    }
+                    @from - @to nga @Model.TotalRecords organizata
+                </div>
+            </div>
+            @if (Model.TotalPages > 1)
+            {
+                <nav class="mt-3">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                            <a class="page-link"
+                            asp-controller="Home"
+                            asp-action="Index"
+                            asp-route-Search="@currentSearch"
+                            asp-route-page="@(Model.PageNumber - 1)"
+                            asp-route-pageSize="@currentPageSize">
+
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link"
+                                asp-controller="Home"
+                                asp-action="Index"
+                                asp-route-Search="@currentSearch"
+                                asp-route-page="@i"
+                                asp-route-pageSize="@currentPageSize">
+                                    @i
+                                </a>
+                            </li>
+                        }
+
+                        <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link"
+                            asp-controller="Home"
+                            asp-action="Index"
+                            asp-route-Search="@currentSearch"
+                            asp-route-page="@(Model.PageNumber + 1)"
+                            asp-route-pageSize="@currentPageSize">
+
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
         }
+        <div class="modal fade" id="njesiteModal" tabindex="-1" aria-labelledby="njesiteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg modal-rounded">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="modal-title fw-bold" id="njesiteModalLabel"> Zgjedh Njësinë </h5>
+                            <small class="text-muted" id="njesiteModalSubtitle"> </small>
+                        </div>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"> </button>
+                    </div>
+
+                    <div class="modal-body p-4">
+                        <div id="njesiteLoading" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"> </div>
+                            <div class="mt-2 text-muted"> Duke ngarkuar njësitë... </div>
+                        </div>
+
+                        <div id="njesiteError" class="alert alert-danger d-none"> </div>
+                        <div id="njesiteList" class="d-flex flex-column gap-2"> </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 }
 
 <style>
@@ -209,5 +327,202 @@ else
     [data-bs-toggle="collapse"]:hover h5 {
         color: #ffc107 !important;
     }
+
+    .org-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e7f1ff;
+        color: #0d6efd;
+        font-size: 20px;
+    }
+
+    .njesia-option {
+        display: block;
+        padding: 14px;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        transition: all 0.2s ease;
+        background: #fff;
+    }
+
+        .njesia-option:hover {
+            border-color: #0d6efd;
+            background: #f8fbff;
+            transform: translateX(3px);
+        }
+
+    .njesia-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e7f1ff;
+        color: #0d6efd;
+        font-size: 20px;
+    }
+
+    .modal-rounded {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .page-link {
+        min-width: 40px;
+        text-align: center;
+    }
+
+    .njesia-full {
+        display: block;
+        padding: 14px;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        transition: all 0.2s ease;
+        background: #fff;
+        cursor: not-allowed;
+    }
+
+        .njesia-full:hover {
+            border-color: #dc3545;
+            background: #fff5f5;
+            transform: translateX(3px);
+        }
+
+        .njesia-full .njesia-icon {
+            background: #f8d7da;
+            color: #dc3545;
+        }
+
+        .njesia-full .text-primary {
+            color: #dc3545 !important;
+        }
 </style>
 
+<script>
+    function changePageSize(pageSize) {
+        const url = new URL(window.location.href);
+
+        url.searchParams.set('page', '1');
+        url.searchParams.set('pageSize', pageSize);
+        window.location.href = url.toString();
+    }
+
+
+    async function openNjesiteModal(orgId, orgName) {
+        const modalElement = document.getElementById('njesiteModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+        const title = document.getElementById('njesiteModalLabel');
+        const subtitle = document.getElementById('njesiteModalSubtitle');
+
+        const loading = document.getElementById('njesiteLoading');
+        const error = document.getElementById('njesiteError');
+        const list = document.getElementById('njesiteList');
+
+        title.innerText = 'Zgjedh Njësinë';
+        subtitle.innerText = 'Org: ' + orgName;
+
+        loading.classList.remove('d-none');
+        error.classList.add('d-none');
+        list.innerHTML = '';
+        modal.show();
+
+        try {
+            const response = await fetch( '@Url.Action("GetNjesite", "Home")?orgId=' + orgId );
+
+            if (!response.ok) {
+                throw new Error('Gabim gjatë marrjes së njësive.');
+            }
+
+            const result = await response.json();
+            loading.classList.add('d-none');
+
+            if (!result.success) {
+                error.innerText = result.message || 'Nuk u gjetën njësitë.';
+                error.classList.remove('d-none');
+                return;
+            }
+
+            if (!result.data || result.data.length === 0) {
+                list.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="bi bi-building-x display-6 text-muted"></i>
+                            <h6 class="fw-bold mt-3"> Nuk ka njësi </h6>
+                            <p class="text-muted small mb-0"> Kjo organizatë nuk ka njësi të disponueshme. </p>
+                        </div>
+                    `;
+                return;
+            }
+
+            result.data.forEach(njesia => {
+                if (!njesia.active) return;
+
+                const item = document.createElement('a');
+
+                item.href = '@Url.Action("Create", "Home")?njesiaId=' + njesia.njesiteId;
+
+                item.className = 'njesia-option text-decoration-none';
+
+                if (njesia.vendeTeLira <= 0) {
+                    item.classList.add('njesia-full');
+                }
+
+                item.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <div class="njesia-icon me-3"> <i class="bi bi-p-square"></i> </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold text-dark"> ${escapeHtml(njesia.emri)} </div>
+                            <div class="small text-muted"> Kodi: ${escapeHtml(njesia.kodi)} </div>
+                            <div class="small text-muted">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                ${escapeHtml(njesia.adresa)}
+                            </div>
+                        </div>
+                        <div class="text-end me-3">
+                            <div class="small text-muted">Vende të lira</div>
+                            <strong class="${njesia.vendeTeLira <= 0 ? 'text-danger' : 'text-primary'}">
+                                ${njesia.vendeTeLira}
+                            </strong>
+                        </div>
+                        <i class="bi bi-chevron-right text-primary"></i>
+                    </div>
+                `;
+
+                list.appendChild(item);
+            });
+
+            if (list.children.length === 0) {
+                list.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="bi bi-building-x display-6 text-muted"></i>
+                            <h6 class="fw-bold mt-3"> Nuk ka njësi aktive </h6>
+                            <p class="text-muted small mb-0"> Nuk ka njësi aktive për këtë organizatë. </p>
+                        </div>
+                    `;
+            }
+        }
+        catch (err) {
+            loading.classList.add('d-none');
+            error.innerText = err.message || 'Gabim gjatë marrjes së njësive.';
+            error.classList.remove('d-none');
+        }
+    }
+
+
+    function escapeHtml(value) {
+        if (value == null)
+            return '';
+
+        return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+</script>

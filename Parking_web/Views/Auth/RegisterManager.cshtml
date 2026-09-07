@@ -52,16 +52,15 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <select asp-for="NjesiaId" class="form-select" id="njesiaSelect"
-                                    asp-items="ViewBag.NjesiteList" aria-label="Zgjedh Njësinë">
-                                <option value="" selected disabled>-- Zgjedh Njësinë --</option>
+                            <select name="njesiaId" class="form-select" id="njesiaSelect" asp-items="ViewBag.NjesiteList" required>
+                                <option value="">-- Zgjedh Njësinë --</option>
                             </select>
 
-                            <label asp-for="NjesiaId">
+                            <label for="njesiaSelect">
                                 <i class="bi bi-building me-2"></i> Njësia Organizative
                             </label>
 
-                            <span asp-validation-for="NjesiaId" class="text-danger small"></span>
+                            <span class="text-danger small" data-valmsg-for="njesiaId"></span>
                         </div>
 
                         <div class="d-grid mb-3">

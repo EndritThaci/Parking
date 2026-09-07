@@ -41,12 +41,12 @@ namespace Parking_web.Services
             });
         }
 
-        public Task<T?> GetByOrgAsync<T>()
+        public Task<T?> GetByOrgAsync<T>(int? id)
         {
             return SendAsync<T>(new ApiRequest
             {
                 ApiType = SD.ApiType.GET,
-                Url = $"{APIEndPoint}/ByOrg",
+                Url = id == null ? $"{APIEndPoint}/ByOrg" : $"{APIEndPoint}/ByOrg?id={id}",
             });
         }
 

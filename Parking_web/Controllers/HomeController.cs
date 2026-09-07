@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Parking_web.Models;
 using Parking_web.Models.DTO;
+using Parking_web.Services;
 using Parking_web.Services.IServices;
 using QRCoder;
 using System.Diagnostics;
@@ -13,14 +14,16 @@ namespace Parking_web.Controllers
     public class HomeController : Controller
     {
         private readonly INjesiaService _njesiaService;
+        private readonly IOrganizataService _orgService;
         private readonly ITransaksionService _transaksioniService;
         private readonly ICilsimiService _cilsimiService;
         private readonly ISherbimiService _sherbimiService;
         private readonly ICreditCardService _creditCardService;
         private readonly IMapper _mapper;
 
-        public HomeController(INjesiaService njesiaService, ITransaksionService transaksioniService, ISherbimiService sherbimiService, ICilsimiService cilsimiService, IMapper mapper, ICreditCardService creditCardService)
+        public HomeController(IOrganizataService organizataService,INjesiaService njesiaService, ITransaksionService transaksioniService, ISherbimiService sherbimiService, ICilsimiService cilsimiService, IMapper mapper, ICreditCardService creditCardService)
         {
+            _orgService = organizataService;
             _njesiaService = njesiaService;
             _transaksioniService = transaksioniService;
             _cilsimiService = cilsimiService;
@@ -29,43 +32,23 @@ namespace Parking_web.Controllers
             _creditCardService = creditCardService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? Search, int page = 1, int pageSize = 9)
         {
-            List<NjesiReadDto> orgList = new();
+            OrgPage orgPage = new();
             try
             {
-                var response = new ApiResponse<List<NjesiReadDto>>();
-                if (User.IsInRole("Manager"))
-                {
-                    var njesiaId = int.Parse(User.FindFirst("NjesiaId")!.Value);
-                    var result = await _njesiaService.GetAsync<ApiResponse<NjesiReadDto>>(njesiaId);
-                    if (result != null && result.Success && result.Data != null)
-                    {
-                        response = ApiResponse<List<NjesiReadDto>>.Ok(
-                            new List<NjesiReadDto> { result.Data },
-                            result.Message
-                        );
-                    }
-                }
-                else
-                {
-                    response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiReadDto>>>();
-                }
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (page < 1) page = 1;
+                var response = await _orgService.GetPaginationAsync<ApiResponse<OrgPage>>(Search, userId, page, pageSize);
                 var UserResponse = await _transaksioniService.GetByUserAsync<ApiResponse<List<TransaksionRead>>>();
-                var OrgResponse = await _transaksioniService.GetAsync<ApiResponse<TransaksionPage>>(1,1000); //NEED TO FIX
 
                 if (response != null && response.Success && response.Data != null)
                 {
-                    orgList = response.Data;
+                    orgPage = response.Data;
                 }
                 if (UserResponse != null && UserResponse.Success && UserResponse.Data != null && User.IsInRole("Customer"))
                 {
                     var pendingList = UserResponse.Data.Where(t => t.Statusi == "Pending").ToList();
-                    ViewBag.PendingTransactions = pendingList;
-                }
-                else if (OrgResponse != null && OrgResponse.Success && OrgResponse.Data != null && (User.IsInRole("Admin") || User.IsInRole("Manager")))
-                {
-                    var pendingList = OrgResponse.Data.Data.Where(t => t.Statusi == "Pending").ToList();
                     ViewBag.PendingTransactions = pendingList;
                 }
 
@@ -74,9 +57,31 @@ namespace Parking_web.Controllers
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
-            return View(orgList);
+            return View(orgPage);
         }
-        
+
+        [HttpGet]
+        public async Task<IActionResult> GetNjesite(int orgId)
+        {
+            try
+            {
+                if (orgId <= 0) return BadRequest();
+
+                var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiOrg>>>( orgId);
+
+                if (response == null || !response.Success || response.Data == null)
+                {
+                    return Json(new { success = false, message = response?.Message ?? "Nuk u gjetën njësitë." });
+                }
+
+                return Json(new { success = true, data = response.Data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         public async Task<IActionResult> Create(int njesiaId)
         {
             TransaksionetCreateDto createDto = new();

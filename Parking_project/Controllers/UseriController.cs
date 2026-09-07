@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Parking_project.Data;
+using Parking_project.Migrations;
 using Parking_project.Models;
 using Parking_project.Models.DTO;
 using Parking_project.Services;
@@ -32,34 +33,48 @@ namespace Parking_project.Controllers
         {
             try
             {
-                var users = await _db.Useri.Where(u => u.active).ToListAsync();
+                var users = await _db.Useri
+                    .Where(u => u.active)
+                    .Include(u => u.UserOrgs)
+                        .ThenInclude(uo => uo.Organizata)
+                    .Include(u => u.UserOrgs)
+                        .ThenInclude(uo => uo.Njesi)
+                    .ToListAsync();
+
                 var data = _mapper.Map<IEnumerable<UserReadDTO>>(users);
 
-                return Ok(ApiResponse<IEnumerable<UserReadDTO>>.Ok(data, "Users retrieved successfully"));
+                return Ok(ApiResponse<IEnumerable<UserReadDTO>>.Ok(data,"Users retrieved successfully"));
             }
             catch (Exception ex)
             {
-                var errorResponse = ApiResponse<IEnumerable<UserReadDTO>>.Error(500, "An Error Occurred while retrieving User", ex.Message);
+                var errorResponse =ApiResponse<IEnumerable<UserReadDTO>>.Error(500, "An error occurred while retrieving users",ex.Message);
                 return StatusCode(500, errorResponse);
             }
         }
 
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<UserReadDTO>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(typeof(ApiResponse<UserReadDTO>), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ApiResponse<Useri>>> GetUserById(int id)
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse<UserReadDTO>>> GetUserById(int id)
         {
             try
             {
                 if (id <= 0)
                     return NotFound(ApiResponse<UserReadDTO>.NotFound("Invalid ID"));
 
-                var user = await _db.Useri.Where(u => u.UserId == id && u.active).Include(o => o.Organizata).Include(n => n.Njesi).FirstOrDefaultAsync();
+                var user = await _db.Useri.AsNoTracking().Where(u => u.UserId == id && u.active)
+                    .Include(uo => uo.UserOrgs)
+                        .ThenInclude(o => o.Organizata)
+                    .Include(uo => uo.UserOrgs)
+                        .ThenInclude(n => n.Njesi)
+                    .FirstOrDefaultAsync();
                 if (user == null)
                     return NotFound(ApiResponse<UserReadDTO>.NotFound($"User with ID {id} not found"));
 
-                return Ok(ApiResponse<Useri>.Ok(user, "User retrieved successfully"));
+                var data = _mapper.Map<UserReadDTO>(user);
+
+                return Ok(ApiResponse<UserReadDTO>.Ok(data, "User retrieved successfully"));
             }
             catch (Exception ex)
             {
@@ -67,7 +82,81 @@ namespace Parking_project.Controllers
                 return StatusCode(500, errorResponse);
             }
         }
+        
+        [HttpGet("UserOrg/{id:int}")]
+        [ProducesResponseType(typeof(ApiResponse<List<UserOrg>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<UserOrg>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<UserOrg>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse<List<UserOrg>>>> GetUserOrgByUserId(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                    return NotFound(ApiResponse<UserOrg>.NotFound("Invalid ID"));
 
+                var user = await _db.UserOrg.AsNoTracking().Where(u => u.UserId == id && u.User.active)
+                    .Include(o => o.Organizata)
+                    .Include(n => n.Njesi)
+                    .ToListAsync();
+                if (user == null)
+                    return NotFound(ApiResponse<UserOrg>.NotFound($"User with ID {id} not found"));
+
+                return Ok(ApiResponse<List<UserOrg>>.Ok(user, "User retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<UserOrg>.Error(500, "An Error Occurred while retrieving User", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
+        
+        [HttpGet("Pagination")]
+        [ProducesResponseType(typeof(ApiResponse<List<Useri>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse<List<Useri>>>> GetUsersByOrgId(int? orgId, string? search, string? role, bool active, int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                var query = _db.Useri.AsNoTracking().Where(u => u.Role != "Super Admin");
+
+                if(orgId > 0) query = query.Where(u => u.UserOrgs.Any(x=> x.BiznesId == orgId));
+                if(active) query = query.Where(u => u.active);
+                if (!string.IsNullOrWhiteSpace(role)) query = query.Where(u => u.Role == role.Trim());
+                
+                // Search
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    search = search.Trim().ToLower();
+                    query = query.Where(u => u.Emri.ToLower().Contains(search) || u.Mbiemri.ToLower().Contains(search) || u.Email.ToLower().Contains(search));
+                }
+
+                var totalCount = await query.CountAsync();
+                var totalPages = (int)Math.Ceiling(totalCount / (double) pageSize);
+
+                var users = await query
+                    .OrderBy(u => u.UserId)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var result = new UserPage
+                {
+                    Data = users,
+                    PageNumber = page,
+                    PageSize = pageSize,
+                    TotalPages = totalPages,
+                    TotalCount = totalCount
+                };
+
+                return Ok(ApiResponse<UserPage>.Ok(result, "Users retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<UserPage>.Error(500, "An Error Occurred while retrieving User", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
 
         [HttpPut("{id:int}")]
         [Authorize]
@@ -83,15 +172,75 @@ namespace Parking_project.Controllers
                 if (dto == null || id != dto.UserId)
                     return BadRequest(ApiResponse<UserUpdateDTO>.BadRequest("Invalid data"));
 
-                var user = await _db.Useri.Where(u => u.active).FirstOrDefaultAsync(u => u.UserId == id);
+                var user = await _db.Useri.Include(u => u.UserOrgs).FirstOrDefaultAsync(u => u.UserId == id && u.active);
                 if (user == null)
                     return NotFound(ApiResponse<UserUpdateDTO>.NotFound($"User with ID {id} not found"));
 
-                var organizataExists = await _db.Organizata.AnyAsync(o => o.BiznesId == dto.BiznesId);
-                if (!organizataExists)
-                    return NotFound(ApiResponse<UserUpdateDTO>.NotFound("Organizata not found"));
+                user.Emri = dto.Emri;
+                user.Mbiemri = dto.Mbiemri;
 
-                _mapper.Map(dto, user);
+                if (dto.UserOrgs != null)
+                {
+                    var biznesIds = dto.UserOrgs
+                        .Select(x => x.BiznesId)
+                        .Distinct()
+                        .ToList();
+
+                    var njesiIds = dto.UserOrgs
+                        .Where(x => x.NjesiaId.HasValue)
+                        .Select(x => x.NjesiaId!.Value)
+                        .Distinct()
+                        .ToList();
+
+                    var existingBiznesIds = await _db.Organizata
+                        .Where(o => biznesIds.Contains(o.BiznesId))
+                        .Select(o => o.BiznesId)
+                        .ToListAsync();
+
+                    var missingBiznesIds = biznesIds
+                        .Except(existingBiznesIds)
+                        .ToList();
+
+                    if (missingBiznesIds.Any())
+                    {
+                        return NotFound(ApiResponse<UserUpdateDTO>.NotFound( $"Organization(s) not found: {string.Join(", ", missingBiznesIds)}"));
+                    }
+
+                    var existingNjesiIds = await _db.NjesiOrg
+                        .Where(n => njesiIds.Contains(n.NjesiteId))
+                        .Select(n => n.NjesiteId)
+                        .ToListAsync();
+
+                    var missingNjesiIds = njesiIds
+                        .Except(existingNjesiIds)
+                        .ToList();
+
+                    if (missingNjesiIds.Any())
+                    {
+                        return NotFound(ApiResponse<UserUpdateDTO>.NotFound( $"Unit(s) not found: {string.Join(", ", missingNjesiIds)}"));
+                    }
+
+
+                    if (user.UserOrgs != null && user.UserOrgs.Any())
+                    {
+                        _db.UserOrg.RemoveRange(user.UserOrgs);
+                    }
+
+                    var newUserOrgs = dto.UserOrgs
+                        .Select(x => new UserOrg
+                        {
+                            UserId = user.UserId,
+                            BiznesId = x.BiznesId,
+                            NjesiaId = x.NjesiaId
+                        })
+                        .ToList();
+
+                    if (newUserOrgs.Any())
+                    {
+                        await _db.UserOrg.AddRangeAsync(newUserOrgs);
+                    }
+                }
+
                 await _db.SaveChangesAsync();
 
                 return Ok(ApiResponse<UserUpdateDTO>.Ok(dto, "User updated successfully"));
@@ -99,6 +248,31 @@ namespace Parking_project.Controllers
             catch (Exception ex)
             {
                 var errorResponse = ApiResponse<UserUpdateDTO>.Error(500, "An Error Occurred while editing user", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
+
+        [HttpDelete("userOrg/{userId:int}")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<object>>> DeleteUserOrg(int userId)
+        {
+            try
+            {
+                var biznesId = int.Parse(User.FindFirst("BiznesId")!.Value);
+                var userOrg = await _db.UserOrg.FirstOrDefaultAsync(u => u.UserId == userId && u.BiznesId == biznesId);
+                if (userOrg == null) return NotFound(ApiResponse<object>.NotFound($"User with ID {userId} not found"));
+
+                _db.UserOrg.Remove(userOrg);
+                await _db.SaveChangesAsync();
+
+                return Ok(ApiResponse<object>.NoContent("User remuved from Organisation successfully"));
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<object>.Error(500, "An Error Occurred while deleting User", ex.Message);
                 return StatusCode(500, errorResponse);
             }
         }
@@ -179,7 +353,7 @@ namespace Parking_project.Controllers
             try
             {
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-                var user = await _db.Useri.FirstOrDefaultAsync(u => u.UserId == userId);
+                var user = await _db.Useri.Include(u => u.UserOrgs).FirstOrDefaultAsync(u => u.UserId == userId && u.active);
                 if (user == null)
                     return NotFound(ApiResponse<string>.NotFound($"User with ID {userId} not found"));
 
@@ -187,13 +361,21 @@ namespace Parking_project.Controllers
                 if (org == null)
                     return NotFound(ApiResponse<string>.NotFound($"Organization with ID {orgId} not found"));
 
-                if (user.BiznesId == orgId)
+                var existingUserOrg = user.UserOrgs?.FirstOrDefault(x => x.BiznesId == orgId);
+
+                if (existingUserOrg != null)
                 {
-                    user.BiznesId = null;
+                    _db.UserOrg.Remove(existingUserOrg);
                 }
                 else
                 {
-                    user.BiznesId = orgId;
+                    var newUserOrg = new UserOrg
+                    {
+                        UserId = user.UserId,
+                        BiznesId = orgId
+                    };
+
+                    await _db.UserOrg.AddAsync(newUserOrg);
                 }
 
                 await _db.SaveChangesAsync();

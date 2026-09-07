@@ -24,7 +24,9 @@ builder.Services.AddAutoMapper(o =>
 
     o.CreateMap<Useri, UserReadDTO>().ReverseMap();
     o.CreateMap<UserCreateDTO, Useri>().ReverseMap();
+    o.CreateMap<UserCreateDTO, UserReadDTO>().ReverseMap();
     o.CreateMap<UserUpdateDTO, Useri>().ReverseMap();
+    o.CreateMap<UserUpdateDTO, UserReadDTO>().ReverseMap();
 
     o.CreateMap<NjesiOrg, NjesiOrgDto>().ReverseMap();
     o.CreateMap<NjesiOrg, NjesiUpdateDto>().ReverseMap();

@@ -29,9 +29,10 @@ namespace Parking_web.Controllers
         [Authorize(Roles = "Admin , Super Admin")]
         public async Task<IActionResult> Index2()
         {
-            if (User.FindFirst("BiznesId")?.Value == "")
+            if (User.FindFirst("BiznesId")?.Value == "0")
             {
                 TempData["error"] = "Zgjedh një organizatë";
+                if(User.IsInRole("Admin")) return RedirectToAction("Index", "Home");
                 return RedirectToAction("Index", "Organizata");
             }
             List<NjesiReadDto> orgList = new();
@@ -59,6 +60,11 @@ namespace Parking_web.Controllers
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Index()
         {
+            if (User.FindFirst("BiznesId")?.Value == "0")
+            {
+                TempData["error"] = "Nuk keni organizatë";
+                return RedirectToAction("Index", "Home");
+            }
             NjesiReadDto orgList = new();
             try
             {

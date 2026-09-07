@@ -23,6 +23,7 @@ namespace Parking_project.Controllers
 
 
         [HttpGet]
+        [Authorize]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<Organizata>>),StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<Organizata>>),StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<IEnumerable<Organizata>>>> GetOrganizata()
@@ -42,8 +43,116 @@ namespace Parking_project.Controllers
             }
         }
 
+        [HttpGet("Pagination")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<OrgPage>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<OrgPage>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<OrgPage>>> GetOrganizataPagination(string? search, int? userId, int pageNumber = 1, int pageSize = 10)
+        {
+            try
+            {
+                if (pageNumber <= 0 || pageSize <= 0)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Page number and page size must be greater than zero."));
+                }
+
+                var query = _db.Organizata.AsNoTracking();
+
+                if(search != null)
+                {
+                    var val = search.ToLower();
+                    query = query.Where(x=> 
+                            x.EmriBiznesit.ToLower().Contains(val) ||
+                            x.Adresa.ToLower().Contains(val) ||
+                            x.NumriBiznesit.ToLower().Contains(val) ||
+                            x.NumriFiskal.ToLower().Contains(val) ||
+                            x.NumriUnikIdentifikues.ToLower().Contains(val) ||
+                            x.Komuna.ToLower().Contains(val)); 
+                }
+
+                if (userId != null) query = query.Where(o => _db.UserOrg.Any(uo => uo.BiznesId == o.BiznesId && uo.UserId == userId));
+
+                var totalRecords = await query.CountAsync();
+                var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+                var organizata = await query
+                    .OrderByDescending(t => t.BiznesId)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var result = _mapper.Map<List<OrgDTO>>(organizata);
+
+                var page = new OrgPage
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = totalPages,
+                    TotalRecords = totalRecords,
+                    Data = result
+                };
+
+                var response = ApiResponse<OrgPage>.Ok(page, "Organizatat retrieved successfully");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<OrgPage>.Error(500, "An Error Occurred while retrieving Org", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
+        
+        [HttpGet("ForCustomers")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<OrgPage>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<OrgPage>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<OrgPage>>> GetOrganizataForCustomers(int pageNumber = 1, int pageSize = 10)
+        {
+            try
+            {
+                if (pageNumber <= 0 || pageSize <= 0)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Page number and page size must be greater than zero."));
+                }
+
+                var query = _db.Organizata.AsNoTracking().Where(o => o.AllowCustomers);
+
+                var totalRecords = await query.CountAsync();
+                var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize!);
+
+                var organizata = await query
+                    .OrderByDescending(t => t.BiznesId)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var result = _mapper.Map<List<OrgDTO>>(organizata);
+
+                var page = new OrgPage
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = totalPages,
+                    TotalRecords = totalRecords,
+                    Data = result
+                };
+
+                var response = ApiResponse<OrgPage>.Ok(page, "Organizatat retrieved successfully");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<OrgPage>.Error(500, "An Error Occurred while retrieving Org", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
 
         [HttpGet("{id:int}")]
+        [Authorize]
         [ProducesResponseType(typeof(ApiResponse<Organizata>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<Organizata>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<Organizata>), StatusCodes.Status500InternalServerError)]

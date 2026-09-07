@@ -51,19 +51,6 @@
                             <span asp-validation-for="Passwordi" class="text-danger"></span>
                         </div>
 
-                        <div class="form-floating mb-3">
-                            <select asp-for="BiznesId" class="form-select" id="orgSelect"
-                                    asp-items="ViewBag.OrgList" aria-label="Zgjedh Organizatën">
-                                <option value="" selected disabled>-- Zgjedh Organizatën --</option>
-                            </select>
-
-                            <label asp-for="BiznesId">
-                                <i class="bi bi-building me-2"></i> Organizata
-                            </label>
-
-                            <span asp-validation-for="BiznesId" class="text-danger small"></span>
-                        </div>
-
                         <div class="d-grid mb-3">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="bi bi-check-circle me-2"></i> Krijo Llogarinë

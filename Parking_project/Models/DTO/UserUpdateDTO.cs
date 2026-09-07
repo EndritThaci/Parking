@@ -15,12 +15,6 @@ namespace Parking_project.Models.DTO
         [StringLength(100)]
         public string Mbiemri { get; set; }
 
-        //[Required]
-        //[EmailAddress]
-        //[StringLength(150)]
-        //public string Email { get; set; }
-
-        [Required]
-        public int BiznesId { get; set; }
+        public List<UserOrgCreateDto>? UserOrgs { get; set; }
     }
 }

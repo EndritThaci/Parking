@@ -1,0 +1,617 @@
+﻿@using Parking_web.Models.DTO
+@model Parking_web.Models.DTO.UserReadDTO
+
+@{
+    ViewData["Title"] = "Organizatat e përdoruesit";
+
+    var orgPage = ViewBag.OrgsPage as OrgPage;
+    var userOrgs = ViewBag.UserOrg as List<UserOrg> ?? new List<UserOrg>();
+
+    var selectedOrgIds = ViewBag.SelectedOrgIds as HashSet<int> ?? userOrgs.Select(x => x.BiznesId).ToHashSet();
+
+    var organizations = orgPage?.Data ?? new List<OrgDTO>();
+
+    var currentPage = orgPage?.PageNumber ?? 1;
+    var pageSize = orgPage?.PageSize ?? 10;
+    var totalPages = orgPage?.TotalPages ?? 0;
+}
+
+<div class="container py-5">
+    <h3 class="fw-bold d-flex justify-content-center mb-4">
+        <i class="bi bi-building me-1"></i>
+        Selektoni organizatat tuaja
+    </h3>
+
+    <div class="user-header mb-5">
+        <div class="user-avatar">
+            @Model.Emri?.FirstOrDefault()@Model.Mbiemri?.FirstOrDefault()
+        </div>
+
+        <div class="user-info">
+            <h3 class="fw-bold mb-1">
+                @Model.Emri @Model.Mbiemri
+            </h3>
+
+            <div class="text-muted small">
+                <i class="bi bi-envelope me-1"></i>
+                @Model.Email
+            </div>
+        </div>
+    </div>
+
+    @if (userOrgs.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div>
+                    <h5 class="fw-bold mb-1"> Organizatat aktive aktuale </h5>
+                    <small class="text-muted"> Organizatat që aktualisht janë të lidhura me llogarinë tuaj. </small>
+                </div>
+            </div>
+        
+            <div class="row g-3">
+                @foreach (var userOrg in userOrgs)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100 organization-card selected-card"
+                                data-org-id="@userOrg.BiznesId"
+                                data-selected="true"
+                                onclick="toggleOrganization(this)">
+
+                            <div class="selected-stripe"></div>
+
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h6 class="text-muted small text-uppercase fw-bold mb-1">
+                                            Organizata
+                                        </h6>
+
+                                        <h4 class="fw-black mb-0">
+                                            @(userOrg.Organizata?.EmriBiznesit ?? $"Organizata #{userOrg.BiznesId}")
+                                        </h4>
+                                    </div>
+
+                                    <div class="selection-icon">
+                                        <i class="bi bi-check-lg"></i>
+                                    </div>
+                                </div>
+
+                                @if (userOrg.Organizata != null)
+                                {
+                                    <div class="d-flex align-items-center text-muted small mb-4">
+                                        <i class="bi bi-geo-alt me-2 text-primary"></i>
+                                        <span class="text-truncate">
+                                            @userOrg.Organizata.Adresa
+                                        </span>
+                                    </div>
+                                }
+
+                                <button type="button"
+                                        class="btn btn-outline-danger w-100 rounded-pill fw-bold remove-selection"
+                                        onclick="event.stopPropagation(); toggleOrganization(this.closest('.organization-card'))">
+
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    Hiq përzgjedhjen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <hr class="my-5">
+
+    <div class="mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <div>
+                <h5 class="fw-bold mb-1"> Organizatat e disponueshme </h5>
+                <small class="text-muted"> Kliko mbi një organizatë për ta zgjedhur ose çzgjedhur. </small>
+            </div>
+
+            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">
+                <span id="selectedCount">@selectedOrgIds.Count</span> të zgjedhura
+            </span>
+        </div>
+    </div>
+
+    <form asp-controller="Profile"
+          asp-action="UpdateUserOrgs"
+          method="post"
+          id="userOrgForm">
+
+        @Html.AntiForgeryToken()
+
+        <div id="organizationInputs"></div>
+
+        <div class="row g-3">
+            @if (organizations.Any())
+            {
+                @foreach (var org in organizations)
+                {
+                    var isSelected = selectedOrgIds.Contains(org.BiznesId);
+
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100 organization-card @(isSelected ? "selected-card" : "")"
+                             data-org-id="@org.BiznesId"
+                             data-selected="@isSelected.ToString().ToLower()"
+                             onclick="toggleOrganization(this)">
+
+                            <div class="@(isSelected ? "selected-stripe" : "organization-stripe")"></div>
+
+                            <div class="card-body p-4">
+
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h6 class="text-muted small text-uppercase fw-bold mb-1">
+                                            Organizata
+                                        </h6>
+
+                                        <h4 class="fw-black mb-0">
+                                            @org.EmriBiznesit
+                                        </h4>
+                                    </div>
+
+                                    <div class="selection-icon @(isSelected ? "" : "unselected")">
+                                        <i class="bi @(isSelected ? "bi-check-lg" : "bi-plus-lg")"></i>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-center text-muted small mb-4">
+                                    <i class="bi bi-geo-alt me-2 text-primary"></i>
+                                    <span class="text-truncate">
+                                        @org.Adresa
+                                    </span>
+                                </div>
+
+                                <button type="button"
+                                        class="btn @(isSelected ? "btn-outline-danger remove-selection" : "btn-outline-primary card-action") w-100 rounded-pill fw-bold card-action"
+                                        onclick="event.stopPropagation(); toggleOrganization(this.closest('.organization-card'))">
+
+                                    @if (isSelected)
+                                    {
+                                        <i class="bi bi-x-circle me-1"></i>
+                                        <text>Hiq përzgjedhjen</text>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-plus-circle me-1"></i>
+                                        <text>Zgjidh Organizatën</text>
+                                    }
+
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="empty-state">
+                        <i class="bi bi-building"></i>
+                        <h5 class="fw-bold mt-3">Nuk ka organizata</h5>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (totalPages > 1)
+        {
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-5">
+                <div class="text-muted small">
+                    Faqja
+                    <strong>@currentPage</strong>
+                    nga
+                    <strong>@totalPages</strong>
+                </div>
+
+                <nav>
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                            <a class="page-link rounded-start-pill"
+                               asp-controller="Profile"
+                               asp-action="UserOrgs"
+                               asp-route-pageNumber="@(currentPage - 1)"
+                               asp-route-pageSize="@pageSize">
+
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+
+                        @{
+                            int startPage = Math.Max(1, currentPage - 2);
+                            int endPage = Math.Min(totalPages, currentPage + 2);
+                        }
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link"
+                                   asp-controller="Profile"
+                                   asp-action="UserOrgs"
+                                   asp-route-pageNumber="1"
+                                   asp-route-pageSize="@pageSize">
+                                    1
+                                </a>
+                            </li>
+
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link"
+                                   asp-controller="Profile"
+                                   asp-action="UserOrgs"
+                                   asp-route-pageNumber="@i"
+                                   asp-route-pageSize="@pageSize">
+
+                                    @i
+                                </a>
+                            </li>
+                        }
+
+                        @if (endPage < totalPages)
+                        {
+                            @if (endPage < totalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+
+                            <li class="page-item">
+                                <a class="page-link"
+                                   asp-controller="Profile"
+                                   asp-action="UserOrgs"
+                                   asp-route-pageNumber="@totalPages"
+                                   asp-route-pageSize="@pageSize">
+
+                                    @totalPages
+                                </a>
+                            </li>
+                        }
+
+                        <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                            <a class="page-link rounded-end-pill"
+                               asp-controller="Profile"
+                               asp-action="UserOrgs"
+                               asp-route-pageNumber="@(currentPage + 1)"
+                               asp-route-pageSize="@pageSize">
+
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+
+        <div class="save-area mt-5">
+            <div>
+                <h6 class="fw-bold mb-1">
+                    Përditëso organizatat
+                </h6>
+
+                <small class="text-muted">
+                    Ndryshimet do të aplikohen pasi të klikoni butonin.
+                </small>
+            </div>
+
+            <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-sm">
+                <i class="bi bi-check2-circle me-2"></i>
+                Ruaj ndryshimet
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        let storedOrganizations = sessionStorage.getItem("selectedOrganizations");
+
+        let selectedOrganizations = new Set(
+            storedOrganizations ? JSON.parse(storedOrganizations) : @Html.Raw(System.Text.Json.JsonSerializer.Serialize(selectedOrgIds))
+        );
+
+        function toggleOrganization(card) {
+            const orgId = parseInt(card.dataset.orgId);
+            if (!orgId) return;
+
+            if (selectedOrganizations.has(orgId)) {
+                selectedOrganizations.delete(orgId);
+            }
+            else {
+                selectedOrganizations.add(orgId);
+            }
+
+            saveSelectedOrganizations();
+            updateAllOrganizationCards(orgId);
+            updateHiddenInput();
+            updateSelectedCount();
+        }
+
+        function saveSelectedOrganizations() {
+            sessionStorage.setItem("selectedOrganizations", JSON.stringify(Array.from(selectedOrganizations)));
+        }
+
+        document.getElementById("userOrgForm").addEventListener("submit", function() {
+            updateHiddenInput();
+            sessionStorage.removeItem("selectedOrganizations");
+        });
+
+        function updateAllOrganizationCards(orgId) {
+            const isSelected = selectedOrganizations.has(orgId);
+            document.querySelectorAll(`.organization-card[data-org-id="${orgId}"]`)
+                    .forEach(card => {
+                        card.dataset.selected = isSelected.toString();
+                        updateCardAppearance(card, isSelected);
+                    });
+        }
+
+
+        function updateCardAppearance(card, selected) {
+            const icon = card.querySelector(".selection-icon");
+            const button = card.querySelector(".card-action, .remove-selection");
+            const stripe = card.querySelector(".organization-stripe, .selected-stripe");
+
+            if (selected) {
+                card.classList.add("selected-card");
+
+                if (stripe) {
+                    stripe.classList.remove("organization-stripe");
+                    stripe.classList.add("selected-stripe");
+                }
+
+                if (icon) {
+                    icon.classList.remove("unselected");
+                    icon.innerHTML = '<i class="bi bi-check-lg"></i>';
+                }
+
+                if (button) {
+                    button.classList.remove( "btn-primary", "btn-outline-primary" );
+                    button.classList.add("btn-outline-danger");
+                    button.classList.remove("card-action");
+                    button.classList.add("remove-selection");
+                    button.innerHTML = '<i class="bi bi-x-circle me-1"></i> Hiq përzgjedhjen';
+                }
+            }
+            else {
+                card.classList.remove("selected-card");
+
+                if (stripe) {
+                    stripe.classList.remove("selected-stripe");
+                    stripe.classList.add("organization-stripe");
+                }
+                 
+                if (icon) {
+                    icon.classList.add("unselected");
+                    icon.innerHTML = '<i class="bi bi-plus-lg"></i>';
+                }
+
+                if (button) {
+                    button.classList.remove( "btn-primary", "btn-outline-danger" );
+                    button.classList.add("btn-outline-primary");
+                    button.classList.remove("remove-selection");
+                    button.classList.add("card-action");
+                    button.classList.add("btn-outline-primary");
+                    button.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Zgjidh Organizatën';
+                }
+            }
+        }
+
+        function updateHiddenInput() {
+            const container = document.getElementById("organizationInputs");
+            container.innerHTML = "";
+
+            selectedOrganizations.forEach(orgId => {
+                const input = document.createElement("input");
+
+                input.type = "hidden";
+                input.name = "organizationIds";
+                input.value = orgId;
+                container.appendChild(input);
+            });
+        }
+
+        function updateSelectedCount() {
+            document.getElementById("selectedCount").innerText = selectedOrganizations.size;
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            updateHiddenInput();
+            updateSelectedCount();
+
+            document.querySelectorAll(".organization-card").forEach(card => {
+                const orgId = parseInt(card.dataset.orgId);
+
+                if (selectedOrganizations.has(orgId)) {
+                    updateCardAppearance(card, true);
+                } else {
+                    updateCardAppearance(card, false);
+                }
+            });
+        });
+    </script>
+
+}
+
+<style>
+
+    body {
+        background: #f8f9fa;
+    }
+
+    .user-header {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 20px 25px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, .05);
+    }
+
+    .user-avatar {
+        width: 64px;
+        height: 64px;
+        min-width: 64px;
+        border-radius: 50%;
+        background: #e7f1ff;
+        color: #0d6efd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .user-info h3 {
+        color: #2b2b2b;
+        letter-spacing: -0.4px;
+    }
+
+    .icon-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e7f1ff;
+        color: #0d6efd;
+        font-size: 1.5rem;
+    }
+
+    .organization-card {
+        border-radius: 20px;
+        background: #ffffff;
+        cursor: pointer;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border 0.25s ease;
+        position: relative;
+        overflow: hidden;
+        border: 2px solid transparent !important;
+    }
+
+        .organization-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(13, 110, 253, 0.10) !important;
+            border-color: rgba(13, 110, 253, 0.25) !important;
+        }
+
+    .organization-stripe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: #0d6efd;
+    }
+
+    .selected-stripe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: #198754;
+    }
+
+    .selected-card {
+        border-color: #198754 !important;
+        box-shadow: 0 8px 25px rgba(25, 135, 84, 0.12) !important;
+    }
+
+        .selected-card:hover {
+            border-color: #198754 !important;
+            box-shadow: 0 12px 30px rgba(25, 135, 84, 0.18) !important;
+        }
+
+    .selection-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #d1e7dd;
+        color: #198754;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+        .selection-icon.unselected {
+            background: #e7f1ff;
+            color: #0d6efd;
+        }
+
+    .fw-black {
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: #2b2b2b;
+    }
+
+    .empty-state {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 50px 20px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,.04);
+        color: #6c757d;
+    }
+
+        .empty-state > i {
+            font-size: 2.5rem;
+            color: #adb5bd;
+        }
+
+    .save-area {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 20px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.06);
+        position: sticky;
+        bottom: 20px;
+        z-index: 20;
+    }
+
+    .pagination .page-link {
+        border: none;
+        margin: 0 2px;
+        border-radius: 10px;
+        min-width: 38px;
+        text-align: center;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: #0d6efd;
+        color: #ffffff;
+    }
+
+    @@media (max-width: 768px) {
+
+        .save-area {
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+            .save-area button {
+                width: 100%;
+            }
+    }
+
+</style>

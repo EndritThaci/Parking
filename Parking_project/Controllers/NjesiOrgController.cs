@@ -44,11 +44,11 @@ namespace Parking_project.Controllers
         [Authorize]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<NjesiReadDto>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<IEnumerable<NjesiReadDto>>>> GetNjesiByOrg()
+        public async Task<ActionResult<ApiResponse<IEnumerable<NjesiReadDto>>>> GetNjesiByOrg(int? id)
         {
             try
             {
-                int biznesId = int.Parse(User.FindFirst("BiznesId")!.Value);
+                int biznesId = id != null ? id.Value : int.Parse(User.FindFirst("BiznesId")!.Value);
                 var njesiOrgList = await _db.NjesiOrg.Where(a => a.active).Include(o => o.Organizata).Where(n => n.BiznesId == biznesId).ToListAsync();
                 var dtoResponseNjesi = _mapper.Map<List<NjesiReadDto>>(njesiOrgList);
                 var response = ApiResponse<IEnumerable<NjesiReadDto>>.Ok(dtoResponseNjesi, "Records retrieved successfully");

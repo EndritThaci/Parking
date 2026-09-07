@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Parking_project.Models
 {
@@ -44,5 +45,6 @@ namespace Parking_project.Models
         [StringLength(150)]
         public string Email { get; set; }
 
+        public bool AllowCustomers { get; set; } = true;
     }
 }

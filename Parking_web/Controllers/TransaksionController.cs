@@ -3,9 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Parking_web.Models;
 using Parking_web.Models.DTO;
-using Parking_web.Services;
 using Parking_web.Services.IServices;
-using System.Drawing.Printing;
 
 namespace Parking_web.Controllers
 {
@@ -26,6 +24,7 @@ namespace Parking_web.Controllers
             if (User.FindFirst("BiznesId")?.Value == "")
             {
                 TempData["error"] = "Zgjedh një organizatë";
+                if(User.IsInRole("Admin")) return RedirectToAction("Index", "Home");
                 return RedirectToAction("Index", "Organizata");
             }
 
@@ -68,6 +67,11 @@ namespace Parking_web.Controllers
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> IndexManager(int pageNumber = 1, int pageSize = 10)
         {
+            if (User.FindFirst("BiznesId")?.Value == "0")
+            {
+                TempData["error"] = "Nuk keni organizatë";
+                return RedirectToAction("Index", "Home");
+            }
             try
             {
                 var response = await _transaksionService.GetAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, 0);
