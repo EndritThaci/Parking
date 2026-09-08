@@ -125,14 +125,15 @@ namespace Parking_web.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> EntryQR(int njesiaId)
+        public async Task<IActionResult> EntryQR(int njesiaId, string? identifikues)
         {
             ViewBag.UserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            ViewBag.Identifikues = identifikues;
             return View(njesiaId);
         }
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> EntryQRReader(int njesiaId, int u, string s)
+        public async Task<IActionResult> EntryQRReader(int njesiaId, int u, string s, string? i)
         {
             string expectedSignature = GenerateSignature(njesiaId: njesiaId, userId: u);
             if (s != expectedSignature)
@@ -141,17 +142,17 @@ namespace Parking_web.Controllers
                 return RedirectToAction("Index");
             }
             ViewBag.UserId = u;
+            ViewBag.Identifikues = i;
             return View(njesiaId);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateTransacsion(int njesiaId, int userId)
+        public async Task<IActionResult> CreateTransacsion(int njesiaId, int userId, string? identifikues)
         {
             TransaksionetCreateDto createDto = new();
             try
             {
-
                 var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
                 var cilsimet = cilsimiResponse?.Data;
                 var cilsimiActiv = cilsimet?.FirstOrDefault(c => c.Selected);
@@ -164,6 +165,7 @@ namespace Parking_web.Controllers
                 createDto.NjesiaId = njesiaId;
                 createDto.CilsimiId = cilsimiActiv.CilsimetiId;
                 createDto.UserId = userId;
+                createDto.Identifikues = identifikues;
 
                 var response = await _transaksioniService.CreateAsync<ApiResponse<TransaksionetCreateDto>>(createDto);
                 if (response != null && response.Success && response.Data != null)
@@ -309,7 +311,7 @@ namespace Parking_web.Controllers
             return RedirectToAction("Index");
         }
 
-        public IActionResult QRGenerate(int? id, int? selectedCardId, int? njesiaId, int? userId)
+        public IActionResult QRGenerate(int? id, int? selectedCardId, int? njesiaId, int? userId, string? identifikues)
         {
             using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
             {
@@ -325,7 +327,7 @@ namespace Parking_web.Controllers
                 else if (njesiaId != null && userId != null)
                 {
                     string signature = GenerateSignature(njesiaId: njesiaId, userId: userId);
-                    url = $"{server}/Home/EntryQRReader?njesiaId={njesiaId}&u={userId}&s={signature}";
+                    url = $"{server}/Home/EntryQRReader?njesiaId={njesiaId}&u={userId}&s={signature}&i={identifikues}";
                 }
                 else if (id != null)
                 {

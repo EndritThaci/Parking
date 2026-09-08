@@ -12,5 +12,6 @@ namespace Parking_web.Models.DTO
         public int CilsimiId { get; set; }
 
         public int? UserId { get; set; }
+        public string? Identifikues { get; set; }
     }
 }

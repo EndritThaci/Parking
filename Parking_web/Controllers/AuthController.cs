@@ -253,6 +253,57 @@ namespace Parking_web.Controllers
             return View(userDTO);
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RegisterEmployee()
+        {
+            await PopulateNjesiteViewBag();
+            return View(new UserCreateDTO
+            {
+                Email = string.Empty,
+                Emri = string.Empty,
+                Passwordi = string.Empty
+            });
+        }
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegisterEmployee(UserCreateDTO userDTO, int njesiaId)
+        {
+            if (njesiaId <= 0)
+            {
+                ModelState.AddModelError( "njesiaId", "Ju lutem zgjidhni një njësi.");
+                await PopulateNjesiteViewBag();
+                return View(userDTO);
+            }
+            try
+            {
+                var userOrg = new UserOrgCreateDto();
+                userOrg.BiznesId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == "BiznesId")?.Value ?? "0");
+                userOrg.NjesiaId = njesiaId;
+                userDTO.UserOrgs = new List<UserOrgCreateDto> { userOrg };
+                ApiResponse<UserReadDTO>? response = await _authService.RegisterEmployeeAsync<ApiResponse<UserReadDTO>>(userDTO);
+                if (response != null && response.Success && response.Data != null)
+                {
+                    TempData["success"] = "Regjistrimi u be me sukses!";
+                    await PopulateNjesiteViewBag();
+                    return View();
+                }
+                else
+                {
+                    TempData["error"] = response?.Message ?? "Regjistrimi deshtoj. Ju lutem provoni perseri.";
+                    await PopulateNjesiteViewBag();
+                    return View(userDTO);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"Gabim: {ex.Message}";
+            }
+            await PopulateNjesiteViewBag();
+            return View(userDTO);
+        }
+
         public static async Task RefreshUserClaims(HttpContext httpContext, string? newBiznesId, string? newBiznesName)
         {
             var identity = httpContext.User.Identity as ClaimsIdentity;

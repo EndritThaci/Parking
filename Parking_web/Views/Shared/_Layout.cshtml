@@ -92,8 +92,18 @@
                                     </li>
                                 }else if (User.IsInRole("Admin"))
                                 {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="RegisterManager">Krijo Menaxher</a>
+                                    <li class="navbar-nav dropdown">
+                                        <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            @* <i class="bi bi-person-add"></i>*@ Shto Punëtorë 
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" asp-area="" asp-controller="Auth" asp-action="RegisterManager"><i class="bi bi-person-plus-fill text-primary"></i> Shto Menaxher</a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" asp-area="" asp-controller="Auth" asp-action="RegisterEmployee"><i class="bi bi-person-plus-fill text-primary"></i> Shto Punëtorë</a>
+                                            </li>
+                                        </ul>
                                     </li>
                                 }
                                 <li class="navbar-nav dropdown">

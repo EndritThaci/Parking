@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Parking_project.Models.DTO
+﻿namespace Parking_project.Models.DTO
 {
     public class TransaksionRead
     {
@@ -15,6 +12,7 @@ namespace Parking_project.Models.DTO
         public DateTime? KohaDaljes { get; set; }
 
         public string Statusi { get; set; }
+        public string? Identifikues { get; set; }
 
         public NjesiOrg Njesia{ get; set; }
         public CilsimetParkimit Cilsimi { get; set; }

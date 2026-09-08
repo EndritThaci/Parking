@@ -15,6 +15,7 @@ namespace Parking_web.Models.DTO
         public DateTime? KohaDaljes { get; set; }
 
         public string Statusi { get; set; }
+        public string? Identifikues { get; set; }
 
         public NjesiOrg Njesia { get; set; }
         public CilsimetParkimit Cilsimi { get; set; }

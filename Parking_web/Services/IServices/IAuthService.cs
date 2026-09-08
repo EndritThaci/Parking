@@ -8,5 +8,6 @@ namespace Parking_web.Services.IServices
         Task<T?> RegisterAsync<T>(UserCreateDTO userCreateDTO);
         Task<T?> RegisterAdminAsync<T>(UserCreateDTO userCreateDTO);
         Task<T?> RegisterManagerAsync<T>(UserCreateDTO userCreateDTO);
+        Task<T?> RegisterEmployeeAsync<T>(UserCreateDTO userCreateDTO);
     }
 }

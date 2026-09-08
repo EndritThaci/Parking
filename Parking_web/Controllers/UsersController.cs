@@ -8,10 +8,12 @@ namespace Parking_web.Controllers
     public class UsersController : Controller
     {
         private readonly IUserService _userService;
+        private readonly IUserOrgService _userOrgService;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService,IUserOrgService userOrgService)
         {
             _userService = userService;
+            _userOrgService = userOrgService;
         }
 
         [Authorize(Roles = "Admin , Super Admin")]
@@ -46,7 +48,7 @@ namespace Parking_web.Controllers
         {
             try
             {
-                var response = await _userService.DeleteUserOrgAsync<ApiResponse<object>>(userId);
+                var response = await _userOrgService.DeleteUserOrgAsync<ApiResponse<object>>(userId);
 
                 if (response != null && response.Success)
                 {

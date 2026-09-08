@@ -115,6 +115,24 @@
                 <span id="selectedCount">@selectedOrgIds.Count</span> të zgjedhura
             </span>
         </div>
+
+        <form asp-controller="Profile" asp-action="UserOrgs" method="get" class="mt-3">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white border-end-0"> <i class="bi bi-search text-muted"></i> </span>
+                <input type="text" name="search" value="@Context.Request.Query["search"]" class="form-control border-start-0" placeholder="Kërko organizatë..." />
+                <input type="hidden" name="pageSize" value="@pageSize" />
+                @if (!string.IsNullOrWhiteSpace(Context.Request.Query["search"]))
+                {
+                    <a asp-controller="Profile"
+                       asp-action="UserOrgs"
+                       asp-route-pageSize="@pageSize"
+                       class="btn btn-outline-secondary px-3">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+                <button type="submit" class="btn btn-primary px-4"> Kërko </button>
+            </div>
+        </form>
     </div>
 
     <form asp-controller="Profile"
@@ -214,6 +232,7 @@
                             <a class="page-link rounded-start-pill"
                                asp-controller="Profile"
                                asp-action="UserOrgs"
+                               asp-route-search="@Context.Request.Query["search"]"
                                asp-route-pageNumber="@(currentPage - 1)"
                                asp-route-pageSize="@pageSize">
 
@@ -231,6 +250,7 @@
                                 <a class="page-link"
                                    asp-controller="Profile"
                                    asp-action="UserOrgs"
+                                   asp-route-search="@Context.Request.Query["search"]"
                                    asp-route-pageNumber="1"
                                    asp-route-pageSize="@pageSize">
                                     1
@@ -251,6 +271,7 @@
                                 <a class="page-link"
                                    asp-controller="Profile"
                                    asp-action="UserOrgs"
+                                   asp-route-search="@Context.Request.Query["search"]"
                                    asp-route-pageNumber="@i"
                                    asp-route-pageSize="@pageSize">
 
@@ -272,6 +293,7 @@
                                 <a class="page-link"
                                    asp-controller="Profile"
                                    asp-action="UserOrgs"
+                                   asp-route-search="@Context.Request.Query["search"]"
                                    asp-route-pageNumber="@totalPages"
                                    asp-route-pageSize="@pageSize">
 
@@ -284,6 +306,7 @@
                             <a class="page-link rounded-end-pill"
                                asp-controller="Profile"
                                asp-action="UserOrgs"
+                               asp-route-search="@Context.Request.Query["search"]"
                                asp-route-pageNumber="@(currentPage + 1)"
                                asp-route-pageSize="@pageSize">
 

@@ -1,0 +1,92 @@
+﻿@model Parking_web.Models.DTO.UserCreateDTO
+@{
+    ViewData["Title"] = "Shto Punëtorë";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow mt-5 mb-5">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="bi bi-person-plus-fill text-primary display-1"></i>
+                        </div>
+                        <h3 class="fw-bold text-primary mb-2">Krijo Llogari Punëtorë</h3>
+                        <p class="text-muted">Plotësoni të dhënat për të regjistruar Punëtorin</p>
+                    </div>
+
+                    <form asp-action="RegisterEmployee" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Emri" class="form-control" placeholder="Emri" />
+                            <label asp-for="Emri" class="form-label">
+                                <i class="bi bi-person me-2"></i> Emri
+                            </label>
+                            <span asp-validation-for="Emri" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Mbiemri" class="form-control" placeholder="Mbiemri" />
+                            <label asp-for="Mbiemri" class="form-label">
+                                <i class="bi bi-person me-2"></i> Mbiemri
+                            </label>
+                            <span asp-validation-for="Mbiemri" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Email" class="form-control" placeholder="emri@shembull.com" />
+                            <label asp-for="Email" class="form-label">
+                                <i class="bi bi-envelope me-2"></i> Email
+                            </label>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Passwordi" class="form-control" placeholder="Fjalëkalimi" type="password" />
+                            <label asp-for="Passwordi" class="form-label">
+                                <i class="bi bi-lock me-2"></i> Fjalëkalimi
+                            </label>
+                            <span asp-validation-for="Passwordi" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <select name="njesiaId" class="form-select" id="njesiaSelect" asp-items="ViewBag.NjesiteList" required>
+                                <option value="">-- Zgjedh Njësinë --</option>
+                            </select>
+
+                            <label for="njesiaSelect">
+                                <i class="bi bi-building me-2"></i> Njësia Organizative
+                            </label>
+
+                            <span class="text-danger small" data-valmsg-for="njesiaId"></span>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle me-2"></i> Krijo Llogarinë
+                            </button>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="text-center">
+                            <p class="mb-3 text-muted">Keni një llogari ekzistuese?</p>
+                            <a asp-action="Login" class="btn btn-outline-primary">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Kyçu Këtu
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-floating > .form-control::placeholder {
+        font-size: 0.85rem;
+        color: #adb5bd;
+    }
+</style>

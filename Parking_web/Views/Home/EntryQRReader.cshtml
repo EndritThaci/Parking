@@ -10,7 +10,7 @@
     </div>
 
     <form id="autoPostForm" asp-controller="Home" asp-action="CreateTransacsion"
-          asp-route-njesiaId="@Model" asp-route-userId="@ViewBag.UserId"
+          asp-route-njesiaId="@Model" asp-route-userId="@ViewBag.UserId" asp-route-identifikues="@ViewBag.Identifikues"
           method="post" class="d-none">
         @Html.AntiForgeryToken()
     </form>

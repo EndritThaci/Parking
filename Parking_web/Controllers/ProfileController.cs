@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Parking_web.Models;
 using Parking_web.Models.DTO;
 using Parking_web.Services.IServices;
@@ -17,10 +16,11 @@ namespace Parking_web.Controllers
         private readonly ICilsimiService _cilsimiService;
         private readonly IDetajetService _detajetService;
         private readonly IUserService _userService; 
+        private readonly IUserOrgService _userOrgService; 
         private readonly ICreditCardService _creditCardService;
         private readonly IMapper _mapper;
 
-        public ProfileController(IOrganizataService organizataService,INjesiaService njesiaService, IMapper mapper, ISherbimiService shebimiService, ICilsimiService cilsimiService, IDetajetService detajetService, IUserService userService, ICreditCardService creditCardService)
+        public ProfileController(IOrganizataService organizataService,INjesiaService njesiaService, IMapper mapper, ISherbimiService shebimiService, ICilsimiService cilsimiService, IDetajetService detajetService, IUserService userService, IUserOrgService userOrgService, ICreditCardService creditCardService)
         {
             _organizataService = organizataService;
             _njesiaService = njesiaService;
@@ -29,6 +29,7 @@ namespace Parking_web.Controllers
             _cilsimiService = cilsimiService;
             _detajetService = detajetService;
             _userService = userService;
+            _userOrgService = userOrgService;
             _creditCardService = creditCardService;
         }
 
@@ -50,7 +51,7 @@ namespace Parking_web.Controllers
                 ViewBag.CardDetails = cardDetails.Data;
             }
 
-            var userOrg = await _userService.GetUserOrgByUserAsync<ApiResponse<List<UserOrg>>>(userId);
+            var userOrg = await _userOrgService.GetUserOrgByUserAsync<ApiResponse<List<UserOrg>>>(userId);
             if (userOrg != null && userOrg.Data != null && userOrg.Data.Count > 0) {
                 ViewBag.UserOrg = userOrg?.Data;
             }
@@ -109,8 +110,8 @@ namespace Parking_web.Controllers
             return RedirectToAction("Index");
         }
 
-        [Authorize]
-        public async Task<IActionResult> UserOrgs(int pageNumber = 1, int pageSize = 9, string? organizationIds = null)
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> UserOrgs(int pageNumber = 1, int pageSize = 9, string? search = null)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim)) return RedirectToAction("Login", "Auth");
@@ -120,13 +121,13 @@ namespace Parking_web.Controllers
             var user = await _userService.GetAsync<ApiResponse<UserReadDTO>>(userId);
             if (user == null) return NotFound();
 
-            var orgs = await _organizataService.GetForCustomersAsync<ApiResponse<OrgPage>>(pageNumber, pageSize);
+            var orgs = await _organizataService.GetForCustomersAsync<ApiResponse<OrgPage>>(search, pageNumber, pageSize);
             if (orgs != null && orgs.Success && orgs.Data != null)
             {
                 ViewBag.OrgsPage = orgs.Data;
             }
 
-            var userOrg = await _userService.GetUserOrgByUserAsync<ApiResponse<List<UserOrg>>>(userId);
+            var userOrg = await _userOrgService.GetUserOrgByUserAsync<ApiResponse<List<UserOrg>>>(userId);
             if (userOrg != null && userOrg.Data != null && userOrg.Data.Count > 0)
             {
                 ViewBag.UserOrg = userOrg.Data;
@@ -137,6 +138,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Customer")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateUserOrgs(List<int> organizationIds)
         {

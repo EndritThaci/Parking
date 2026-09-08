@@ -13,8 +13,6 @@ namespace Parking_project.Controllers
     [Route("api/transaksionetParkimit")]
     public class TransaksionetController : Controller
     {
-
-
         private readonly AplicationDbContext _db;
         private readonly IMapper _mapper;
         public TransaksionetController(AplicationDbContext db, IMapper mapper)
@@ -165,6 +163,7 @@ namespace Parking_project.Controllers
                     KohaDaljes = t.KohaDaljes,
                     Cmimi = getSherbimet.Where(i => i.TransaksionId == t.TransaksioniId).Sum(c => c.Cmimi),
                     Statusi = t.Statusi,
+                    Identifikues = t.Identifikues,
                     Njesia = t.Njesia,
                     Cilsimi = t.Cilsimet,
                     Useri = t.User,
@@ -426,6 +425,7 @@ namespace Parking_project.Controllers
                 transaksionet.KohaHyrjes = DateTime.UtcNow;
                 transaksionet.KohaDaljes = null;
                 transaksionet.UserId = userId;
+                transaksionet.Identifikues = transaksionetCreateDto.Identifikues;
 
                 getNjesia.VendeTeLira--;
                 await _db.SaveChangesAsync();

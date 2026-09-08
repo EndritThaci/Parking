@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Parking_web.Models
@@ -16,6 +15,9 @@ namespace Parking_web.Models
         [Required]
         [StringLength(50)]
         public string Statusi { get; set; }
+        
+        [StringLength(50)]
+        public string? Identifikues { get; set; }
 
         [Required]
         public int NjesiaId { get; set; }

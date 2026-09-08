@@ -49,5 +49,15 @@ namespace Parking_web.Services
                 Url = APIEndPoint + "/signUp/Manager",
             });
         }
+
+        public Task<T?> RegisterEmployeeAsync<T>(UserCreateDTO userCreateDTO)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.POST,
+                Data = userCreateDTO,
+                Url = APIEndPoint + "/signUp/Employee",
+            });
+        }
     }
 }

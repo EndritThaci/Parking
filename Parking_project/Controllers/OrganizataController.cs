@@ -109,7 +109,7 @@ namespace Parking_project.Controllers
         [ProducesResponseType(typeof(ApiResponse<OrgPage>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<OrgPage>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<OrgPage>>> GetOrganizataForCustomers(int pageNumber = 1, int pageSize = 10)
+        public async Task<ActionResult<ApiResponse<OrgPage>>> GetOrganizataForCustomers(string? search, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
@@ -119,6 +119,17 @@ namespace Parking_project.Controllers
                 }
 
                 var query = _db.Organizata.AsNoTracking().Where(o => o.AllowCustomers);
+                if (search != null)
+                {
+                    var val = search.ToLower();
+                    query = query.Where(x =>
+                            x.EmriBiznesit.ToLower().Contains(val) ||
+                            x.Adresa.ToLower().Contains(val) ||
+                            x.NumriBiznesit.ToLower().Contains(val) ||
+                            x.NumriFiskal.ToLower().Contains(val) ||
+                            x.NumriUnikIdentifikues.ToLower().Contains(val) ||
+                            x.Komuna.ToLower().Contains(val));
+                }
 
                 var totalRecords = await query.CountAsync();
                 var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize!);

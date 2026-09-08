@@ -15,6 +15,9 @@ namespace Parking_project.Models
         [Required]
         [StringLength(50)]
         public string Statusi { get; set; }
+        
+        [StringLength(50)]
+        public string? Identifikues { get; set; }
 
         [Required]
         public int NjesiaId { get; set; }
@@ -29,13 +32,9 @@ namespace Parking_project.Models
         public CilsimetParkimit Cilsimet{ get; set; }
 
         [Required]
-        public int UserId { get; set; } = 1;
+        public int UserId { get; set; }
 
         [ForeignKey(nameof(UserId))]
         public Useri User { get; set; }
-
-
-
-
     }
 }
