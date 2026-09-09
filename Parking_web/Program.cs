@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.UseUrls("http://localhost:4000","http://0.0.0.0:4000");
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache();
@@ -15,6 +17,16 @@ builder.Services.AddSession(option =>
     option.IdleTimeout = TimeSpan.FromMinutes(60);
     option.Cookie.HttpOnly = true;
     option.Cookie.IsEssential = true;
+});
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalNetwork", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
 });
 
 builder.Services.AddAutoMapper(o =>
@@ -89,6 +101,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("AllowLocalNetwork");
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();

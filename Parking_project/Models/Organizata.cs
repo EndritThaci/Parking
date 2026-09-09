@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace Parking_project.Models
 {
@@ -10,23 +9,23 @@ namespace Parking_project.Models
 
         [Required]
         [StringLength(200)]
-        public string EmriBiznesit { get; set; }
+        public string EmriBiznesit { get; set; } = string.Empty;
 
         [Required]
         [StringLength(50)]
-        public string NumriUnikIdentifikues { get; set; }
+        public string NumriUnikIdentifikues { get; set; } = string.Empty;
 
         [Required]
         [StringLength(200)]
-        public string Adresa { get; set; }
+        public string Adresa { get; set; } = string.Empty;
 
         [Required]
         [StringLength(50)]
-        public string NumriBiznesit { get; set; }
+        public string NumriBiznesit { get; set; } = string.Empty;
 
         [Required]
         [StringLength(50)]
-        public string NumriFiskal { get; set; }
+        public string NumriFiskal { get; set; } = string.Empty;
 
         public int NumriPunetoreve { get; set; }
 
@@ -35,16 +34,17 @@ namespace Parking_project.Models
 
         [Required]
         [StringLength(100)]
-        public string Komuna { get; set; }
+        public string Komuna { get; set; } = string.Empty;
 
         [Phone]
         [StringLength(30)]
-        public string Telefoni { get; set; }
+        public string Telefoni { get; set; } = string.Empty;
 
         [EmailAddress]
         [StringLength(150)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         public bool AllowCustomers { get; set; } = true;
+        public bool QRScanner { get; set; } = false;
     }
 }

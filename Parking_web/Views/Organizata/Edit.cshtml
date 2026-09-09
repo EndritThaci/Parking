@@ -78,7 +78,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-12 mb-4">
+                            <div class="col-md-6 mb-4">
                                 <div class="form-check form-switch">
                                     <input asp-for="AllowCustomers" class="form-check-input" type="checkbox" role="switch" id="allowCustomers" />
 
@@ -92,6 +92,21 @@
                                 </small>
 
                                 <span asp-validation-for="AllowCustomers" class="text-danger small d-block"></span>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="form-check form-switch">
+                                    <input asp-for="QRScanner" class="form-check-input" type="checkbox" role="switch" id="qrScanner"/>
+
+                                    <label asp-for="QRScanner" class="form-check-label fw-semibold" for="qrScanner">
+                                        Skano QR kodin tek klienti
+                                    </label>
+                                </div>
+
+                                <small class="text-muted">
+                                    Aktivizoni këtë opsion nëse kjo organizatë skanon kodin tek klientët.
+                                </small>
+
+                                <span asp-validation-for="QRScanner" class="text-danger small d-block"></span>
                             </div>
                         </div>
 

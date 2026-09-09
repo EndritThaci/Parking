@@ -1,5 +1,506 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@model List<Parking_web.Models.DTO.TransaksionRead>
+
+@if (User.Identity == null || !User.Identity.IsAuthenticated)
+{
+    Context.Response.Redirect(Url.Action("Login", "Auth")!);
 }
+else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
+{
+    Context.Response.Redirect(Url.Action("Index", "Home")!);
+}
+
+@{
+    ViewData["Title"] = "POS ";
+
+    var transactions = Model ?? new List<Parking_web.Models.DTO.TransaksionRead>();
+    var njesiaId = ViewBag.NjesiaId ?? 0;
+    var userId = ViewBag.UserId ?? 0;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="pos-title-icon">
+                    <i class="bi bi-p-square"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0">Parking POS</h3>
+                    <div class="text-muted small"> Menaxhimi i transaksioneve </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body">
+                <form asp-action="CreateTransacsion" method="post" class="d-flex align-items-center gap-2" id="createTransactionForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="njesiaId" value="@njesiaId" />
+                    <input type="hidden" name="userId" value="@userId" />
+
+                    <div class="input-group input-group-md pos-create-input">
+                        <span class="input-group-text">
+                            <i class="bi bi-car-front-fill"></i>
+                        </span>
+                        <input type="text"
+                               id="identifikues"
+                               name="identifikues"
+                               class="form-control text-uppercase fw-bold"
+                               placeholder="Targa..."
+                               maxlength="20"
+                               autocomplete="off"
+                               required />
+
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-plus-lg me-1"></i>
+                            Shto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-xl-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small"> Në pritje </div>
+                            <div class="fs-3 fw-bold" id="pendingCount">
+                                @transactions.Count
+                            </div>
+                        </div>
+                        <div class="pos-stat-icon bg-warning-subtle text-warning">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-xl-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small"> Të shfaqura </div>
+                            <div class="fs-3 fw-bold" id="visibleCount">
+                                @transactions.Count
+                            </div>
+                        </div>
+                        <div class="pos-stat-icon bg-primary-subtle text-primary">
+                            <i class="bi bi-list-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-xl-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small"> Shërbime Shtesë </div>
+                            <div class="fs-3 fw-bold">
+                                @(transactions.Sum(x => x.Sherbimi?.Count ?? 0) - transactions.Count)
+                            </div>
+                        </div>
+                        <div class="pos-stat-icon bg-info-subtle text-info">
+                            <i class="bi bi-tools"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-3">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-lg-5">
+                    <label class="form-label small fw-bold text-muted"> Kërko sipas targës </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-car-front-fill text-muted"></i>
+                        </span>
+                        <input type="text"
+                               id="transactionSearch"
+                               class="form-control"
+                               placeholder="Shkruaj targën..."
+                               autocomplete="off" />
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <label class="form-label small fw-bold text-muted"> Nga </label>
+                    <input type="datetime-local"
+                           id="dateFrom"
+                           class="form-control" />
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <label class="form-label small fw-bold text-muted"> Deri </label>
+                    <input type="datetime-local"
+                           id="dateTo"
+                           class="form-control" />
+                </div>
+
+                <div class="col-12 col-lg-1">
+                    <button type="button"
+                            class="btn btn-outline-secondary w-100"
+                            onclick="clearFilters()"
+                            title="Pastro filtrat">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-0 p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+                <div>
+                    <h5 class="fw-bold mb-1"> Transaksionet në pritje </h5>
+                    <small class="text-muted"> Automjetet që aktualisht ndodhen në parking </small>
+                </div>
+                <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-2">
+                    <span id="tableCount"> @transactions.Count </span> transaksione
+                </span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="transactionsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4"> # </th>
+                        <th> <i class="bi bi-car-front-fill me-1"></i> Targa </th>
+                        <th> Hyrja </th>
+                        <th> Shërbime Shtesë </th>
+                        <th> Statusi </th>
+                        <th> Krijuar Nga </th>
+                        <th class="text-end pe-4"> Veprime </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (transactions.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="bi bi-car-front display-4 text-muted"></i>
+                                    <h5 class="fw-bold mt-3"> Nuk ka transaksione </h5>
+                                    <p class="text-muted mb-3"> Aktualisht nuk ka automjete në pritje. </p>
+                                    <button type="button" class="btn btn-primary rounded-pill px-4" onclick="openCreateTransactionModal()">
+                                        <i class="bi bi-plus-lg me-1"></i>
+                                        Krijo transaksion
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        var index = 1;
+                        foreach (var item in transactions)
+                        {
+                            var identifier = item.Identifikues ?? "";
+                            var serviceCount = item.Sherbimi?.Count ?? 0;
+
+                            <tr class="transaction-row"
+                                data-identifier="@identifier.ToLowerInvariant()"
+                                data-date="@item.KohaHyrjes.ToString("yyyy-MM-ddTHH:mm:ss")">
+
+                                <td class="ps-4 fw-bold text-muted"> @index </td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(item.Identifikues))
+                                    {
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="plate-icon">
+                                                <i class="bi bi-car-front-fill"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold"> @item.Identifikues </div>
+                                                <small class="text-muted"> Automjet </small>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted"> Pa targë </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="fw-semibold"> @item.KohaHyrjes.ToString("dd/MM/yyyy") </div>
+                                    <small class="text-muted"> @item.KohaHyrjes.ToString("HH:mm") </small>
+                                </td>
+
+                                <td>
+                                    @if (serviceCount > 1)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" onclick="openServices(@item.TransaksioniId)">
+                                            <i class="bi bi-tools me-1"></i>
+                                            @(serviceCount - 1)
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" onclick="openServices(@item.TransaksioniId)">
+                                            <i class="bi bi-plus-lg me-1"></i>
+                                            Shto
+                                        </button>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.Statusi == "Pending")
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning rounded-pill px-3">
+                                            <i class="bi bi-clock me-1"></i> Në pritje
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3">
+                                            @item.Statusi
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if(!string.IsNullOrEmpty(item.Useri.Emri) || !string.IsNullOrEmpty(item.Useri.Mbiemri))
+                                    {
+                                        <span class="text-muted"> @item.Useri.Emri @item.Useri.Mbiemri </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted"> - </span>
+                                    }
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button type="button" class="btn btn-success rounded-pill px-3" onclick="confirmPayment(@item.TransaksioniId)">
+                                            <i class="bi bi-cash-coin me-1"></i>
+                                            <span class="d-none d-xl-inline"> Paguaj </span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            index++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const input = document.getElementById("identifikues");
+
+            if (input) {
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+            }
+        });
+
+        const searchInput = document.getElementById("transactionSearch");
+        const dateFromInput = document.getElementById("dateFrom");
+        const dateToInput = document.getElementById("dateTo");
+
+        searchInput.addEventListener("input", filterTransactions);
+        dateFromInput.addEventListener("change", filterTransactions);
+        dateToInput.addEventListener("change", filterTransactions);
+
+        function filterTransactions() {
+            const search = searchInput.value .trim() .toLowerCase();
+            const fromValue = dateFromInput.value;
+            const toValue = dateToInput.value;
+            
+            const fromDate = fromValue ? new Date(fromValue) : null;
+            const toDate = toValue ? new Date(toValue) : null;
+
+            const rows = document.querySelectorAll(".transaction-row");
+
+            let visible = 0;
+
+            rows.forEach(row => {
+                const identifier = row.dataset.identifier || "";
+
+                const rowDate = new Date(row.dataset.date);
+                const matchesSearch = !search || identifier.includes(search);
+                const matchesFrom = !fromDate || rowDate >= fromDate;
+                const matchesTo = !toDate || rowDate <= toDate;
+                const show = matchesSearch && matchesFrom && matchesTo;
+
+                row.style.display = show ? "" : "none";
+                if (show) {
+                    visible++;
+                }
+            });
+
+            document.getElementById("tableCount") .innerText = visible;
+            document.getElementById("visibleCount") .innerText = visible;
+            updateEmptyState(visible);
+        }
+
+        function updateEmptyState(visible) {
+            let emptyRow = document.getElementById( "filterEmptyRow" );
+
+            if (visible === 0) {
+                if (!emptyRow) {
+                    const tbody = document.querySelector( "#transactionsTable tbody" );
+
+                    emptyRow = document.createElement("tr");
+                    emptyRow.id = "filterEmptyRow";
+                    emptyRow.innerHTML = `
+                        <td colspan="8" class="text-center py-5">
+                            <i class="bi bi-search display-5 text-muted"></i>
+                            <h6 class="fw-bold mt-3"> Nuk u gjetën transaksione </h6>
+                            <p class="text-muted mb-0"> Ndryshoni filtrat dhe provoni përsëri. </p>
+                        </td>
+                    `;
+
+                    tbody.appendChild(emptyRow);
+                }
+            }
+            else if (emptyRow) {
+                emptyRow.remove();
+            }
+        }
+
+        function clearFilters() {
+            searchInput.value = "";
+            dateFromInput.value = "";
+            dateToInput.value = "";
+            filterTransactions();
+        }
+
+        function confirmPayment(id) {
+            window.location.href = '@Url.Action("Pay", "Home")?id=' + id;
+        }
+
+        function openServices(transactionId) {
+            window.location.href = '@Url.Action("Edit", "Home")?transaksioniId=' + transactionId;
+        }
+    </script>
+}
+<style>
+    .pos-create-input {
+        min-width: 380px;
+    }
+
+        .pos-create-input .input-group-text {
+            background: #fff;
+            color: #0d6efd;
+            border-right: 0;
+        }
+
+        .pos-create-input .form-control {
+            border-left: 0;
+            letter-spacing: 1px;
+        }
+
+            .pos-create-input .form-control:focus {
+                box-shadow: none;
+                border-color: #dee2e6;
+            }
+
+    @@media (max-width: 768px) {
+        .pos-create-input {
+            min-width: 100%;
+        }
+    }
+
+    .pos-title-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e7f1ff;
+        color: #0d6efd;
+        font-size: 22px;
+    }
+
+    .pos-stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+    }
+
+    .plate-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e7f1ff;
+        color: #0d6efd;
+    }
+
+    .plate-input-wrapper {
+        padding: 20px;
+        border-radius: 16px;
+        background: #f8f9fa;
+    }
+
+        .plate-input-wrapper .input-group-text {
+            background: #fff;
+            color: #0d6efd;
+        }
+
+        .plate-input-wrapper input {
+            letter-spacing: 1px;
+        }
+
+    .empty-state {
+        padding: 20px;
+    }
+
+    #transactionsTable tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+        #transactionsTable tbody tr:hover {
+            background-color: #f8fbff;
+        }
+
+    @@media (max-width: 992px) {
+
+        #transactionsTable th:nth-child(4),
+        #transactionsTable td:nth-child(4) {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 768px) {
+
+        #transactionsTable th:nth-child(3),
+        #transactionsTable td:nth-child(3),
+        #transactionsTable th:nth-child(5),
+        #transactionsTable td:nth-child(5) {
+            display: none;
+        }
+
+        #transactionsTable th,
+        #transactionsTable td {
+            white-space: nowrap;
+        }
+    }
+</style>

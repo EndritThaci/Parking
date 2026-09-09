@@ -84,7 +84,7 @@
                     }
 
                     <div class="d-grid gap-2">
-                        @if (User.IsInRole("Manager") || User.IsInRole("Admin"))
+                        @if (User.IsInRole("Manager") || User.IsInRole("Admin") || User.IsInRole("Employee"))
                         {
                             <form asp-action="CashPayment" method="post">
                                 @Html.AntiForgeryToken()

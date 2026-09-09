@@ -56,7 +56,13 @@ namespace Parking_web.Controllers
         [Authorize(Roles= "Super Admin")]
         public async Task<IActionResult> Create()
         {
-            return View();
+            var model = new OrgCreateDTO
+            {
+                AllowCustomers = true,
+                QRScanner = false
+            };
+
+            return View(model);
         }
         
         [HttpPost]

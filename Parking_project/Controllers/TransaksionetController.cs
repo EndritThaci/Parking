@@ -286,6 +286,65 @@ namespace Parking_project.Controllers
                     KohaDaljes = t.KohaDaljes,
                     Cmimi = getSherbimet.Where(i => i.TransaksionId == t.TransaksioniId).Sum(c => c.Cmimi),
                     Statusi = t.Statusi,
+                    Identifikues = t.Identifikues,
+                    Njesia = t.Njesia,
+                    Cilsimi = t.Cilsimet,
+                    Useri = t.User,
+                    Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList(),
+                });
+
+                return Ok(ApiResponse<IEnumerable<TransaksionRead>>.Ok(result, "Transactions retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+                return StatusCode(500, ApiResponse<object>.Error(500, "An error occurred while processing the request.", innerMessage));
+
+            }
+
+        }
+        
+        [HttpGet]
+        [Authorize]
+        [Route("Pending")]
+        [ProducesResponseType(typeof(ApiResponse<TransaksionRead>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<IEnumerable<TransaksionRead>>>> GetTransaksionPending(int? userId, int? njesiaId)
+        {
+            try
+            {
+                int orgId = int.Parse(User.FindFirst("BiznesId")!.Value);
+                var query = _db.TransaksionParkimi.AsNoTracking().Where(t => t.Statusi == "Pending");
+
+                if(userId != null) query = query.Where(t => t.UserId == userId);
+                if(orgId != 0) query = query.Where(t => t.Njesia.BiznesId == orgId);
+                if(njesiaId != null) query = query.Where(t => t.NjesiaId == njesiaId);
+
+                var transaksionet = await query
+                    .Include(t => t.Cilsimet)
+                        .ThenInclude(c => c.Sherbimi)
+                    .Include(n => n.Njesia)
+                    .Include(t => t.User)
+                    .ToListAsync();
+
+                if (transaksionet.Count() == 0)
+                {
+                    return NotFound(ApiResponse<object>.NotFound("No transactions found."));
+                }
+
+                var transaksionIds = transaksionet.Select(t => t.TransaksioniId).ToList();
+
+                var getSherbimet = await _db.TransaksionDetaj.Where(c => transaksionIds.Contains(c.TransaksionId)).Include(c => c.Sherbimi).ToListAsync();
+
+                var result = transaksionet.Select(t => new TransaksionRead
+                {
+                    TransaksioniId = t.TransaksioniId,
+                    KohaHyrjes = t.KohaHyrjes,
+                    KohaDaljes = t.KohaDaljes,
+                    Cmimi = getSherbimet.Where(i => i.TransaksionId == t.TransaksioniId).Sum(c => c.Cmimi),
+                    Statusi = t.Statusi,
+                    Identifikues = t.Identifikues,
                     Njesia = t.Njesia,
                     Cilsimi = t.Cilsimet,
                     Useri = t.User,

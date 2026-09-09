@@ -49,6 +49,15 @@ namespace Parking_web.Services
             });
         }
 
+        public Task<T?> GetPendingAsync<T>(int? userId = null, int? njesiaId = null)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.GET,
+                Url = $"{APIEndPoint}/Pending?userId={userId}&njesiaId={njesiaId}",
+            });
+        }
+
         public Task<T?> GetAsync<T>(int id)
         {
             return SendAsync<T>(new ApiRequest

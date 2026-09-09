@@ -8,6 +8,10 @@ else if (User.IsInRole("Super Admin"))
 {
     Context.Response.Redirect(Url.Action("Index", "Organizata")!);
 }
+else if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Employee"))
+{
+    Context.Response.Redirect(Url.Action("Employee", "Home")!);
+}
 else
 {
     var pendingList = (ViewBag.PendingTransactions as List<TransaksionRead>)?.OrderBy(t => t.KohaHyrjes).ToList();
@@ -49,7 +53,7 @@ else
                                         <div class="pending-stripe"></div>
                                         <div class="card-body p-4">
                                             <a asp-controller="Home" asp-action="Pay" asp-route-id="@item.TransaksioniId" class="text-decoration-none">
-                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div class="d-flex justify-content-between align-items-start @(item.Identifikues == null ? "mb-3" : "mb-1") ">
                                                     <div>
                                                         <h6 class="text-muted small text-uppercase fw-bold mb-1">Vendi i Parkimit</h6>
                                                         <h4 class="fw-black mb-0">@item.Njesia.Emri</h4>
@@ -60,15 +64,18 @@ else
                                                     </span>
                                                 </div>
 
-                                                <div class="d-flex align-items-center text-muted small">
+                                                <div class="d-flex align-items-center text-muted small @(item.Identifikues == null ? "mb-3" : "")">
                                                     <i class="bi bi-clock-history me-2"></i>
                                                     <span>Hyrja: <strong>@item.KohaHyrjes.ToString("HH:mm")</strong></span>
                                                     <span class="mx-2">|</span>
                                                     <span>Data: @item.KohaHyrjes.ToString("dd/MM")</span>
                                                 </div>
-                                                <div class="d-flex align-items-center text-muted small mb-4">
-                                                    <span><i class="bi bi-person-fill me-2"></i>Perdoruesi: @item.Useri.Emri @item.Useri.Mbiemri</span>
-                                                </div>
+                                                @if(item.Identifikues != null)
+                                                {
+                                                    <div class="d-flex align-items-center text-muted small mb-2">
+                                                        <span><i class="bi bi-car-front-fill me-2"></i>Targat e automjetit: @item.Identifikues</span>
+                                                    </div>
+                                                }
 
                                                 <a asp-controller="Home" asp-action="Pay" asp-route-id="@item.TransaksioniId"
                                                    class="btn btn-outline-warning w-100 rounded-pill fw-bold py-2 shadow-sm transition-all btn-pay">
@@ -111,7 +118,7 @@ else
                     <div class="col-md-6 col-lg-4">
                         <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative unit-card"
                              style="cursor:pointer;"
-                             onclick="openNjesiteModal(@org.BiznesId, '@Html.Raw(org.EmriBiznesit.Replace("'", "\\'"))')">
+                             onclick="@(org.QRScanner ? $"openNjesiteModal({org.BiznesId}, {System.Text.Json.JsonSerializer.Serialize(org.EmriBiznesit)})" : "openCamera()")">
 
                             <div class="unit-stripe"></div>
 
@@ -241,6 +248,34 @@ else
                         <div id="njesiteError" class="alert alert-danger d-none"> </div>
                         <div id="njesiteList" class="d-flex flex-column gap-2"> </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="cameraModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-qr-code-scan me-2"></i>
+                            Skano QR Kodin
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                onclick="stopCamera()">
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div id="qr-reader" style="width: 100%;"></div>
+
+                        <div id="qr-result"
+                             class="alert alert-success mt-3 d-none">
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -403,6 +438,7 @@ else
         }
 </style>
 
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script>
     function changePageSize(pageSize) {
         const url = new URL(window.location.href);
@@ -524,5 +560,67 @@ else
             .replaceAll('>', '&gt;')
             .replaceAll('"', '&quot;')
             .replaceAll("'", '&#039;');
+    }
+
+        let qrScanner = null;
+
+    async function openCamera() {
+        const modalElement = document.getElementById("cameraModal");
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+
+        // Wait for modal to be visible
+        setTimeout(async () => {
+            try {
+                qrScanner = new Html5Qrcode("qr-reader");
+
+                await qrScanner.start(
+                    { facingMode: "environment" },
+                    {
+                        fps: 10,
+                        qrbox: {
+                            width: 250,
+                            height: 250
+                        }
+                    },
+                    (decodedText) => {
+                        document.getElementById("qr-result").innerText = "QR u lexua: " + decodedText;
+                        document.getElementById("qr-result").classList.remove("d-none");
+
+                        stopCamera();
+                        handleQrCode(decodedText);
+                    },
+                    (errorMessage) => {}
+                );
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gabim!',
+                    text: 'Nuk mund të hapet kamera. Kontrolloni lejen për përdorimin e kamerës.',
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Kuptova'
+                });
+                modal.hide();
+            }
+        }, 300);
+    }
+    async function stopCamera() {
+        if (qrScanner) {
+            try {
+                await qrScanner.stop();
+                qrScanner.clear();
+            } catch (error) {
+                console.error("Error stopping camera:", error);
+            }
+
+            qrScanner = null;
+        }
+    }
+    function handleQrCode(value) {
+        console.log("Scanned value:", value);
+
+        // Example:
+        // window.location.href = "/Home/EntryQR?identifikues="
+        //     + encodeURIComponent(value);
     }
 </script>

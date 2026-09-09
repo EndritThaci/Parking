@@ -17,6 +17,8 @@ ExcelPackage.License.SetNonCommercialPersonal("localhost");
 
 var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JwtSettings")["Secret"]);
 
+builder.WebHost.UseUrls("http://0.0.0.0:4004");
+
 builder.Services.AddAuthentication(option =>
 {
     option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

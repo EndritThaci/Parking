@@ -40,18 +40,16 @@ namespace Parking_web.Controllers
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 if (page < 1) page = 1;
                 var response = await _orgService.GetPaginationAsync<ApiResponse<OrgPage>>(Search, userId, page, pageSize);
-                var UserResponse = await _transaksioniService.GetByUserAsync<ApiResponse<List<TransaksionRead>>>();
+                var pendingResponse = await _transaksioniService.GetPendingAsync<ApiResponse<List<TransaksionRead>>>(userId);
 
                 if (response != null && response.Success && response.Data != null)
                 {
                     orgPage = response.Data;
                 }
-                if (UserResponse != null && UserResponse.Success && UserResponse.Data != null && User.IsInRole("Customer"))
+                if (pendingResponse != null && pendingResponse.Success && pendingResponse.Data != null && User.IsInRole("Customer"))
                 {
-                    var pendingList = UserResponse.Data.Where(t => t.Statusi == "Pending").ToList();
-                    ViewBag.PendingTransactions = pendingList;
+                    ViewBag.PendingTransactions = pendingResponse.Data;
                 }
-
             }
             catch (Exception ex)
             {
@@ -131,8 +129,9 @@ namespace Parking_web.Controllers
             ViewBag.Identifikues = identifikues;
             return View(njesiaId);
         }
+
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Employee , Manager , Admin , Super Admin")]
         public async Task<IActionResult> EntryQRReader(int njesiaId, int u, string s, string? i)
         {
             string expectedSignature = GenerateSignature(njesiaId: njesiaId, userId: u);
@@ -160,7 +159,14 @@ namespace Parking_web.Controllers
                 if (cilsimiActiv == null)
                 {
                     TempData["error"] = "Nuk u gjet asnje cilesim aktiv për kete njësi.";
-                    return RedirectToAction("Index");
+                    if (User.IsInRole("Customer"))
+                    {
+                        return RedirectToAction("Index");
+                    }
+                    else
+                    {
+                        return RedirectToAction("Employee");
+                    }
                 }
                 createDto.NjesiaId = njesiaId;
                 createDto.CilsimiId = cilsimiActiv.CilsimetiId;
@@ -171,7 +177,15 @@ namespace Parking_web.Controllers
                 if (response != null && response.Success && response.Data != null)
                 {
                     TempData["success"] = "Transaksioni u krijua me sukses";
-                    return RedirectToAction("Index");
+                    if (User.IsInRole("Customer"))
+                    {
+                        return RedirectToAction("Index");
+                    }
+                    else
+                    {
+                        return RedirectToAction("Employee");
+                    }
+                    
                 }
                 TempData["error"] = $"Gabim: Ndodhi nje gabim gjat krijimit te transaksionit";
 
@@ -180,17 +194,24 @@ namespace Parking_web.Controllers
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
-            return RedirectToAction("Index");
+            if (User.IsInRole("Customer"))
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                return RedirectToAction("Employee");
+            }
         }
 
         [HttpGet]
-        [Authorize(Roles = "Manager , Admin")]
+        [Authorize(Roles = "Employee , Manager , Admin")]
         public async Task<IActionResult> Edit(int transaksioniId)
         {
             if (transaksioniId <= 0)
             {
                 TempData["error"] = "ID e gabuar.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Employee");
             }
 
             try
@@ -246,7 +267,14 @@ namespace Parking_web.Controllers
             if (response == null || !response.Success)
             {
                 TempData["error"] = $"Gabim: {response?.Message ?? "Transaksioni nuk u gjet."}";
-                return RedirectToAction("Index");
+                if (User.IsInRole("Customer"))
+                {
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    return RedirectToAction("Employee");
+                }
             }
             var cardDetails = await _creditCardService.GetByUserAsync<ApiResponse<IEnumerable<CreditCardReadDto>>>();
             if (cardDetails != null && cardDetails.Success)
@@ -258,7 +286,7 @@ namespace Parking_web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Manager , Admin")]
+        [Authorize(Roles = "Employee , Manager , Admin")]
         public async Task<IActionResult> CashPayment(int id)
         {
             try
@@ -267,14 +295,21 @@ namespace Parking_web.Controllers
                 if (transaksioni == null || !transaksioni.Success || transaksioni.Data == null)
                 {
                     TempData["error"] = $"Gabim: {transaksioni?.Message ?? "Diçka shkoi keq."}";
-                    return RedirectToAction("Index");
+                    return RedirectToAction("Pay", new {id});
                 }
 
                 var response = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(id);
                 if (response != null && response.Success)
                 {
                     TempData["success"] = "Transaksioni u mbyll me sukses. Faleminderit për përdorimin e Parkingut tonë";
-                    return RedirectToAction("Index");
+                    if (User.IsInRole("Customer"))
+                    {
+                        return RedirectToAction("Index");
+                    }
+                    else
+                    {
+                        return RedirectToAction("Employee");
+                    }
                 }
                 else
                 {
@@ -285,7 +320,7 @@ namespace Parking_web.Controllers
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
-            return RedirectToAction("Index");
+            return RedirectToAction("Pay", new { id });
         }
 
         [HttpGet]
@@ -316,7 +351,7 @@ namespace Parking_web.Controllers
             using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
             {
                 string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmm");
-                string server = "https://localhost:7061";
+                string server = $"{Request.Scheme}://{Request.Host}";
                 string url = "";
 
                 if (selectedCardId != null && id != null)
@@ -452,6 +487,37 @@ namespace Parking_web.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Employee , Manager , Admin , Super Admin")]
+        public async Task<IActionResult> Employee()
+        {
+            List<TransaksionRead>? pending = new List<TransaksionRead>();
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                ViewBag.UserId = userId;
+                if (!int.TryParse(User.FindFirst("NjesiaId")?.Value, out int njesiaId) || njesiaId == 0)
+                {
+                    throw new Exception("Nuk e keni Njesinë të konfiguruar");
+                }
+                ViewBag.NjesiaId = njesiaId;
+                var pendingResponse = await _transaksioniService.GetPendingAsync<ApiResponse<List<TransaksionRead>>>(null, njesiaId);
+
+                if (pendingResponse != null && pendingResponse.Success)
+                {
+                    pending = pendingResponse.Data;
+                }
+                else
+                {
+                    TempData["error"] = "Ka ndodhur një gabim gjat tërheqjes së të dhënave";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"Gabim: {ex.Message}";
+            }
+            return View(pending);
+        }
 
         public IActionResult Privacy()
         {

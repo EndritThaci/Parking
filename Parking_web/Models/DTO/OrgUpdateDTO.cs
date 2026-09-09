@@ -42,5 +42,6 @@ namespace Parking_web.Models.DTO
         public string Email { get; set; }
 
         public bool AllowCustomers { get; set; } = true;
+        public bool QRScanner { get; set; }
     }
 }
