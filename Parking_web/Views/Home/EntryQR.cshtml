@@ -13,11 +13,10 @@
                     <h3 class="fw-bold mb-3 text-primary">QR Kodi për Hyrje</h3>
                     <p class="text-muted">Skanoni kodin e mëposhtëm për të procesuar veprimin automatikisht.</p>
 
-                    <div id="qr-to-print"class="qr-container my-4 p-3 bg-light rounded-3 d-inline-block">
+                    <div id="qr-to-print" class="qr-container my-4 p-2 p-sm-3 bg-light rounded-3 d-inline-block">
                         <img src="@Url.Action("QRGenerate", "Home", new { njesiaId = Model, userId = ViewBag.UserId, identifikues = ViewBag.identifikues})"
                              alt="QR Code"
-                             class="img-fluid shadow-sm"
-                             style="max-width: 300px; border: 10px solid white;" />
+                             class="img-fluid qr-image" />
                     </div>
                 </div>
 
@@ -34,6 +33,34 @@
 <style>
     @@page {
         margin: 0;
+    }
+
+    .qr-container {
+        max-width: 100%;
+        width: 340px;
+    }
+
+    .qr-image {
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        height: auto;
+        margin: 0 auto;
+        border: 10px solid white;
+        box-sizing: border-box;
+    }
+
+    @@media (max-width: 576px) {
+        .qr-container {
+            width: 100%;
+            max-width: 320px;
+            padding: 8px !important;
+        }
+
+        .qr-image {
+            max-width: 100%;
+            border-width: 6px;
+        }
     }
 
     @@media print {

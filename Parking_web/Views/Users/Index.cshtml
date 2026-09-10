@@ -70,6 +70,9 @@
                             <option value="Manager" selected="@(selectedRole == "Manager")">
                                 Menaxher
                             </option>
+                            <option value="Employee" selected="@(selectedRole == "Employee")">
+                                Punëtor
+                            </option>
                             <option value="Customer" selected="@(selectedRole == "Customer")">
                                 Klientë
                             </option>
@@ -173,6 +176,12 @@
                                         {
                                             <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3">
                                                 Menaxher
+                                            </span>
+                                        }
+                                        else if (user.Role == "Employee")
+                                        {
+                                            <span class="badge bg-info-subtle text-info rounded-pill px-3">
+                                                Punëtorë
                                             </span>
                                         }
                                         else if (user.Role == "Customer")
@@ -431,9 +440,9 @@
         transition: background-color .15s ease;
     }
 
-    .table-hover tbody tr:hover {
-        background-color: #f8faff;
-    }
+        .table-hover tbody tr:hover {
+            background-color: #f8faff;
+        }
 
     .empty-state {
         padding: 70px 20px;
@@ -464,6 +473,122 @@
     .pagination .page-item.active .page-link {
         background: #0d6efd;
         color: #fff;
+    }
+
+    @@media (max-width: 768px) {
+        table thead th:nth-child(2),
+        table tbody td:nth-child(2) {
+            display: none;
+        }
+        
+        table thead th:nth-child(4),
+        table tbody td:nth-child(4) {
+            display: none;
+        }
+        
+        .table {
+            width: 100%;
+            table-layout: fixed;
+        }
+            
+            .table th:nth-child(1),
+            .table td:nth-child(1) {
+                width: 55%;
+            }
+           
+            .table th:nth-child(3),
+            .table td:nth-child(3) {
+                width: 25%;
+            }
+            
+            .table th:nth-child(5),
+            .table td:nth-child(5) {
+                width: 20%;
+            }
+            
+            .table th,
+            .table td {
+                padding-left: .75rem !important;
+                padding-right: .75rem !important;
+                white-space: nowrap;
+            }
+        
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            font-size: .8rem;
+        }
+        
+        .table .d-flex.align-items-center.gap-3 {
+            gap: .6rem !important;
+        }
+        
+        .table td:first-child .fw-bold {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 180px;
+        }
+        
+        .table td:nth-child(3) .badge {
+            padding-left: .65rem !important;
+            padding-right: .65rem !important;
+            font-size: .75rem;
+        }
+        
+        .table td:last-child {
+            padding-right: .75rem !important;
+        }
+
+            .table td:last-child .btn {
+                width: 36px;
+                height: 36px;
+                padding: 0;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+    }
+
+
+    @@media (max-width: 576px) {
+
+        .table th,
+        .table td {
+            padding-top: .75rem !important;
+            padding-bottom: .75rem !important;
+        }
+
+            .table th:nth-child(1),
+            .table td:nth-child(1) {
+                width: 60%;
+            }
+
+            .table th:nth-child(3),
+            .table td:nth-child(3) {
+                width: 25%;
+            }
+
+            .table th:nth-child(5),
+            .table td:nth-child(5) {
+                width: 15%;
+            }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+        }
+
+        .table td:first-child .fw-bold {
+            max-width: 140px;
+            font-size: .9rem;
+        }
+
+        .table td:first-child small {
+            display: none;
+        }
     }
 
 </style>

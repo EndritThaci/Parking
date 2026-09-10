@@ -1,0 +1,169 @@
+﻿@model List<Parking_web.Models.NjesiOrg>
+
+@{
+    ViewData["Title"] = "Zgjedh Njësinë";
+    var njesite = Model ?? new List<Parking_web.Models.NjesiOrg>();
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-9 col-xl-8">
+            <div class="text-center mb-5">
+                <div class="njesi-header-icon mx-auto mb-3">
+                    <i class="bi bi-building"></i>
+                </div>
+                <h2 class="fw-bold mb-2"> Zgjedh Njësinë </h2>
+                <p class="text-muted mb-0"> Zgjidhni njësinë në të cilën dëshironi të punoni. </p>
+            </div>
+
+            @if (njesite.Count == 0)
+            {
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body text-center py-5">
+                        <div class="empty-icon mx-auto mb-3">
+                            <i class="bi bi-building-x"></i>
+                        </div>
+                        <h5 class="fw-bold"> Nuk ka njësi </h5>
+                        <p class="text-muted mb-4"> Nuk u gjet asnjë njësi për këtë organizatë. </p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var njesia in njesite)
+                    {
+                        if (!njesia.active)
+                        {
+                            continue;
+                        }
+
+                        <div class="col-12 col-md-6"> 
+                            <a asp-controller="Home" asp-action="Employee" asp-route-njesia="@njesia.NjesiteId" class="text-decoration-none">
+                                <div class="card njesi-card border-0 overflow-hidden shadow-sm rounded-4 h-100">
+                                    <div class="card-body p-4">
+                                        <div class="njesi-stripe"></div>
+
+                                        <div class="d-flex align-items-start">
+                                            <div class="njesi-icon me-3">
+                                                <i class="bi bi-p-square"></i>
+                                            </div>
+
+                                            <div class="flex-grow-1">
+                                                <h5 class="fw-bold text-dark mb-1"> @njesia.Emri </h5>
+
+                                                <div class="text-muted small mb-2">
+                                                    <i class="bi bi-hash me-1"></i>
+                                                    Kodi: @njesia.Kodi
+                                                </div>
+
+                                                <div class="text-muted small">
+                                                    <i class="bi bi-geo-alt me-1"></i>
+                                                    @njesia.Adresa
+                                                </div>
+                                            </div>
+
+                                            <div class="njesi-arrow">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-3">
+
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="small text-muted"> Vende të lira </span>
+
+                                            @if (njesia.VendeTeLira > 0)
+                                            {
+                                                <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
+                                                    <i class="bi bi-p-circle me-1"></i>
+                                                    @njesia.VendeTeLira
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2">
+                                                    <i class="bi bi-p-circle me-1"></i>
+                                                    @njesia.VendeTeLira
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .njesi-header-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e7f1ff;
+        color: #0d6efd;
+        font-size: 28px;
+    }
+
+    .njesi-card {
+        transition: all 0.18s ease;
+        cursor: pointer;
+    }
+
+        .njesi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(13, 110, 253, 0.1) !important;
+            border: 1px solid #0d6efd !important;
+        }
+
+    .njesi-stripe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: #0d6efd;
+    }
+
+    .njesi-icon {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e7f1ff;
+        color: #0d6efd;
+        font-size: 21px;
+    }
+
+    .njesi-arrow {
+        color: #0d6efd;
+        font-size: 20px;
+        transition: transform 0.18s ease;
+    }
+
+    .njesi-card:hover .njesi-arrow {
+        transform: translateX(4px);
+    }
+
+    .empty-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f3f5;
+        color: #6c757d;
+        font-size: 28px;
+    }
+</style>

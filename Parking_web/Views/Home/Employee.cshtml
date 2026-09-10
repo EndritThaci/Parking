@@ -61,7 +61,7 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
         </div>
     </div>
     <div class="row g-3 mb-4">
-        <div class="col-6 col-xl-4">
+        <div class="col-6 col-xl-3">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
@@ -79,7 +79,7 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
             </div>
         </div>
 
-        <div class="col-6 col-xl-4">
+        <div class="col-6 col-xl-3">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
@@ -97,7 +97,7 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
             </div>
         </div>
 
-        <div class="col-6 col-xl-4">
+        <div class="col-6 col-xl-3">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
@@ -109,6 +109,24 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                         </div>
                         <div class="pos-stat-icon bg-info-subtle text-info">
                             <i class="bi bi-tools"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small"> Vende të lira </div>
+                            <div class="fs-3 fw-bold">
+                                @(ViewBag.VendeTeLira ?? "-")
+                            </div>
+                        </div>
+                        <div class="pos-stat-icon @(ViewBag.VendeTeLira <= 0 ? "bg-danger-subtle text-danger" : "bg-secondary-subtle text-secondary")">
+                            <i class="bi bi-p-square"></i>
                         </div>
                     </div>
                 </div>
@@ -195,10 +213,6 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                                     <i class="bi bi-car-front display-4 text-muted"></i>
                                     <h5 class="fw-bold mt-3"> Nuk ka transaksione </h5>
                                     <p class="text-muted mb-3"> Aktualisht nuk ka automjete në pritje. </p>
-                                    <button type="button" class="btn btn-primary rounded-pill px-4" onclick="openCreateTransactionModal()">
-                                        <i class="bi bi-plus-lg me-1"></i>
-                                        Krijo transaksion
-                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -491,8 +505,8 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
 
     @@media (max-width: 768px) {
 
-        #transactionsTable th:nth-child(3),
-        #transactionsTable td:nth-child(3),
+        #transactionsTable th:nth-child(6),
+        #transactionsTable td:nth-child(6),
         #transactionsTable th:nth-child(5),
         #transactionsTable td:nth-child(5) {
             display: none;
@@ -501,6 +515,26 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
         #transactionsTable th,
         #transactionsTable td {
             white-space: nowrap;
+        }
+    }
+    @@media (max-width: 576px) {
+        #transactionsTable th:first-child,
+        #transactionsTable td:first-child {
+            padding-left: 0.75rem !important;
+        }
+
+        #transactionsTable th:last-child,
+        #transactionsTable td:last-child {
+            padding-right: 0.75rem !important;
+        }
+
+        #transactionsTable .plate-icon {
+            width: 36px;
+            height: 36px;
+        }
+
+        #transactionsTable td {
+            font-size: 0.9rem;
         }
     }
 </style>

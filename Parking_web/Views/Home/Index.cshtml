@@ -8,9 +8,13 @@ else if (User.IsInRole("Super Admin"))
 {
     Context.Response.Redirect(Url.Action("Index", "Organizata")!);
 }
-else if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Employee"))
+else if (User.IsInRole("Manager") || User.IsInRole("Employee"))
 {
     Context.Response.Redirect(Url.Action("Employee", "Home")!);
+}
+else if (User.IsInRole("Admin"))
+{
+    Context.Response.Redirect(Url.Action("SelectNjesi", "Home")!);
 }
 else
 {

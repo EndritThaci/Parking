@@ -2,6 +2,25 @@
 @{
     ViewData["Title"] = "Pagesa";
 }
+@if(Model.Statusi != "Pending")
+{
+    if (User.IsInRole("Super Admin"))
+    {
+        Context.Response.Redirect(Url.Action("Index", "Organizata")!);
+    }
+    else if (User.IsInRole("Manager") || User.IsInRole("Employee"))
+    {
+        Context.Response.Redirect(Url.Action("Employee", "Home")!);
+    }
+    else if (User.IsInRole("Admin"))
+    {
+        Context.Response.Redirect(Url.Action("SelectNjesi", "Home")!);
+    }
+    else
+    {
+        Context.Response.Redirect(Url.Action("Index", "Home")!);
+    }
+}
 
 <div class="container py-5">
     <div id="layoutWrapper" class="row justify-content-center qr-active">

@@ -15,9 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 ExcelPackage.License.SetNonCommercialPersonal("localhost");
 
-var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JwtSettings")["Secret"]);
-
-builder.WebHost.UseUrls("http://0.0.0.0:4004");
+var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JwtSettings")["Secret"]!);
 
 builder.Services.AddAuthentication(option =>
 {
@@ -58,7 +56,8 @@ builder.Services.AddCors();
 
 builder.Services.AddDbContext<AplicationDbContext>(option =>
 {
-    option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));  //MSSQL
+    //option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));  //PostgreSQL
 });
 builder.Services.AddControllers();
 

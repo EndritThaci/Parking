@@ -231,7 +231,7 @@ namespace Parking_web.Controllers
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
-            return View();
+            return View(new TransaksionRead());
         }
 
         [HttpPost]
@@ -489,18 +489,44 @@ namespace Parking_web.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Employee , Manager , Admin , Super Admin")]
-        public async Task<IActionResult> Employee()
+        public async Task<IActionResult> Employee(int? njesia)
         {
             List<TransaksionRead>? pending = new List<TransaksionRead>();
             try
             {
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 ViewBag.UserId = userId;
+                if((User.IsInRole("Admin") || User.IsInRole("Super Admin")) && njesia == null)
+                {
+                    if (int.TryParse(User.FindFirst("BiznesId")?.Value, out int orgId) && orgId > 0)
+                    {
+                        var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiOrg>>>(orgId);
+                        if (response != null && response.Success && response.Data != null && response.Data.Count == 1)
+                        {
+                            return RedirectToAction("Employee", "Home", new { njesia = response.Data[0].NjesiteId });
+                        }
+                    }
+                    return RedirectToAction("SelectNjesi");
+                }
+
                 if (!int.TryParse(User.FindFirst("NjesiaId")?.Value, out int njesiaId) || njesiaId == 0)
                 {
-                    throw new Exception("Nuk e keni Njesinë të konfiguruar");
+                    if (njesia != null)
+                    {
+                        njesiaId = njesia.Value;
+                    }
+                    else
+                    {
+                        throw new Exception("Nuk e keni Njesinë të konfiguruar");
+                    }
                 }
                 ViewBag.NjesiaId = njesiaId;
+                var njesiaResponse = await _njesiaService.GetAsync<ApiResponse<NjesiOrg>>(njesiaId);
+                if (njesiaResponse != null && njesiaResponse.Success && njesiaResponse.Data != null)
+                {
+                    ViewBag.VendeTeLira = njesiaResponse.Data.VendeTeLira;
+                }
+
                 var pendingResponse = await _transaksioniService.GetPendingAsync<ApiResponse<List<TransaksionRead>>>(null, njesiaId);
 
                 if (pendingResponse != null && pendingResponse.Success)
@@ -517,6 +543,40 @@ namespace Parking_web.Controllers
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
             return View(pending);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin , Super Admin")]
+        public async Task<IActionResult> SelectNjesi()
+        {
+            var njesite = new List<NjesiOrg>();
+            try
+            {
+                if ((!int.TryParse(User.FindFirst("BiznesId")?.Value, out int orgId) || orgId <= 0) && User.IsInRole("Super Admin"))
+                {
+                    TempData["error"] = "Zgjedh një organizatë";
+                    return RedirectToAction("Index", "Organizata");
+                }
+
+                var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiOrg>>>(orgId);
+                if (response == null || !response.Success || response.Data == null)
+                {
+                    TempData["error"] = "Nuk u gjetën njësitë.";
+                }
+                else if (response.Data.Count == 1)
+                {
+                    return RedirectToAction("Employee", "Home", new {njesia = response.Data[0].NjesiteId});
+                }
+                else
+                {
+                    njesite = response.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"Gabim: {ex.Message}";
+            }
+            return View(njesite);
         }
 
         public IActionResult Privacy()

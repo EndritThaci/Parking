@@ -14,7 +14,7 @@ public static class SuperAdminSeeder
         var superAdmin = new UserCreateDTO
         {
             Email = email,
-            Passwordi = "1234",
+            Passwordi = "super1234",
             Emri = "Super",
             Mbiemri = "Admin"
         };

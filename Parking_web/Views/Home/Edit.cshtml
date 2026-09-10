@@ -4,80 +4,101 @@
 
     var existingIds = ViewBag.ExistingSherbim as List<int> ?? new List<int>();
 }
+@if (Model.Statusi != "Pending")
+{
+    if (User.IsInRole("Super Admin"))
+    {
+        Context.Response.Redirect(Url.Action("Index", "Organizata")!);
+    }
+    else if (User.IsInRole("Manager") || User.IsInRole("Employee"))
+    {
+        Context.Response.Redirect(Url.Action("Employee", "Home")!);
+    }
+    else if (User.IsInRole("Admin"))
+    {
+        Context.Response.Redirect(Url.Action("SelectNjesi", "Home")!);
+    }
+    else
+    {
+        Context.Response.Redirect(Url.Action("Index", "Home")!);
+    }
+}
+else
+{
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
-                <div class="bg-dark py-4 px-4 text-white">
-                    <h3 class="fw-bold mb-0">Detajet dhe Shërbimet</h3>
-                    <p class="small opacity-75 mb-0">ID: #@Model.TransaksioniId</p>
-                </div>
-
-                <div class="card-body p-4">
-                    <div class="row g-3 mb-5 text-center text-md-start">
-                        <div class="col-md-4 border-end">
-                            <label class="text-muted small fw-bold text-uppercase">Njesia</label>
-                            <p class="h6 fw-bold text-dark">@Model.Njesia.Emri</p>
-                        </div>
-                        <div class="col-md-4 border-end">
-                            <label class="text-muted small fw-bold text-uppercase">Koha e Hyrjes</label>
-                            <p class="h6 text-dark">@Model.KohaHyrjes.ToString("HH:mm")</p>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="text-muted small fw-bold text-uppercase">Përdoruesi</label>
-                            <p class="h6 text-dark">@User.Identity?.Name</p>
-                        </div>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
+                    <div class="bg-dark py-4 px-4 text-white">
+                        <h3 class="fw-bold mb-0">Detajet dhe Shërbimet</h3>
+                        <p class="small opacity-75 mb-0">ID: #@Model.TransaksioniId</p>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-4">
-                            <h6 class="fw-bold mb-3"><i class="bi bi-grid-3x3-gap me-2"></i>Shërbimet e Disponueshme</h6>
-                            <div id="availableServices" class="d-flex flex-wrap gap-2">
-                                @if (ViewBag.Sherbimet != null)
-                                {
-                                    foreach (var s in (IEnumerable<dynamic>)ViewBag.Sherbimet)
+                    <div class="card-body p-4">
+                        <div class="row g-3 mb-5 text-center text-md-start">
+                            <div class="col-md-4 border-end">
+                                <label class="text-muted small fw-bold text-uppercase">Njesia</label>
+                                <p class="h6 fw-bold text-dark">@Model.Njesia.Emri</p>
+                            </div>
+                            <div class="col-md-4 border-end">
+                                <label class="text-muted small fw-bold text-uppercase">Koha e Hyrjes</label>
+                                <p class="h6 text-dark">@Model.KohaHyrjes.ToString("HH:mm")</p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted small fw-bold text-uppercase">Përdoruesi</label>
+                                <p class="h6 text-dark">@User.Identity?.Name</p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <h6 class="fw-bold mb-3"><i class="bi bi-grid-3x3-gap me-2"></i>Shërbimet e Disponueshme</h6>
+                                <div id="availableServices" class="d-flex flex-wrap gap-2">
+                                    @if (ViewBag.Sherbimet != null)
                                     {
-                                        if (s.Cmimi != 0 && s.Emri != "Parking")
+                                        foreach (var s in (IEnumerable<dynamic>)ViewBag.Sherbimet)
                                         {
-                                            <button type="button"
-                                                    id="btn-avail-@s.SherbimiId"
-                                                    class="btn btn-outline-primary btn-custom-size rounded-pill @(existingIds.Contains((int)s.SherbimiId) ? "d-none" : "")"
-                                                    onclick="selectService('@s.SherbimiId', '@s.Emri', '@s.Cmimi')">
-                                                @s.Emri <span class="badge bg-primary ms-1"> @s.Cmimi €</span>
-                                            </button>
+                                            if (s.Cmimi != 0 && s.Emri != "Parking")
+                                            {
+                                                <button type="button"
+                                                id="btn-avail-@s.SherbimiId"
+                                                class="btn btn-outline-primary btn-custom-size rounded-pill @(existingIds.Contains((int)s.SherbimiId) ? "d-none" : "")"
+                                                onclick="selectService('@s.SherbimiId', '@s.Emri', '@s.Cmimi')">
+                                                    @s.Emri <span class="badge bg-primary ms-1"> @s.Cmimi €</span>
+                                                </button>
+                                            }
                                         }
                                     }
-                                }
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-cart-check me-2"></i>Shërbimet e Zgjedhura</h6>
+                                <div id="selectedServices" class="d-flex flex-wrap gap-2 p-3 bg-light rounded-4 border border-dashed" style="min-height: 100px;">
+                                    <p id="emptyMsg" class="text-muted small m-auto">Klikoni shërbimet majtas për t'i shtuar</p>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="col-md-6 mb-4">
-                            <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-cart-check me-2"></i>Shërbimet e Zgjedhura</h6>
-                            <div id="selectedServices" class="d-flex flex-wrap gap-2 p-3 bg-light rounded-4 border border-dashed" style="min-height: 100px;">
-                                <p id="emptyMsg" class="text-muted small m-auto">Klikoni shërbimet majtas për t'i shtuar</p>
+                        <form asp-action="Edit" method="post" id="mainEditForm" class="mt-4 border-top pt-4">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="transaksioniId" value="@Model.TransaksioniId" />
+                            <div id="hiddenInputsContainer"></div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="javascript:history.back()" class="btn btn-link text-muted text-decoration-none fw-bold"> Anulo </a>
+                                <button type="submit" class="btn btn-dark rounded-pill px-5 py-2 fw-bold shadow">
+                                    Ruaj Transaksionin <i class="bi bi-check2-circle ms-2"></i>
+                                </button>
                             </div>
-                        </div>
+                        </form>
                     </div>
-
-                    <form asp-action="Edit" method="post" id="mainEditForm" class="mt-4 border-top pt-4">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="transaksioniId" value="@Model.TransaksioniId" />
-                        <div id="hiddenInputsContainer"></div>
-
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="javascript:history.back()" class="btn btn-link text-muted text-decoration-none fw-bold"> Anulo </a>
-                            <button type="submit" class="btn btn-dark rounded-pill px-5 py-2 fw-bold shadow">
-                                Ruaj Transaksionin <i class="bi bi-check2-circle ms-2"></i>
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
+}
 <style>
     .btn-custom-size {
         padding: 0.375rem 1rem;
