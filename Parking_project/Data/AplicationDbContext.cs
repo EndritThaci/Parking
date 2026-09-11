@@ -3,8 +3,12 @@ using Parking_project.Models;
 
 namespace Parking_project.Data
 {
-    public class AplicationDbContext(DbContextOptions options) : DbContext(options)
+    public class AplicationDbContext : DbContext
     {
+        public AplicationDbContext(DbContextOptions options) : base(options)
+        {
+        }
+
         public DbSet<Organizata> Organizata { get; set; }
         public DbSet<Useri> Useri { get; set; }
         public DbSet<NjesiOrg> NjesiOrg { get; set; }

@@ -54,11 +54,31 @@ builder.Services.AddRateLimiter(options =>
 
 builder.Services.AddCors();
 
-builder.Services.AddDbContext<AplicationDbContext>(option =>
+builder.Services.AddDbContext<SqlServerDbContext>(options =>
+    {
+        options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sql => sql.MigrationsAssembly(typeof(SqlServerDbContext).Assembly.FullName));
+    });
+builder.Services.AddDbContext<PostgreSqlDbContext>(options =>
+    {
+        options.UseNpgsql(
+        builder.Configuration.GetConnectionString("PostgreSQLConnection"),
+        npgsql => npgsql.MigrationsAssembly(typeof(PostgreSqlDbContext).Assembly.FullName));
+    });
+
+var databaseProvider = "MSSQL";
+//var databaseProvider = "PostgreSQL";
+
+if (databaseProvider == "MSSQL")
 {
-    option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));  //MSSQL
-    //option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));  //PostgreSQL
-});
+    builder.Services.AddScoped<AplicationDbContext>(sp => sp.GetRequiredService<SqlServerDbContext>());
+}
+else if (databaseProvider == "PostgreSQL")
+{
+    builder.Services.AddScoped<AplicationDbContext>(sp => sp.GetRequiredService<PostgreSqlDbContext>());
+}
+
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi( options =>
@@ -131,9 +151,7 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var authService = scope.ServiceProvider
-        .GetRequiredService<IAuthService>();
-
+    var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
     await SuperAdminSeeder.SeedAsync(authService);
 }
 
@@ -149,7 +167,7 @@ app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
 
-
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.MapControllers();
 
