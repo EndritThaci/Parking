@@ -67,8 +67,8 @@ builder.Services.AddDbContext<PostgreSqlDbContext>(options =>
         npgsql => npgsql.MigrationsAssembly(typeof(PostgreSqlDbContext).Assembly.FullName));
     });
 
-var databaseProvider = "MSSQL";
-//var databaseProvider = "PostgreSQL";
+//var databaseProvider = "MSSQL";
+var databaseProvider = "PostgreSQL";
 
 if (databaseProvider == "MSSQL")
 {
