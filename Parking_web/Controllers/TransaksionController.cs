@@ -21,7 +21,7 @@ namespace Parking_web.Controllers
         [Authorize(Roles = "Admin , Super Admin")]
         public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, int njesia = -1)
         {
-            if (User.FindFirst("BiznesId")?.Value == "")
+            if (User.FindFirst("BiznesId")?.Value == "0")
             {
                 TempData["error"] = "Zgjedh një organizatë";
                 if(User.IsInRole("Admin")) return RedirectToAction("Index", "Home");

@@ -37,6 +37,7 @@ namespace Parking_project.Models.DTO
         [EmailAddress]
         [StringLength(150)]
         public string Email { get; set; }
+        public UserCreateDTO? Admin { get; set; }
 
         public bool AllowCustomers { get; set; }
         public bool QRScanner { get; set; }

@@ -70,13 +70,9 @@ namespace Parking_web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(OrgCreateDTO createDTO)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(createDTO);
-            }
-
             try
             {
+                createDTO.Admin?.Email = createDTO.Email;
                 var response = await _organizataService.CreateAsync<ApiResponse<Organizata>>(createDTO);
                 if (response != null && response.Success && response.Data != null)
                 {

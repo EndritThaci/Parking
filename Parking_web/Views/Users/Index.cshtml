@@ -216,17 +216,13 @@
                                     </td>
 
                                     <td class="text-end px-4"> 
-                                        <div class="dropdown">
-                                            <button class="btn btn-light rounded-circle"
-                                                    type="button"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-expanded="false">
+                                        <div class="user-actions">
+                                            <button type="button" class="btn btn-light rounded-circle user-actions-btn" onclick="toggleUserMenu(this)">
                                                 <i class="bi bi-three-dots-vertical"></i>
                                             </button>
 
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                            <ul class="user-actions-menu shadow-sm border-0">
                                                 <li>
-                                                    @* FIX LATER ----------------------------------------------------- DONT FORGET IDIOT *@
                                                     <a class="dropdown-item"
                                                        asp-controller="Users"
                                                        asp-action="Details"
@@ -236,6 +232,7 @@
                                                         Shiko
                                                     </a>
                                                 </li>
+
                                                 <li>
                                                     <form asp-controller="Users"
                                                           asp-action="RemoveUserFromOrg"
@@ -244,12 +241,9 @@
 
                                                         @Html.AntiForgeryToken()
 
-                                                        <input type="hidden"
-                                                               name="userId"
-                                                               value="@user.UserId" />
+                                                        <input type="hidden" name="userId" value="@user.UserId" />
 
-                                                        <button type="button"
-                                                                class="dropdown-item text-danger"
+                                                        <button type="button" class="dropdown-item text-danger"
                                                                 onclick="confirmDelete('@user.UserId', 'Largo përdoruesin?', 'A jeni i sigurt që dëshironi ta largoni këtë përdorues nga organizata?')">
 
                                                             <i class="bi bi-trash me-2"></i>
@@ -431,6 +425,36 @@
         text-transform: uppercase;
     }
 
+    .user-actions {
+        position: relative;
+    }
+
+    .user-actions-menu {
+        display: none;
+        position: fixed !important;
+        z-index: 999999999 !important;
+        min-width: 180px;
+        padding: .5rem 0;
+        margin: 0;
+        background: #fff;
+        border-radius: .75rem;
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
+        list-style: none;
+    }
+
+        .user-actions-menu.show {
+            display: block;
+        }
+
+        .user-actions-menu .dropdown-item {
+            padding: .6rem 1rem;
+            white-space: nowrap;
+        }
+
+            .user-actions-menu .dropdown-item:hover {
+                background-color: #f8f9fa;
+            }
+
     .table > :not(caption) > * > * {
         padding-top: 1rem;
         padding-bottom: 1rem;
@@ -592,3 +616,78 @@
     }
 
 </style>
+
+<script>
+    let activeUserMenu = null;
+
+    function toggleUserMenu(button) {
+        if (activeUserMenu) {
+            activeUserMenu.remove();
+            activeUserMenu = null;
+        }
+
+        const originalMenu = button.parentElement.querySelector(".user-actions-menu");
+
+        if (!originalMenu) return;
+
+        const menu = originalMenu.cloneNode(true);
+
+        document.body.appendChild(menu);
+
+        const rect = button.getBoundingClientRect();
+
+        menu.style.display = "block";
+
+        // Position relative to the button
+        let top = rect.bottom + 6;
+        let left = rect.right - menu.offsetWidth;
+
+        // Don't allow it to go outside the right side
+        if (left + menu.offsetWidth > window.innerWidth - 10) {
+            left = window.innerWidth - menu.offsetWidth - 10;
+        }
+
+        // Don't allow it to go outside the left side
+        if (left < 10) {
+            left = 10;
+        }
+
+        // If there isn't enough space below, open above
+        if (top + menu.offsetHeight > window.innerHeight - 10) {
+            top = rect.top - menu.offsetHeight - 6;
+        }
+
+        // Don't allow it to go above the screen
+        if (top < 10) {
+            top = 10;
+        }
+
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+
+        menu.classList.add("show");
+
+        activeUserMenu = menu;
+    }
+
+    document.addEventListener("click", function (event) {
+        if (activeUserMenu && !event.target.closest(".user-actions-btn") && !event.target.closest(".user-actions-menu")) {
+            activeUserMenu.remove();
+            activeUserMenu = null;
+        }
+    });
+
+    window.addEventListener("scroll", function () {
+        if (activeUserMenu) {
+            activeUserMenu.remove();
+            activeUserMenu = null;
+        }
+    }, true);
+
+    window.addEventListener("resize", function () {
+        if (activeUserMenu) {
+            activeUserMenu.remove();
+            activeUserMenu = null;
+        }
+    });
+</script>

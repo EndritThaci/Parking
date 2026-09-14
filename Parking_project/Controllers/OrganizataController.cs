@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
-using Parking_project.Data;
-using Parking_project.Models;
-using Parking_project.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Parking_project.Data;
+using Parking_project.Models;
+using Parking_project.Models.DTO;
+using Parking_project.Services;
 
 namespace Parking_project.Controllers
 {
@@ -15,10 +16,12 @@ namespace Parking_project.Controllers
     {
         private readonly AplicationDbContext _db;
         private readonly IMapper _mapper;
-        public OrganizataController(AplicationDbContext db, IMapper mapper)
+        private readonly IAuthService _authService;
+        public OrganizataController(AplicationDbContext db, IMapper mapper, IAuthService authService)
         {
             _db = db;
             _mapper = mapper;
+            _authService = authService;
         }
 
 
@@ -231,13 +234,20 @@ namespace Parking_project.Controllers
                 {
                     return Conflict(ApiResponse<Organizata>.Conflict($"An Organizata with the fiscal number '{organizataDTO.NumriFiskal}' already exists."));
                 }
+                
+                if (await _authService.IsEmailExistsAsync(organizataDTO.Email))
+                {
+                    return Conflict(ApiResponse<UserReadDTO>.Conflict("Email already exists"));
+                }
+
 
                 Organizata organizata = _mapper.Map<Organizata>(organizataDTO);
-                organizata.DataRegjistrimit = DateTime.Now;
+                organizata.DataRegjistrimit = DateTime.UtcNow;
 
                 
                 await _db.Organizata.AddAsync(organizata);
                 await _db.SaveChangesAsync();
+
 
                 var defaultNjesia = new NjesiOrg
                 {
@@ -272,8 +282,24 @@ namespace Parking_project.Controllers
                 await _db.SaveChangesAsync();
 
 
-                return CreatedAtAction(nameof(GetOrganizataByID),new {id = organizata.BiznesId}, ApiResponse<Organizata>.CreatedAt(organizata,"Organizata u krijua me sukses"));
+                if (organizataDTO.Admin != null)
+                {
+                    organizataDTO.Admin.UserOrgs =
+                    [
+                        new UserOrgCreateDto
+                        {
+                            BiznesId = organizata.BiznesId
+                        },
+                    ];
 
+                    var user = await _authService.RegisterAsync(organizataDTO.Admin, "Admin");
+                    if (user == null)
+                    {
+                        return BadRequest(ApiResponse<UserReadDTO>.BadRequest("Registration of Admin failed"));
+                    }
+                }
+
+                return CreatedAtAction(nameof(GetOrganizataByID),new {id = organizata.BiznesId}, ApiResponse<Organizata>.CreatedAt(organizata,"Organizata u krijua me sukses"));
             }
             catch (Exception ex)
             {

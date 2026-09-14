@@ -533,10 +533,6 @@ namespace Parking_web.Controllers
                 {
                     pending = pendingResponse.Data;
                 }
-                else
-                {
-                    TempData["error"] = "Ka ndodhur një gabim gjat tërheqjes së të dhënave";
-                }
             }
             catch (Exception ex)
             {

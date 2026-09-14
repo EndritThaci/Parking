@@ -33,7 +33,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model != null)
+                        @if (Model != null && Model.Data.Count > 0)
                         {
                             foreach (var t in Model.Data.OrderByDescending(x => x.KohaHyrjes))
                             {
@@ -76,6 +76,12 @@
                                     </td>
                                 </tr>
                             }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center">Nuk u gjet asnjë transaksion</td>
+                            </tr>
                         }
                     </tbody>
                 </table>

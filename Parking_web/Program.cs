@@ -88,6 +88,15 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserOrgService, UserOrgService>();
 builder.Services.AddScoped<ICreditCardService, CreditCardService>();
 
+try
+{
+    var apiUrl = builder.Configuration["ServiceUrls:OrganizataAPI"] ?? "localhost:4004";
+    using var httpClient = new HttpClient();
+
+    await httpClient.GetAsync($"{apiUrl.TrimEnd('/')}/health");
+}
+catch{}
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -106,10 +115,7 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Auth}/{action=login}")
-    .WithStaticAssets();
+app.MapControllerRoute( name: "default", pattern: "{controller=Auth}/{action=login}") .WithStaticAssets();
 
 
 app.Run();
