@@ -220,9 +220,9 @@
                                             <button type="button" class="btn btn-light rounded-circle user-actions-btn" onclick="toggleUserMenu(this)">
                                                 <i class="bi bi-three-dots-vertical"></i>
                                             </button>
-
+                                            <!-- NEED TO FIX -->
                                             <ul class="user-actions-menu shadow-sm border-0">
-                                                <li>
+                                                <li> 
                                                     <a class="dropdown-item"
                                                        asp-controller="Users"
                                                        asp-action="Details"
@@ -619,13 +619,25 @@
 
 <script>
     let activeUserMenu = null;
+    let activeUserButton = null;
 
     function toggleUserMenu(button) {
+        if (activeUserButton === button) {
+            if (activeUserMenu) {
+                activeUserMenu.remove();
+            }
+
+            activeUserMenu = null;
+            activeUserButton = null;
+            return;
+        }
+        var pastActive = activeUserMenu;
         if (activeUserMenu) {
             activeUserMenu.remove();
             activeUserMenu = null;
         }
 
+        activeUserButton = button;
         const originalMenu = button.parentElement.querySelector(".user-actions-menu");
 
         if (!originalMenu) return;
@@ -674,6 +686,7 @@
         if (activeUserMenu && !event.target.closest(".user-actions-btn") && !event.target.closest(".user-actions-menu")) {
             activeUserMenu.remove();
             activeUserMenu = null;
+            activeUserButton = null;
         }
     });
 
@@ -681,6 +694,7 @@
         if (activeUserMenu) {
             activeUserMenu.remove();
             activeUserMenu = null;
+            activeUserButton = null;
         }
     }, true);
 
@@ -688,6 +702,7 @@
         if (activeUserMenu) {
             activeUserMenu.remove();
             activeUserMenu = null;
+            activeUserButton = null;
         }
     });
 </script>

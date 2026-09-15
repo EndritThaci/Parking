@@ -18,45 +18,55 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
 }
 
 <div class="container-fluid py-4">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div>
-            <div class="d-flex align-items-center gap-3">
-                <div class="pos-title-icon">
-                    <i class="bi bi-p-square"></i>
-                </div>
-                <div>
-                    <h3 class="fw-bold mb-0">Parking POS</h3>
-                    <div class="text-muted small"> Menaxhimi i transaksioneve </div>
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="pos-title-icon">
+                <i class="bi bi-p-square"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold mb-0">Parking POS</h3>
+                <div class="text-muted small">
+                    Menaxhimi i transaksioneve
                 </div>
             </div>
         </div>
 
         <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-body">
-                <form asp-action="CreateTransacsion" method="post" class="d-flex align-items-center gap-2" id="createTransactionForm">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="njesiaId" value="@njesiaId" />
-                    <input type="hidden" name="userId" value="@userId" />
+                <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-3">
+                    <button type="button" class="btn btn-primary px-4" onclick="openCamera()">
+                        <i class="bi bi-qr-code-scan me-1"></i>
+                        Scan
+                    </button>
 
-                    <div class="input-group input-group-md pos-create-input">
-                        <span class="input-group-text">
-                            <i class="bi bi-car-front-fill"></i>
-                        </span>
-                        <input type="text"
-                               id="identifikues"
-                               name="identifikues"
-                               class="form-control text-uppercase fw-bold"
-                               placeholder="Targa..."
-                               maxlength="20"
-                               autocomplete="off"
-                               required />
+                    <form asp-action="CreateTransacsion" method="post" class="d-flex align-items-center" id="createTransactionForm">
+                        @Html.AntiForgeryToken()
 
-                        <button type="submit" class="btn btn-primary px-4">
-                            <i class="bi bi-plus-lg me-1"></i>
-                            Shto
-                        </button>
-                    </div>
-                </form>
+                        <input type="hidden" name="njesiaId" value="@njesiaId" />
+                        <input type="hidden" name="userId" value="@userId" />
+
+                        <div class="input-group pos-create-input">
+
+                            <span class="input-group-text">
+                                <i class="bi bi-car-front-fill"></i>
+                            </span>
+
+                            <input type="text"
+                                   id="identifikues"
+                                   name="identifikues"
+                                   class="form-control text-uppercase fw-bold"
+                                   placeholder="Targa..."
+                                   maxlength="20"
+                                   autocomplete="off"
+                                   required />
+
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-plus-lg me-1"></i>
+                                Shto
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -310,6 +320,34 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
             </table>
         </div>
     </div>
+    <div class="modal fade" id="cameraModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-qr-code-scan me-2"></i>
+                        Skano QR Kodin
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            onclick="stopCamera()">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="qr-reader" style="width: 100%;"></div>
+
+                    <div id="qr-result"
+                         class="alert alert-success mt-3 d-none">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
@@ -406,6 +444,103 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
         function openServices(transactionId) {
             window.location.href = '@Url.Action("Edit", "Home")?transaksioniId=' + transactionId;
         }
+
+        let qrScanner = null;
+
+        async function openCamera() {
+            const modalElement = document.getElementById("cameraModal");
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.show();
+
+            setTimeout(async () => {
+                try {
+                    qrScanner = new Html5Qrcode("qr-reader");
+
+                    await qrScanner.start(
+                        { facingMode: "environment" },
+                        {
+                            fps: 10,
+                            qrbox: {
+                                width: 250,
+                                height: 250
+                            }
+                        },
+                        (decodedText) => {
+                            document.getElementById("qr-result").innerText = "QR u lexua: " + decodedText;
+                            document.getElementById("qr-result").classList.remove("d-none");
+
+                            stopCamera();
+                            handleQrCode(decodedText);
+                        },
+                        (errorMessage) => { }
+                    );
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gabim!',
+                        text: 'Nuk mund të hapet kamera. Kontrolloni lejen për përdorimin e kamerës.',
+                        confirmButtonColor: '#d33',
+                        confirmButtonText: 'Kuptova'
+                    });
+                    modal.hide();
+                }
+            }, 300);
+        }
+        async function stopCamera() {
+            if (qrScanner) {
+                try {
+                    await qrScanner.stop();
+                    qrScanner.clear();
+                } catch (error) {
+                    console.error("Error stopping camera:", error);
+                }
+
+                qrScanner = null;
+            }
+        }
+        async function handleQrCode(value) {
+            console.log("Scanned value:", value);
+
+            try {
+                const response = await fetch(
+                    `/Home/QRReader?encrypted=${encodeURIComponent(value)}&njesiaId=${@njesiaId}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Accept": "application/json"
+                        }
+                    }
+                );
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "QR i vlefshëm",
+                        text: "QR kodi u verifikua me sukses.",
+                        confirmButtonText: "Vazhdo"
+                    });
+
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "QR i pavlefshëm",
+                        text: result.message ?? "Ky QR Kod është i pavlefshëm..",
+                        confirmButtonText: "Kuptova"
+                    });
+                }
+            } catch (error) {
+                console.error("QR validation error:", error);
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Gabim!",
+                    text: "Ndodhi një gabim gjatë verifikimit të QR kodit.",
+                    confirmButtonText: "Kuptova"
+                });
+            }
+        }
     </script>
 }
 <style>
@@ -428,6 +563,12 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                 box-shadow: none;
                 border-color: #dee2e6;
             }
+
+    @@media (max-width: 992px) {
+        .pos-create-input {
+            width: 100%;
+        }
+    }
 
     @@media (max-width: 768px) {
         .pos-create-input {
