@@ -354,7 +354,7 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const input = document.getElementById("identifikues");
