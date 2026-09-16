@@ -73,8 +73,10 @@ namespace Parking_web.Controllers
                 {
                     return Json(new { success = false, message = response?.Message ?? "Nuk u gjetën njësitë." });
                 }
+                var njesiaId = 0;
+                if (response.Data.Count == 1) njesiaId = response.Data[0].NjesiteId;
 
-                return Json(new { success = true, data = response.Data });
+                return Json(new { success = true, data = response.Data, njesiaId = njesiaId });
             }
             catch (Exception ex)
             {
@@ -111,6 +113,7 @@ namespace Parking_web.Controllers
                 }
 
                 ViewBag.NjesiaEmri = njesiaResponse.Data.Emri;
+                ViewBag.QRScanner = njesiaResponse.Data.QRScanner;
                 ViewBag.CilsimiEmri = cilsimiActiv.Emri;
 
                 createDto.NjesiaId = njesiaId;
@@ -133,8 +136,8 @@ namespace Parking_web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Employee , Manager , Admin , Super Admin")]
-        public async Task<IActionResult> QRReader(string encrypted, int? njesiaId)
+        [Authorize]
+        public async Task<IActionResult> QRReader(string encrypted, int? njesiaId, string? identifikues)
         {
             QREncrypt? qrData = Encryption.DecryptQR(encrypted);
             if (qrData == null)
@@ -144,7 +147,7 @@ namespace Parking_web.Controllers
 
             if (qrData.Type == "Edit" && qrData.ID != null)
             {
-                var expectedSignature = GenerateSignature(njesiaId: qrData.NjesiaID, userId: qrData.UserID);
+                var expectedSignature = GenerateSignature(id: qrData.ID);
                 if (qrData.Signature != expectedSignature)
                 {
                     return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
@@ -217,11 +220,11 @@ namespace Parking_web.Controllers
                             {
                                 return new JsonResult(new { success = true, message = "Pagesa u krye me sukses!" });
                             }
-                            return new JsonResult(new { success = false, message = "Pagesa u regjistrua si sukses por deshtoi ne marrjen e parave" });
+                            return new JsonResult(new { success = false, message = "Pagesa u regjistrua si sukses por dështoi në marrjen e parave" });
                         }
                         else
                         {
-                            return new JsonResult(new { success = false, message = $"{response?.Message ?? "Pagesa deshtoi"}" });
+                            return new JsonResult(new { success = false, message = $"{response?.Message ?? "Pagesa dështoi"}" });
                         }
                     }
                     catch (Exception ex)
@@ -231,7 +234,7 @@ namespace Parking_web.Controllers
                 }
                 else
                 {
-                    return new JsonResult(new { success = false, message = "FORMAT I GABUAR I KOHES" });
+                    return new JsonResult(new { success = false, message = "Format i gabuar i kohës" });
                 }
             }
             else if (qrData.Type == "Entry")
@@ -252,6 +255,23 @@ namespace Parking_web.Controllers
                 }
 
                 var res = await CreateTransactionFunction(qrData.NjesiaID.Value, qrData.UserID.Value, qrData.Identifikues);
+                return new JsonResult(new { success = res.Success, message = res.Message });
+            }
+            else if (qrData.Type == "Njesia")
+            {
+                if (qrData.NjesiaID == null)
+                {
+                    return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
+                }
+
+                string expectedSignature = GenerateSignature(njesiaId: qrData.NjesiaID);
+                if (qrData.Signature != expectedSignature)
+                {
+                    return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
+                }
+
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var res = await CreateTransactionFunction(qrData.NjesiaID.Value, userId, identifikues);
                 return new JsonResult(new { success = res.Success, message = res.Message });
             }
             else
@@ -474,7 +494,7 @@ namespace Parking_web.Controllers
             return RedirectToAction("Index");
         }
 
-        public IActionResult QRGenerate(int? id, int? selectedCardId, int? njesiaId, int? userId, string? identifikues)
+        public IActionResult QRGenerate(int? id, int? selectedCardId, int? njesiaId, int? userId, string? identifikues, string? type)
         {
             using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
             {
@@ -493,9 +513,15 @@ namespace Parking_web.Controllers
                     var qrData = new QREncrypt { NjesiaID = njesiaId, UserID = userId , Signature = signature, Identifikues = identifikues, Type = "Entry"};
                     encrypted = Encryption.EncryptQR(qrData);
                 }
+                else if (njesiaId != null)
+                {
+                    string signature = GenerateSignature(njesiaId: njesiaId);
+                    var qrData = new QREncrypt { NjesiaID = njesiaId, Signature = signature, Type = "Njesia"};
+                    encrypted = Encryption.EncryptQR(qrData);
+                }
                 else if (id != null)
                 {
-                    string signature = GenerateSignature(njesiaId: njesiaId, userId: userId);
+                    string signature = GenerateSignature(id: id);
                     var qrData = new QREncrypt { ID = id, Signature = signature, Type = "Edit" };
                     encrypted = Encryption.EncryptQR(qrData);
                 }

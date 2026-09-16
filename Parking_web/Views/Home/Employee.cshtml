@@ -320,31 +320,32 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
             </table>
         </div>
     </div>
-    <div class="modal fade" id="cameraModal" tabindex="-1">
+    <div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 border-0 shadow">
-
+            <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-header">
-                    <h5 class="modal-title">
+                    <h5 class="modal-title fw-bold" id="cameraModalLabel">
                         <i class="bi bi-qr-code-scan me-2"></i>
                         Skano QR Kodin
                     </h5>
-
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal"
-                            onclick="stopCamera()">
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Mbyll" onclick="stopCamera()"> </button>
                 </div>
-
                 <div class="modal-body">
                     <div id="qr-reader" style="width: 100%;"></div>
-
-                    <div id="qr-result"
-                         class="alert alert-success mt-3 d-none">
+                    <div id="qr-loading" class="text-center py-5 d-none">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">
+                                Duke verifikuar...
+                            </span>
+                        </div>
+                        <div class="fw-semibold">
+                            Duke verifikuar QR kodin...
+                        </div>
+                        <small class="text-muted">
+                            Ju lutem prisni
+                        </small>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -446,6 +447,7 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
         }
 
         let qrScanner = null;
+        let qrProcessing = false;
 
         async function openCamera() {
             const modalElement = document.getElementById("cameraModal");
@@ -454,6 +456,11 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
 
             setTimeout(async () => {
                 try {
+                    qrProcessing = false;
+
+                    document.getElementById("qr-reader").classList.remove("d-none");
+                    document.getElementById("qr-loading").classList.add("d-none");
+                    
                     qrScanner = new Html5Qrcode("qr-reader");
 
                     await qrScanner.start(
@@ -465,12 +472,17 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                                 height: 250
                             }
                         },
-                        (decodedText) => {
-                            document.getElementById("qr-result").innerText = "QR u lexua: " + decodedText;
-                            document.getElementById("qr-result").classList.remove("d-none");
+                        async (decodedText) => {
+                            if (qrProcessing) {
+                                return;
+                            }
+                             qrProcessing = true;
 
-                            stopCamera();
-                            handleQrCode(decodedText);
+                            document.getElementById("qr-reader").classList.add("d-none");
+                            document.getElementById("qr-loading").classList.remove("d-none");
+
+                            await stopCamera();
+                            await handleQrCode(decodedText);
                         },
                         (errorMessage) => { }
                     );
@@ -490,7 +502,7 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
             if (qrScanner) {
                 try {
                     await qrScanner.stop();
-                    qrScanner.clear();
+                    await qrScanner.clear();
                 } catch (error) {
                     console.error("Error stopping camera:", error);
                 }
@@ -499,8 +511,6 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
             }
         }
         async function handleQrCode(value) {
-            console.log("Scanned value:", value);
-
             try {
                 const response = await fetch(
                     `/Home/QRReader?encrypted=${encodeURIComponent(value)}&njesiaId=${@njesiaId}`,
@@ -515,30 +525,50 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                 const result = await response.json();
 
                 if (result.success) {
+                    const modalElement = document.getElementById("cameraModal");
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                    modal.hide();
+
                     Swal.fire({
                         icon: "success",
                         title: "QR i vlefshëm",
                         text: "QR kodi u verifikua me sukses.",
-                        confirmButtonText: "Vazhdo"
+                        timer: 1500,
+                        showConfirmButton: false,
+                        timerProgressBar: true
                     });
 
+                     window.location.reload();
+
                 } else {
-                    Swal.fire({
+                    const modalElement = document.getElementById("cameraModal");
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                    modal.hide();
+
+                    await Swal.fire({
                         icon: "error",
                         title: "QR i pavlefshëm",
                         text: result.message ?? "Ky QR Kod është i pavlefshëm..",
                         confirmButtonText: "Kuptova"
                     });
+
+                    qrProcessing = false;
                 }
             } catch (error) {
                 console.error("QR validation error:", error);
 
-                Swal.fire({
+                const modalElement = document.getElementById("cameraModal");
+                const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                modal.hide();
+
+                await Swal.fire({
                     icon: "error",
                     title: "Gabim!",
                     text: "Ndodhi një gabim gjatë verifikimit të QR kodit.",
                     confirmButtonText: "Kuptova"
                 });
+
+                qrProcessing = false;
             }
         }
     </script>

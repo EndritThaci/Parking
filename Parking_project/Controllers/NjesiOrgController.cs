@@ -74,7 +74,7 @@ namespace Parking_project.Controllers
                     return NotFound(ApiResponse<object>.NotFound("Njesia Id is invalid"));
 
                 }
-                var njesiOrg = await _db.NjesiOrg.Where(a => a.active).FirstOrDefaultAsync(n => n.NjesiteId == id);
+                var njesiOrg = await _db.NjesiOrg.Where(a => a.active).Include(o => o.Organizata).FirstOrDefaultAsync(n => n.NjesiteId == id);
                 if (njesiOrg == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"NjesiOrg with ID {id} not found."));

@@ -25,6 +25,8 @@ namespace Parking_web.Models
         
         public bool active { get; set; } = true;
 
+        public bool QRScanner { get; set; } = false;
+
         [Required]
         public int BiznesId { get; set; }
 

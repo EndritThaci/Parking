@@ -22,5 +22,7 @@ namespace Parking_web.Models.DTO
 
         [Required]
         public int BiznesId { get; set; }
+
+        public bool QRScanner { get; set; }
     }
 }

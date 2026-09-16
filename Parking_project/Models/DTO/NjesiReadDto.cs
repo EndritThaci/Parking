@@ -18,5 +18,7 @@ namespace Parking_project.Models.DTO
         public int BiznesId { get; set; }
 
         public Organizata Organizata { get; set; }
+
+        public bool QRScanner { get; set; }
     }
 }

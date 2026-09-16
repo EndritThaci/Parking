@@ -45,6 +45,5 @@ namespace Parking_project.Models
         public string Email { get; set; } = string.Empty;
 
         public bool AllowCustomers { get; set; } = true;
-        public bool QRScanner { get; set; } = false;
     }
 }

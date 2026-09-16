@@ -149,6 +149,9 @@ namespace Parking_project.Migrations.PostgreSql
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<bool>("QRScanner")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("VendeTeLira")
                         .HasColumnType("integer");
 
@@ -213,9 +216,6 @@ namespace Parking_project.Migrations.PostgreSql
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<bool>("QRScanner")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Telefoni")
                         .IsRequired()

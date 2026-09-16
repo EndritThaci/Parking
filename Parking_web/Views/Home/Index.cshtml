@@ -122,7 +122,7 @@ else
                     <div class="col-md-6 col-lg-4">
                         <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative unit-card"
                              style="cursor:pointer;"
-                             onclick="@(org.QRScanner ? $"openNjesiteModal({org.BiznesId}, {System.Text.Json.JsonSerializer.Serialize(org.EmriBiznesit)})" : "openCamera()")">
+                             onclick="openNjesiteModal(@org.BiznesId, @System.Text.Json.JsonSerializer.Serialize(org.EmriBiznesit))">
 
                             <div class="unit-stripe"></div>
 
@@ -470,7 +470,6 @@ else
         loading.classList.remove('d-none');
         error.classList.add('d-none');
         list.innerHTML = '';
-        modal.show();
 
         try {
             const response = await fetch( '@Url.Action("GetNjesite", "Home")?orgId=' + orgId );
@@ -489,6 +488,7 @@ else
             }
 
             if (!result.data || result.data.length === 0) {
+                modal.show();
                 list.innerHTML = `
                         <div class="text-center py-4">
                             <i class="bi bi-building-x display-6 text-muted"></i>
@@ -498,7 +498,13 @@ else
                     `;
                 return;
             }
+            else if (result.data.length == 1) {
+                modal.hide();
+                window.location.href = `/Home/Create?njesiaId=${encodeURIComponent(result.njesiaId)}`;
+                return;
+            }
 
+            modal.show();
             result.data.forEach(njesia => {
                 if (!njesia.active) return;
 
@@ -564,67 +570,5 @@ else
             .replaceAll('>', '&gt;')
             .replaceAll('"', '&quot;')
             .replaceAll("'", '&#039;');
-    }
-
-        let qrScanner = null;
-
-    async function openCamera() {
-        const modalElement = document.getElementById("cameraModal");
-        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-        modal.show();
-
-        // Wait for modal to be visible
-        setTimeout(async () => {
-            try {
-                qrScanner = new Html5Qrcode("qr-reader");
-
-                await qrScanner.start(
-                    { facingMode: "environment" },
-                    {
-                        fps: 10,
-                        qrbox: {
-                            width: 250,
-                            height: 250
-                        }
-                    },
-                    (decodedText) => {
-                        document.getElementById("qr-result").innerText = "QR u lexua: " + decodedText;
-                        document.getElementById("qr-result").classList.remove("d-none");
-
-                        stopCamera();
-                        handleQrCode(decodedText);
-                    },
-                    (errorMessage) => {}
-                );
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gabim!',
-                    text: 'Nuk mund të hapet kamera. Kontrolloni lejen për përdorimin e kamerës.',
-                    confirmButtonColor: '#d33',
-                    confirmButtonText: 'Kuptova'
-                });
-                modal.hide();
-            }
-        }, 300);
-    }
-    async function stopCamera() {
-        if (qrScanner) {
-            try {
-                await qrScanner.stop();
-                qrScanner.clear();
-            } catch (error) {
-                console.error("Error stopping camera:", error);
-            }
-
-            qrScanner = null;
-        }
-    }
-    function handleQrCode(value) {
-        console.log("Scanned value:", value);
-
-        // Example:
-        // window.location.href = "/Home/EntryQR?identifikues="
-        //     + encodeURIComponent(value);
     }
 </script>

@@ -231,5 +231,27 @@ namespace Parking_web.Controllers
             }
             return View(njesi);
         }
+
+        [Authorize(Roles = "Manager, Admin , Super Admin")]
+        public async Task<IActionResult> NjesiaQR(int id)
+        {
+            if (id <= 0)
+            {
+                TempData["error"] = "ID e gabuar.";
+                return RedirectToAction(nameof(Index2));
+            }
+            if (User.IsInRole("Manager"))
+            {
+                if (!int.TryParse(User.FindFirst("NjesiaId")?.Value, out int njesiaId))
+                {
+                    TempData["error"] = "Nuk u gjet njësia e përdoruesit.";
+                    return RedirectToAction("Index");
+                }
+
+                id = njesiaId;
+            }
+
+            return View(id);
+        }
     }
 }

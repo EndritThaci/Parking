@@ -146,6 +146,10 @@
                                         <td>@njesi.VendeTeLira</td>
                                         <td class="text-end pe-4">
                                             <div class="d-flex justify-content-end gap-1">
+                                                @if (!njesi.QRScanner)
+                                                {
+                                                    <a asp-action="NjesiaQR" asp-route-id="@njesi.NjesiteId" class="btn btn-sm btn-activate-custom"><i class="bi bi-qr-code-scan"></i></a>
+                                                }
                                                 <a asp-action="Edit" asp-route-id="@njesi.NjesiteId" class="btn btn-sm btn-edit-custom"><i class="bi bi-pencil"></i></a>
                                                 <a asp-action="Delete" asp-route-id="@njesi.NjesiteId" class="btn btn-sm btn-delete-custom"><i class="bi bi-trash"></i></a>
                                             </div>

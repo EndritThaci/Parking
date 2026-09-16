@@ -58,8 +58,7 @@ namespace Parking_web.Controllers
         {
             var model = new OrgCreateDTO
             {
-                AllowCustomers = true,
-                QRScanner = false
+                AllowCustomers = true
             };
 
             return View(model);
