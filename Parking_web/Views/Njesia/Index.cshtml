@@ -85,7 +85,7 @@
             <h2 class="fw-bold text-dark mb-1">Menaxhimi i Njesisë @Model.Emri</h2>
             <p class="text-muted small">Kontrolloni lokacionet dhe cilësimet tuaja në një vend.</p>
         </div>
-        @if (!Model.QRScanner)
+        @if (!Model.QRScanner && ViewBag.customers)
         {
             <div>
                 <a asp-action="NjesiaQR" asp-route-id="@Model.NjesiteId" class="btn btn-outline-primary btn-sm px-4 rounded-pill fw-semibold"><i class="bi bi-qr-code-scan"></i> QR Kodi</a>

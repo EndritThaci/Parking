@@ -10,6 +10,7 @@ using QRCoder;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Security.Cryptography.Xml;
+using System.Xml.Linq;
 
 namespace Parking_web.Controllers
 {
@@ -137,7 +138,7 @@ namespace Parking_web.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> QRReader(string encrypted, int? njesiaId, string? identifikues)
+        public async Task<IActionResult> QRReader(string encrypted, int? njesiaId, string? identifikues, int? id, int? cardId, string? type)
         {
             QREncrypt? qrData = Encryption.DecryptQR(encrypted);
             if (qrData == null)
@@ -153,7 +154,7 @@ namespace Parking_web.Controllers
                     return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
                 }
 
-                return RedirectToAction("Edit", new { transaksioniId = qrData.ID });
+                return new JsonResult(new { success = true, message = "Sherbimet e Transaksionit", redirectUrl = Url.Action("Edit", "Home", new { transaksioniId = qrData.ID }) });
             }
             else if (qrData.Type == "Payment")
             {
@@ -177,60 +178,8 @@ namespace Parking_web.Controllers
                         return new JsonResult( new { success = false, message = "Ky QR Kod ka skaduar (limiti 10 min). Ju lutem gjeneroni një të ri." });
                     }
 
-                    try
-                    {
-                        var transResponse = await _transaksioniService.GetAsync<ApiResponse<TransaksionRead>>(qrData.ID.Value);
-                        if (transResponse == null || !transResponse.Success || transResponse.Data == null)
-                        {
-                            return new JsonResult(new { success = false, message = "Transaksioni nuk u gjet." });
-                        }
-                        if(transResponse.Data.Statusi != "Pending")
-                        {
-                            return new JsonResult(new { success = false, message = "Transaksioni është paguar." });
-                        }
-
-                        decimal amount = transResponse.Data.Cmimi ?? 0;
-                        if (amount < 0)
-                        {
-                            return new JsonResult(new { success = false, message = "Shuma e transaksionit është e pavlefshme." });
-                        }
-
-                        if (!njesiaId.HasValue)
-                        {
-                            if (!int.TryParse(User.FindFirst("NjesiaId")?.Value, out int userNjesiaId))
-                            {
-                                return new JsonResult(new { success = false, message = "Nuk u gjet njësia e përdoruesit." });
-                            }
-
-                            njesiaId = userNjesiaId;
-                        }
-                        if (transResponse.Data.Njesia.NjesiteId != njesiaId) {
-                            return new JsonResult(new { success = false, message = "Ky QR Kod është për njësi tjetër." });
-                        }
-
-                        var dto = new PayRequestDto();
-                        dto.CreditCardId = qrData.CardID.Value;
-                        dto.Amount = amount;
-
-                        var response = await _creditCardService.PayAsync<ApiResponse<CreditCardReadDto>>(dto);
-                        if (response != null && response.Success)
-                        {
-                            var responsePay = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(qrData.ID.Value);
-                            if (responsePay != null && responsePay.Success)
-                            {
-                                return new JsonResult(new { success = true, message = "Pagesa u krye me sukses!" });
-                            }
-                            return new JsonResult(new { success = false, message = "Pagesa u regjistrua si sukses por dështoi në marrjen e parave" });
-                        }
-                        else
-                        {
-                            return new JsonResult(new { success = false, message = $"{response?.Message ?? "Pagesa dështoi"}" });
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        return new JsonResult(new { success = false, message = $"Gabim: {ex.Message}" });
-                    }
+                    var res = await PayTransactionFunction(qrData.ID.Value, qrData.CardID.Value, null, null);
+                    return new JsonResult(new { success = res.Success, message = res.Message });
                 }
                 else
                 {
@@ -255,6 +204,28 @@ namespace Parking_web.Controllers
                 }
 
                 var res = await CreateTransactionFunction(qrData.NjesiaID.Value, qrData.UserID.Value, qrData.Identifikues);
+                return new JsonResult(new { success = res.Success, message = res.Message });
+            }
+            else if (qrData.Type == "Njesia" && type == "Exit")
+            {
+                if (qrData.NjesiaID == null )
+                {
+                    return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
+                }
+                else if (id == null || cardId == null)
+                {
+                    return new JsonResult(new { success = false, message = "Gabim gjat përpunimit të të dhënave" });
+                }
+
+                string expectedSignature = GenerateSignature(njesiaId: qrData.NjesiaID);
+                if (qrData.Signature != expectedSignature)
+                {
+                    return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
+                }
+
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+                var res = await PayTransactionFunction(id.Value, cardId.Value, qrData.NjesiaID.Value, userId);
                 return new JsonResult(new { success = res.Success, message = res.Message });
             }
             else if (qrData.Type == "Njesia")
@@ -313,7 +284,70 @@ namespace Parking_web.Controllers
                 return ( false, $"Gabim: {ex.Message}" );
             }
         }
-        
+        private async Task<(bool Success, string? Message)> PayTransactionFunction(int transactionId, int cardId, int? njesiaId, int? userId)
+        {
+            try
+            {
+                var transResponse = await _transaksioniService.GetAsync<ApiResponse<TransaksionRead>>(transactionId);
+                if (transResponse == null || !transResponse.Success || transResponse.Data == null)
+                {
+                    return (false, "Transaksioni nuk u gjet." );
+                }
+                if (transResponse.Data.Statusi != "Pending")
+                {
+                    return (false, "Transaksioni është paguar." );
+                }
+                if (userId != null && userId != transResponse.Data.Useri.UserId)
+                {
+                    return (false, " Ky transaksioni nuk është i juaji.");
+                }
+
+                decimal amount = transResponse.Data.Cmimi ?? 0;
+                if (amount < 0)
+                {
+                    return (false, "Shuma e transaksionit është e pavlefshme." );
+                }
+
+                if (!njesiaId.HasValue)
+                {
+                    if (!int.TryParse(User.FindFirst("NjesiaId")?.Value, out int userNjesiaId))
+                    {
+                        return (false, "Nuk u gjet njësia e përdoruesit." );
+                    }
+
+                    njesiaId = userNjesiaId;
+                }
+                if (transResponse.Data.Njesia.NjesiteId != njesiaId)
+                {
+                    return (false, "Ky QR Kod është për njësi tjetër." );
+                }
+
+                var dto = new PayRequestDto();
+                dto.CreditCardId = cardId;
+                dto.Amount = amount;
+
+                var response = await _creditCardService.PayAsync<ApiResponse<CreditCardReadDto>>(dto);
+                if (response != null && response.Success)
+                {
+                    var responsePay = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(transactionId);
+                    if (responsePay != null && responsePay.Success)
+                    {
+                        return (true, "Pagesa u krye me sukses!" );
+                    }
+                    return (false, "Pagesa u regjistrua si sukses por dështoi në marrjen e parave");
+                }
+                else
+                {
+                    return (false, $"{response?.Message ?? "Pagesa dështoi"}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Gabim: {ex.Message}");
+            }
+        }
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateTransacsion(int njesiaId, int userId, string? identifikues)

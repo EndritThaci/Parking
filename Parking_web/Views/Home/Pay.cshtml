@@ -112,7 +112,7 @@
                                 <button type="submit" id="submitBtn" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow">Paguaj Cash </button>
                             </form>
                         }
-                        else
+                        else if (Model.Njesia.QRScanner)
                         {
                             <form asp-action="QRShow" method="get" id="paymentForm">
                                 @Html.AntiForgeryToken()
@@ -125,6 +125,11 @@
                                     <i class="bi bi-info-circle"></i> Ju lutem zgjidhni një kartelë për të vazhduar.
                                 </div>
                             </form>
+                        }
+                        else
+                        {
+                            <input type="hidden" name="selectedCardId" id="selectedCardInput" />
+                            <button type="button" onclick="openCamera()" id="submitBtn" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow" disabled>Zgjedh për pagesë </button>
                         }
                         <a asp-action="Index" class="btn btn-link text-muted text-decoration-none text-center rounded-pill py-3 ">Anulo dhe kthehu</a>
                     </div>
@@ -173,6 +178,35 @@
                         <a asp-action="Edit" asp-route-transaksioniId="@Model.TransaksioniId" class="btn btn-outline-primary btn-lg rounded-pill fw-bold py-3 mt-4 shadow">Shto Shërbimet Shtesë</a>
                     }
                     
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="cameraModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-qr-code-scan me-2"></i>
+                        Skano QR Kodin
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="stopCamera()"> </button>
+                </div>
+                <div class="modal-body">
+                    <div id="qr-reader" style="width: 100%;"></div>
+                    <div id="qr-loading" class="text-center py-5 d-none">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">
+                                Loading...
+                            </span>
+                        </div>
+                        <div class="fw-semibold">
+                            Duke verifikuar QR kodin...
+                        </div>
+                        <small class="text-muted">
+                            Ju lutem prisni
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -226,6 +260,7 @@
         #qr-to-print { position: absolute; left: 0; top: 1cm; width: 100%; text-align: center; }
     }
 </style>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const wrapper = document.getElementById('layoutWrapper');
@@ -272,5 +307,135 @@
         if (warning) warning.classList.add('d-none');
 
         sessionStorage.setItem("selectedCardId", cardId);
+    }
+
+    
+    let qrScanner = null;
+    let qrProcessing = false;
+
+    async function openCamera() {
+        const modalElement = document.getElementById("cameraModal");
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+
+        qrProcessing = false;
+
+        document.getElementById("qr-reader").classList.remove("d-none");
+        document.getElementById("qr-loading").classList.add("d-none");
+
+        setTimeout(async () => {
+            try {
+                await stopCamera();
+                qrScanner = new Html5Qrcode("qr-reader");
+
+                await qrScanner.start(
+                    { facingMode: "environment" },
+                    {
+                        fps: 10,
+                        qrbox: {
+                            width: 250,
+                            height: 250
+                        }
+                    },
+                    async (decodedText) => {
+                        if (qrProcessing) {
+                            return;
+                        }
+                            qrProcessing = true;
+
+                        document.getElementById("qr-reader").classList.add("d-none");
+                        document.getElementById("qr-loading").classList.remove("d-none");
+
+                        await stopCamera();
+                        await handleQrCode(decodedText);
+                    },
+                    (errorMessage) => { }
+                );
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gabim!',
+                    text: 'Nuk mund të hapet kamera. Kontrolloni lejen për përdorimin e kamerës.',
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Kuptova'
+                });
+                modal.hide();
+            }
+        }, 300);
+    }
+    async function stopCamera() {
+        if (qrScanner) {
+            try {
+                await qrScanner.stop();
+                await qrScanner.clear();
+            } catch (error) {
+                console.error("Error stopping camera:", error);
+            }
+
+            qrScanner = null;
+        }
+    }
+    async function handleQrCode(value) {
+        try {
+            const cardId = document.getElementById('selectedCardInput').value;
+            const response = await fetch(
+                `/Home/QRReader?encrypted=${encodeURIComponent(value)}&njesiaId=${@Model.Njesia.NjesiteId}&id=${@Model.TransaksioniId}&cardId=${cardId}&type=Exit`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                }
+            );
+            console.log(response);
+            const result = await response.json();
+            console.log(result);
+
+            if (result.success) {
+                const modalElement = document.getElementById("cameraModal");
+                const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                modal.hide();
+
+                Swal.fire({
+                    icon: "success",
+                    title: "QR i vlefshëm",
+                    text: "QR kodi u verifikua me sukses.",
+                    timer: 1500,
+                    showConfirmButton: false,
+                    timerProgressBar: true
+                });
+
+                window.location.href = `/Home/Index`;
+
+            } else {
+                const modalElement = document.getElementById("cameraModal");
+                const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                modal.hide();
+
+                await Swal.fire({
+                    icon: "error",
+                    title: "QR i pavlefshëm",
+                    text: result.message ?? "Ka ndodhue një gabim",
+                    confirmButtonText: "Kuptova"
+                });
+
+                qrProcessing = false;
+            }
+        } catch (error) {
+            console.error("QR validation error:", error);
+
+            const modalElement = document.getElementById("cameraModal");
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.hide();
+
+            await Swal.fire({
+                icon: "error",
+                title: "Gabim!",
+                text: "Ndodhi një gabim gjatë verifikimit të QR kodit.",
+                confirmButtonText: "Kuptova"
+            });
+
+            qrProcessing = false;
+        }
     }
 </script>

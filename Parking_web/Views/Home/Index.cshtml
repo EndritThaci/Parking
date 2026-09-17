@@ -119,31 +119,54 @@ else
             {
                 foreach (var org in Model.Data)
                 {
+                    var njesite = org.Njesite ?? new List<NjesiReadDto>();
+                    var totalFreeSpots = njesite.Sum(n => n.VendeTeLira);
+                    var orgIsFull = njesite.Count == 0 || totalFreeSpots <= 0;
+
+                    var cardClass = orgIsFull ? "unit-card unit-card-full" : "unit-card";
+                    var stripeClass = orgIsFull ? "unit-stripe unit-stripe-full" : "unit-stripe";
+
                     <div class="col-md-6 col-lg-4">
-                        <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative unit-card"
-                             style="cursor:pointer;"
-                             onclick="openNjesiteModal(@org.BiznesId, @System.Text.Json.JsonSerializer.Serialize(org.EmriBiznesit))">
+                        <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative @cardClass" style="cursor:pointer;" 
+                            onclick='openNjesiteModal(@org.BiznesId, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(org.EmriBiznesit)), @Html.Raw(System.Text.Json.JsonSerializer.Serialize(org.Njesite)))'>
 
-                            <div class="unit-stripe"></div>
-
+                            <div class="@stripeClass"></div>
                             <div class="card-body p-4">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
-                                        <h6 class="text-muted small text-uppercase fw-bold mb-1"> Nr. i Biznesit: @org.NumriBiznesit </h6>
-                                        <h4 class="fw-black mb-0 text-dark"> @org.EmriBiznesit </h4>
+                                        <h6 class="text-muted small text-uppercase fw-bold mb-1">
+                                            Nr. i Biznesit: @org.NumriBiznesit
+                                        </h6>
+                                        <h4 class="fw-black mb-0 text-dark">
+                                            @org.EmriBiznesit
+                                        </h4>
                                     </div>
-
-                                    <div class="org-icon"> <i class="bi bi-building"></i> </div>
+                                    <div class="org-icon @(orgIsFull ? "org-icon-full" : "")">
+                                        <i class="bi bi-building"></i>
+                                    </div>
                                 </div>
-
-                                <div class="d-flex align-items-center text-muted small mb-4">
-                                    <i class="bi bi-geo-alt me-2 text-primary"></i>
-                                    <span class="text-truncate"> @org.Adresa </span>
+                                <div class="d-flex align-items-center text-muted small mb-3">
+                                    <i class="bi bi-geo-alt me-2
+                                       @(orgIsFull ? "text-danger" : "text-primary")">
+                                    </i>
+                                    <span class="text-truncate">
+                                        @org.Adresa
+                                    </span>
                                 </div>
-
-                                <div class="btn btn-outline-primary w-100 rounded-pill fw-bold py-2">
-                                    Zgjedh Njësinë <i class="bi bi-chevron-right ms-1"></i>
-                                </div>
+                                @if (orgIsFull)
+                                {
+                                    <div class="btn btn-outline-danger w-100 rounded-pill fw-bold py-2">
+                                        Nuk ka vende të lira
+                                        <i class="bi bi-x-circle ms-1"></i>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="btn btn-outline-primary w-100 rounded-pill fw-bold py-2">
+                                        Zgjedh Njësinë
+                                        <i class="bi bi-chevron-right ms-1"></i>
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>
@@ -154,7 +177,9 @@ else
                 <div class="col-12">
                     <div class="text-center py-5">
                         <i class="bi bi-building-x display-4 text-muted"></i>
-                        <h5 class="fw-bold mt-3"> Nuk u gjet asnjë organizatë </h5>
+                        <h5 class="fw-bold mt-3">
+                            Nuk u gjet asnjë organizatë
+                        </h5>
                     </div>
                 </div>
             }
@@ -179,9 +204,7 @@ else
                 <div class="text-muted small">
                     @{
                         var from = ((Model.PageNumber - 1) * Model.PageSize) + 1;
-                        var to = Math.Min(
-                            Model.PageNumber * Model.PageSize,
-                            Model.TotalRecords);
+                        var to = Math.Min(Model.PageNumber * Model.PageSize, Model.TotalRecords);
                     }
                     @from - @to nga @Model.TotalRecords organizata
                 </div>
@@ -406,6 +429,25 @@ else
         font-size: 20px;
     }
 
+    .unit-card-full {
+        border: 1px solid #dc3545 !important;
+    }
+
+        .unit-card-full:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(220, 53, 69, 0.15) !important;
+            border: 1px solid #dc3545 !important;
+        }
+
+    .unit-stripe-full {
+        background: #dc3545 !important;
+    }
+
+    .org-icon-full {
+        background: #f8d7da !important;
+        color: #dc3545 !important;
+    }
+
     .modal-rounded {
         border-radius: 20px;
         overflow: hidden;
@@ -453,8 +495,14 @@ else
     }
 
 
-    async function openNjesiteModal(orgId, orgName) {
+    async function openNjesiteModal(orgId, orgName, njesite) {
         const modalElement = document.getElementById('njesiteModal');
+
+        if (!modalElement) {
+            console.error('njesiteModal was not found.');
+            return;
+        }
+
         const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
 
         const title = document.getElementById('njesiteModalLabel');
@@ -467,95 +515,106 @@ else
         title.innerText = 'Zgjedh Njësinë';
         subtitle.innerText = 'Org: ' + orgName;
 
-        loading.classList.remove('d-none');
+        loading.classList.add('d-none');
         error.classList.add('d-none');
         list.innerHTML = '';
 
         try {
-            const response = await fetch( '@Url.Action("GetNjesite", "Home")?orgId=' + orgId );
+            njesite = njesite || [];
 
-            if (!response.ok) {
-                throw new Error('Gabim gjatë marrjes së njësive.');
-            }
-
-            const result = await response.json();
-            loading.classList.add('d-none');
-
-            if (!result.success) {
-                error.innerText = result.message || 'Nuk u gjetën njësitë.';
-                error.classList.remove('d-none');
+            if (njesite.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="bi bi-building-x display-6 text-muted"></i>
+                        <h6 class="fw-bold mt-3">
+                            Nuk ka njësi
+                        </h6>
+                        <p class="text-muted small mb-0">
+                            Kjo organizatë nuk ka njësi të disponueshme.
+                        </p>
+                    </div>
+                `;
+                modal.show();
                 return;
             }
 
-            if (!result.data || result.data.length === 0) {
-                modal.show();
-                list.innerHTML = `
+            if (njesite.length === 1) {
+                const njesia = njesite[0];
+
+                if (njesia.VendeTeLira <= 0) {
+                    list.innerHTML = `
                         <div class="text-center py-4">
-                            <i class="bi bi-building-x display-6 text-muted"></i>
-                            <h6 class="fw-bold mt-3"> Nuk ka njësi </h6>
-                            <p class="text-muted small mb-0"> Kjo organizatë nuk ka njësi të disponueshme. </p>
+                            <i class="bi bi-p-circle display-6 text-danger"></i>
+                            <h6 class="fw-bold mt-3">
+                                Nuk ka vende të lira
+                            </h6>
+                            <p class="text-muted small mb-0">
+                                Njësia
+                                <strong>${escapeHtml(njesia.Emri)}</strong>
+                                nuk ka vende të lira.
+                            </p>
                         </div>
                     `;
-                return;
-            }
-            else if (result.data.length == 1) {
-                modal.hide();
-                window.location.href = `/Home/Create?njesiaId=${encodeURIComponent(result.njesiaId)}`;
+                    modal.show();
+                    return;
+                }
+                window.location.href = `/Home/Create?njesiaId=${encodeURIComponent(njesia.NjesiteId)}`;
                 return;
             }
 
-            modal.show();
-            result.data.forEach(njesia => {
-                if (!njesia.active) return;
-
+            njesite.forEach(njesia => {
                 const item = document.createElement('a');
-
-                item.href = '@Url.Action("Create", "Home")?njesiaId=' + njesia.njesiteId;
-
+                const isFull = njesia.VendeTeLira <= 0;
                 item.className = 'njesia-option text-decoration-none';
 
-                if (njesia.vendeTeLira <= 0) {
+                if (isFull) {
                     item.classList.add('njesia-full');
+                    item.href = 'javascript:void(0)';
+                    item.setAttribute('aria-disabled', 'true');
+                }
+                else {
+                    item.href = `/Home/Create?njesiaId=${encodeURIComponent(njesia.NjesiteId)}`;
                 }
 
                 item.innerHTML = `
                     <div class="d-flex align-items-center">
-                        <div class="njesia-icon me-3"> <i class="bi bi-p-square"></i> </div>
+                        <div class="njesia-icon me-3">
+                            <i class="bi bi-p-square"></i>
+                        </div>
                         <div class="flex-grow-1">
-                            <div class="fw-bold text-dark"> ${escapeHtml(njesia.emri)} </div>
-                            <div class="small text-muted"> Kodi: ${escapeHtml(njesia.kodi)} </div>
+                            <div class="fw-bold text-dark">
+                                ${escapeHtml(njesia.Emri)}
+                            </div>
+                            <div class="small text-muted">
+                                Kodi: ${escapeHtml(njesia.Kodi)}
+                            </div>
                             <div class="small text-muted">
                                 <i class="bi bi-geo-alt me-1"></i>
-                                ${escapeHtml(njesia.adresa)}
+                                ${escapeHtml(njesia.Adresa)}
                             </div>
                         </div>
                         <div class="text-end me-3">
-                            <div class="small text-muted">Vende të lira</div>
-                            <strong class="${njesia.vendeTeLira <= 0 ? 'text-danger' : 'text-primary'}">
-                                ${njesia.vendeTeLira}
+                            <div class="small text-muted">
+                                Vende të lira
+                            </div>
+                            <strong class="${isFull ? 'text-danger' : 'text-primary'}">
+                                ${njesia.VendeTeLira}
                             </strong>
                         </div>
-                        <i class="bi bi-chevron-right text-primary"></i>
+                        ${
+                            isFull ? '<i class="bi bi-x-circle text-danger"></i>' : '<i class="bi bi-chevron-right text-primary"></i>'
+                        }
                     </div>
                 `;
-
                 list.appendChild(item);
             });
-
-            if (list.children.length === 0) {
-                list.innerHTML = `
-                        <div class="text-center py-4">
-                            <i class="bi bi-building-x display-6 text-muted"></i>
-                            <h6 class="fw-bold mt-3"> Nuk ka njësi aktive </h6>
-                            <p class="text-muted small mb-0"> Nuk ka njësi aktive për këtë organizatë. </p>
-                        </div>
-                    `;
-            }
+            modal.show();
         }
         catch (err) {
             loading.classList.add('d-none');
-            error.innerText = err.message || 'Gabim gjatë marrjes së njësive.';
+            error.innerText = err.message || 'Gabim gjatë shfaqjes së njësive.';
             error.classList.remove('d-none');
+            modal.show();
         }
     }
 

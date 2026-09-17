@@ -7,6 +7,7 @@ using Parking_project.Data;
 using Parking_project.Models;
 using Parking_project.Models.DTO;
 using Parking_project.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace Parking_project.Controllers
 {
@@ -83,9 +84,36 @@ namespace Parking_project.Controllers
                     .OrderByDescending(t => t.BiznesId)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .ToListAsync();
+                    .Select(o => new OrgDTO
+                    {
+                        BiznesId = o.BiznesId,
+                        EmriBiznesit = o.EmriBiznesit,
+                        NumriUnikIdentifikues = o.NumriUnikIdentifikues,
+                        Adresa = o.Adresa,
+                        NumriBiznesit = o.NumriBiznesit,
+                        NumriFiskal = o.NumriFiskal,
+                        NumriPunetoreve = o.NumriPunetoreve,
+                        DataRegjistrimit = o.DataRegjistrimit,
+                        Komuna = o.Komuna,
+                        Telefoni = o.Telefoni,
+                        Email = o.Email,
+                        AllowCustomers = o.AllowCustomers,
 
-                var result = _mapper.Map<List<OrgDTO>>(organizata);
+                        Njesite = _db.NjesiOrg
+                            .Where(n => n.BiznesId == o.BiznesId && n.active)
+                            .Select(n => new NjesiReadDto
+                            {
+                                NjesiteId = n.NjesiteId,
+                                BiznesId = n.BiznesId,
+                                Emri = n.Emri,
+                                Kodi = n.Kodi,
+                                Adresa = n.Adresa,
+                                VendeTeLira = n.VendeTeLira,
+                                QRScanner = n.QRScanner
+                            })
+                            .ToList()
+                    })
+                    .ToListAsync();
 
                 var page = new OrgPage
                 {
@@ -93,7 +121,7 @@ namespace Parking_project.Controllers
                     PageSize = pageSize,
                     TotalPages = totalPages,
                     TotalRecords = totalRecords,
-                    Data = result
+                    Data = organizata
                 };
 
                 var response = ApiResponse<OrgPage>.Ok(page, "Organizatat retrieved successfully");

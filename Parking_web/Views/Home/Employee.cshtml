@@ -334,16 +334,10 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                     <div id="qr-reader" style="width: 100%;"></div>
                     <div id="qr-loading" class="text-center py-5 d-none">
                         <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
-                            <span class="visually-hidden">
-                                Duke verifikuar...
-                            </span>
+                            <span class="visually-hidden"> Duke verifikuar... </span>
                         </div>
-                        <div class="fw-semibold">
-                            Duke verifikuar QR kodin...
-                        </div>
-                        <small class="text-muted">
-                            Ju lutem prisni
-                        </small>
+                        <div class="fw-semibold"> Duke verifikuar QR kodin... </div>
+                        <small class="text-muted"> Ju lutem prisni </small>
                     </div>
                 </div>
             </div>
@@ -529,7 +523,11 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                     const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
                     modal.hide();
 
-                    Swal.fire({
+                    if (result.redirectUrl) {
+                        window.location.href = result.redirectUrl;
+                    } 
+
+                    await Swal.fire({
                         icon: "success",
                         title: "QR i vlefshëm",
                         text: "QR kodi u verifikua me sukses.",

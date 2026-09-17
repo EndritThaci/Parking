@@ -41,22 +41,24 @@
                             <input asp-for="Adresa" class="form-control" placeholder="Rruga, qyteti..." />
                             <span asp-validation-for="Adresa" class="text-danger small"></span>
                         </div>
-                        <div class="mb-4">
-                            <div class="form-check form-switch">
-                                <input asp-for="QRScanner" class="form-check-input" type="checkbox" role="switch" id="qrScanner" />
+                        @if (ViewBag.customers)
+                        {
+                            <div class="mb-4">
+                                <div class="form-check form-switch">
+                                    <input asp-for="QRScanner" class="form-check-input" type="checkbox" role="switch" id="qrScanner" />
 
-                                <label asp-for="QRScanner" class="form-check-label fw-semibold" for="qrScanner">
-                                    Skano QR kodin e klientit
-                                </label>
+                                    <label asp-for="QRScanner" class="form-check-label fw-semibold" for="qrScanner">
+                                        Skano QR kodin e klientit
+                                    </label>
+                                </div>
+
+                                <small class="text-muted">
+                                    Aktivizoni këtë opsion nëse kjo organizatë skanon kodin e klientëve. Përndryshe klientët do të skenojnë kodin e njësisë.
+                                </small>
+
+                                <span asp-validation-for="QRScanner" class="text-danger small d-block"></span>
                             </div>
-
-                            <small class="text-muted">
-                                Aktivizoni këtë opsion nëse kjo organizatë skanon kodin e klientëve. Përndryshe klientët do të skenojnë kodin e njësisë.
-                            </small>
-
-                            <span asp-validation-for="QRScanner" class="text-danger small d-block"></span>
-                        </div>
-
+                        }
                         <div class="d-flex gap-2 justify-content-end border-top pt-3">
                             <a asp-action="Index2" class="btn btn-outline-secondary px-4 rounded-pill">Anulo</a>
                             <button type="submit" class="btn btn-warning text-white px-4 rounded-pill fw-bold shadow-sm">

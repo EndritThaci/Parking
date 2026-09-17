@@ -11,14 +11,16 @@ namespace Parking_web.Controllers
     public class NjesiaController : Controller
     {
         private readonly INjesiaService _njesiaService;
+        private readonly IOrganizataService _orgService;
         private readonly ISherbimiService _shebimiService;
         private readonly ICilsimiService _cilsimiService;
         private readonly IDetajetService _detajetService;
         private readonly IMapper _mapper;
 
-        public NjesiaController(INjesiaService njesiaService, IMapper mapper, ISherbimiService shebimiService, ICilsimiService cilsimiService, IDetajetService detajetService)
+        public NjesiaController(INjesiaService njesiaService, IMapper mapper, IOrganizataService organizataService, ISherbimiService shebimiService, ICilsimiService cilsimiService, IDetajetService detajetService)
         {
             _njesiaService = njesiaService;
+            _orgService = organizataService;
             _mapper = mapper;
             _shebimiService = shebimiService;
             _cilsimiService = cilsimiService;
@@ -26,7 +28,7 @@ namespace Parking_web.Controllers
         }
         
 
-        [Authorize(Roles = "Admin , Super Admin")]
+        [Authorize(Roles = "Manager, Admin , Super Admin")]
         public async Task<IActionResult> Index2()
         {
             if (User.FindFirst("BiznesId")?.Value == "0")
@@ -34,6 +36,9 @@ namespace Parking_web.Controllers
                 TempData["error"] = "Zgjedh një organizatë";
                 if(User.IsInRole("Admin")) return RedirectToAction("Index", "Home");
                 return RedirectToAction("Index", "Organizata");
+            }
+            else if (User.IsInRole("Manager")){
+                return RedirectToAction("Index");
             }
             List<NjesiReadDto> orgList = new();
             try
@@ -45,6 +50,7 @@ namespace Parking_web.Controllers
                 if (response != null && response.Success && response.Data != null)
                 {
                     orgList = response.Data;
+                    ViewBag.customers = response.Data[0].Organizata.AllowCustomers;
                     ViewBag.Sherbimet = sherbimiResponse?.Data;
                     ViewBag.Cilsimet = cilsimiResponse?.Data;
                     ViewBag.Detajet = detajetResponse?.Data;
@@ -57,7 +63,7 @@ namespace Parking_web.Controllers
             return View(orgList);
         }
 
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,  Admin , Super Admin")]
         public async Task<IActionResult> Index()
         {
             if (User.FindFirst("BiznesId")?.Value == "0")
@@ -65,17 +71,21 @@ namespace Parking_web.Controllers
                 TempData["error"] = "Nuk keni organizatë";
                 return RedirectToAction("Index", "Home");
             }
+            else if (User.IsInRole("Admin") || User.IsInRole("Super Admin")){
+                return RedirectToAction("Index2");
+            }
             NjesiReadDto orgList = new();
             try
             {
-                int njeisaId = int.Parse(User.FindFirst("NjesiaId")!.Value);
-                var response = await _njesiaService.GetAsync<ApiResponse<NjesiReadDto>>(njeisaId);
+                int njesiaId = int.Parse(User.FindFirst("NjesiaId")!.Value);
+                var response = await _njesiaService.GetAsync<ApiResponse<NjesiReadDto>>(njesiaId);
                 var sherbimiResponse = await _shebimiService.GetByOrgAsync<ApiResponse<List<Sherbimi>>>();
-                var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njeisaId);
+                var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
                 var detajetResponse = await _detajetService.GetByNjesiAsync<ApiResponse<List<DetajetReadDto>>>();
                 if (response != null && response.Success && response.Data != null)
                 {
                     orgList = response.Data;
+                    ViewBag.customers = response.Data.Organizata.AllowCustomers;
                     ViewBag.Sherbimet = sherbimiResponse?.Data;
                     ViewBag.Cilsimet = cilsimiResponse?.Data;
                     ViewBag.Detajet = detajetResponse?.Data;
@@ -92,6 +102,12 @@ namespace Parking_web.Controllers
         [Authorize(Roles = "Admin , Super Admin")]
         public async Task<IActionResult> Create()
         {
+            var orgId = int.Parse(User.FindFirst("BiznesId")!.Value);
+            var response = await _orgService.GetAsync<ApiResponse<Organizata>>(orgId);
+            if (response != null && response.Success && response.Data != null)
+            {
+                ViewBag.customers = response.Data.AllowCustomers;
+            }
             return View();
         }
 
@@ -194,6 +210,7 @@ namespace Parking_web.Controllers
                 var response = await _njesiaService.GetAsync<ApiResponse<NjesiReadDto>>(id);
                 if (response != null && response.Success && response.Data != null)
                 {
+                    ViewBag.customers = response.Data.Organizata.AllowCustomers;
                     return View(_mapper.Map<NjesiUpdateDto>(response.Data));
                 }
 
@@ -250,7 +267,23 @@ namespace Parking_web.Controllers
 
                 id = njesiaId;
             }
-
+            else
+            {
+                var response = await _njesiaService.GetAsync<ApiResponse<NjesiReadDto>>(id);
+                if (response != null && response.Success && response.Data != null)
+                {
+                    if(int.Parse(User.FindFirst("BiznesId")!.Value) != response.Data.BiznesId)
+                    {
+                        TempData["error"] = "Nuk keni qasje në këtë njësi.";
+                        return RedirectToAction("Index2");
+                    }
+                }
+                else
+                {
+                    TempData["error"] = "Kjo njësi nuk ekziston.";
+                    return RedirectToAction("Index2");
+                }
+            }
             return View(id);
         }
     }
