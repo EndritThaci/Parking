@@ -111,6 +111,8 @@
 
                                 <button type="submit" id="submitBtn" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow">Paguaj Cash </button>
                             </form>
+                            <a asp-action="Edit" asp-route-transaksioniId="@Model.TransaksioniId" class="btn btn-outline-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow">Shto Shërbimet Shtesë</a>
+
                         }
                         else if (Model.Njesia.QRScanner)
                         {
@@ -141,7 +143,7 @@
             </div>
         </div>
 
-        <div id="qrCol" class="col-md-5 mb-4 position-relative">
+        <div id="qrCol" class="col-md-5 mb-4 position-relative @(User.IsInRole("Customer") ? "" : "d-none")">
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100 position-relative">
                 <div class="bg-primary py-4 text-center text-white position-relative">
                     <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" onclick="toggleQR()" aria-label="Close"></button>
@@ -151,15 +153,7 @@
                 </div>
 
                 <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
-                    @if (User.IsInRole("Customer"))
-                    {
-                        <p class="text-muted mb-4">Tregoja kodin e mëposhtëm punëtorëve të parkingut për të shtuar shërbime të reja në këtë faturë.</p>
-
-                    }
-                    else
-                    {
-                        <p class="text-muted mb-4">Skano për të shtuar shërbime shtesë</p>
-                    }
+                    <p class="text-muted mb-4">Tregoja kodin e mëposhtëm punëtorëve të parkingut për të shtuar shërbime të reja në këtë faturë.</p>
 
                     <div id="qr-to-print" class="qr-container my-auto p-3 bg-white border rounded-4 d-inline-block mx-auto shadow-sm">
                         <img id="qrImageDisplay" src="@Url.Action("QRGenerate", "Home", new { id = Model.TransaksioniId })"
@@ -167,17 +161,9 @@
                              style="max-width: 240px; border: 10px solid white;" />
                     </div>
                     
-                    @if (User.IsInRole("Customer"))
-                    {
-                        <div class="mt-4 opacity-50 small">
-                            <i class="bi bi-shield-check"></i> Kod i siguruar për ID #@Model.TransaksioniId
-                        </div>
-                    }
-                    else
-                    {
-                        <a asp-action="Edit" asp-route-transaksioniId="@Model.TransaksioniId" class="btn btn-outline-primary btn-lg rounded-pill fw-bold py-3 mt-4 shadow">Shto Shërbimet Shtesë</a>
-                    }
-                    
+                    <div class="mt-4 opacity-50 small">
+                        <i class="bi bi-shield-check"></i> Kod i siguruar për ID #@Model.TransaksioniId
+                    </div>
                 </div>
             </div>
         </div>
@@ -265,11 +251,17 @@
     document.addEventListener("DOMContentLoaded", function() {
         const wrapper = document.getElementById('layoutWrapper');
         const qrState = sessionStorage.getItem("qrActive");
+        const isCustomer = @User.IsInRole("Customer").ToString().ToLowerInvariant();
 
-        if (qrState === "false") {
-            wrapper.classList.remove('qr-active');
-        } else if (qrState === "true") {
+        if (!isCustomer) {
             wrapper.classList.add('qr-active');
+        }
+        else{
+            if (qrState === "false") {
+                wrapper.classList.remove('qr-active');
+            } else if (qrState === "true") {
+                wrapper.classList.add('qr-active');
+            }
         }
 
         const savedCardId = sessionStorage.getItem("selectedCardId");
@@ -279,10 +271,6 @@
                 selectCard(cardElement, savedCardId);
             }
         }
-
-        setInterval(function() {
-            location.reload();
-        }, 30000); // e ban refresh qdo 30sekonda
     });
 
     function toggleQR() {

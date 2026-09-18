@@ -49,7 +49,6 @@ else
                 <div class="collapse show" id="activeTransactions">
                     <div class="row g-3 justify-content-center pt-2">
                         <div class="row g-3 justify-content-center">
-
                             @foreach (var item in pendingList)
                             {
                                 <div class="col-md-6 col-lg-4">
@@ -163,7 +162,7 @@ else
                                 else
                                 {
                                     <div class="btn btn-outline-primary w-100 rounded-pill fw-bold py-2">
-                                        Zgjedh Njësinë
+                                        Zgjedh Organizatën
                                         <i class="bi bi-chevron-right ms-1"></i>
                                     </div>
                                 }
@@ -214,7 +213,7 @@ else
                 <nav class="mt-3">
                     <ul class="pagination justify-content-center">
                         <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
-                            <a class="page-link"
+                            <a class="page-link rounded-start-pill"
                             asp-controller="Home"
                             asp-action="Index"
                             asp-route-Search="@currentSearch"
@@ -240,7 +239,7 @@ else
                         }
 
                         <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
-                            <a class="page-link"
+                            <a class="page-link rounded-end-pill"
                             asp-controller="Home"
                             asp-action="Index"
                             asp-route-Search="@currentSearch"
@@ -429,15 +428,11 @@ else
         font-size: 20px;
     }
 
-    .unit-card-full {
+    .unit-card-full:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(220, 53, 69, 0.15) !important;
         border: 1px solid #dc3545 !important;
     }
-
-        .unit-card-full:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(220, 53, 69, 0.15) !important;
-            border: 1px solid #dc3545 !important;
-        }
 
     .unit-stripe-full {
         background: #dc3545 !important;

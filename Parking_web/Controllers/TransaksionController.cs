@@ -18,19 +18,21 @@ namespace Parking_web.Controllers
             _mapper = mapper;
         }
 
-        [Authorize(Roles = "Admin , Super Admin")]
+        [Authorize(Roles = "Customer, Admin , Super Admin")]
         public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, int njesia = -1)
         {
-            if (User.FindFirst("BiznesId")?.Value == "0")
+            if (User.IsInRole("Super Admin") && User.FindFirst("BiznesId")?.Value == "0")
             {
                 TempData["error"] = "Zgjedh një organizatë";
-                if(User.IsInRole("Admin")) return RedirectToAction("Index", "Home");
                 return RedirectToAction("Index", "Organizata");
             }
 
             try
             {
-                var response = await _transaksionService.GetAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, njesia);
+                var response = User.IsInRole("Customer") ?
+                    await _transaksionService.GetByUserAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, njesia) : 
+                    await _transaksionService.GetAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, njesia);
+
                 if (response != null && response.Success && response.Data != null)
                 {
                     foreach (var t in response.Data.Data)

@@ -40,12 +40,12 @@ namespace Parking_web.Services
             });
         }
 
-        public Task<T?> GetByUserAsync<T>()
+        public Task<T?> GetByUserAsync<T>(int pageNumber = 1, int pageSize = 10, int njesiaId = 0)
         {
             return SendAsync<T>(new ApiRequest
             {
                 ApiType = SD.ApiType.GET,
-                Url = $"{APIEndPoint}/ByUser",
+                Url = $"{APIEndPoint}/ByUser?pageNumber={pageNumber}&pageSize={pageSize}&njesiaId={njesiaId}",
             });
         }
 

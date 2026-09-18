@@ -71,7 +71,9 @@
                                         }
                                         else
                                         {
-                                            <span class="text-muted fw-normal small">Në proces</span>
+                                            <button type="button" class="btn btn-outline-success rounded-pill py-0 px-3" onclick="confirmPayment(event, @t.TransaksioniId)">
+                                                <i class="bi bi-cash-coin"></i>
+                                            </button>
                                         }
                                     </td>
                                 </tr>
@@ -103,7 +105,7 @@
                     <nav>
                         <ul class="pagination mb-0">
                             <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
-                                <a class="page-link"
+                                <a class="page-link rounded-start-pill"
                                    asp-action="IndexManager"
                                    asp-route-pageNumber="@(Model.PageNumber - 1)"
                                    asp-route-pageSize="@Model.PageSize">
@@ -167,7 +169,7 @@
                             }
 
                             <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
-                                <a class="page-link"
+                                <a class="page-link rounded-end-pill"
                                    asp-action="IndexManager"
                                    asp-route-pageNumber="@(Model.PageNumber + 1)"
                                    asp-route-pageSize="@Model.PageSize">
@@ -241,6 +243,11 @@
             }
         });
     });
+
+    function confirmPayment(event, id) {
+        event.stopPropagation();
+        window.location.href = '@Url.Action("Pay", "Home")?id=' + id;
+    }
 
     function changePageSize(size) {
         const url = new URL(window.location.href);

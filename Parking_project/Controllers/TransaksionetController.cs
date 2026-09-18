@@ -76,7 +76,7 @@ namespace Parking_project.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<IEnumerable<TransaksionRead>>>> GetTransaksionin(int pageNumber = 1, int pageSize = 10, int njesiaId = -1)
+        public async Task<ActionResult<ApiResponse<TransaksionPage>>> GetTransaksionin(int pageNumber = 1, int pageSize = 10, int njesiaId = -1)
         {
             try
             {
@@ -130,14 +130,16 @@ namespace Parking_project.Controllers
                 var totalAmount = await transaksionQuery.SumAsync(d => d.Cmimi);
 
                 var now = DateTime.Now;
+                var monthStart = new DateTime(now.Year, now.Month, 1);
+                var monthEnd = monthStart.AddMonths(1);
                 var monthlyAmount = await transaksionQuery
-                    .Where(d =>
-                        d.TransaksionParkimi.KohaHyrjes.Month == now.Month &&
-                        d.TransaksionParkimi.KohaHyrjes.Year == now.Year)
+                    .Where(d => d.TransaksionParkimi.KohaHyrjes >= monthStart && d.TransaksionParkimi.KohaHyrjes < monthEnd)
                     .SumAsync(d => d.Cmimi);
-                
+
+                var yearStart = new DateTime(now.Year, 1, 1);
+                var yearEnd = yearStart.AddYears(1);
                 var yearlyAmount = await transaksionQuery
-                    .Where(d => d.TransaksionParkimi.KohaHyrjes.Year == now.Year)
+                    .Where(d => d.TransaksionParkimi.KohaHyrjes >= yearStart && d.TransaksionParkimi.KohaHyrjes < yearEnd)
                     .SumAsync(d => d.Cmimi);
 
                 var transaksionet = await query
@@ -253,31 +255,93 @@ namespace Parking_project.Controllers
         [HttpGet]
         [Authorize]
         [Route("ByUser")]
-        [ProducesResponseType(typeof(ApiResponse<TransaksionRead>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<TransaksionPage>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<IEnumerable<TransaksionRead>>>> GetTransaksioninByUser()
+        public async Task<ActionResult<ApiResponse<TransaksionPage>>> GetTransaksioninByUser(int pageNumber = 1, int pageSize = 10, int njesiaId = 0)
         {
             try
             {
+                if (pageNumber <= 0 || pageSize <= 0)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Page number and page size must be greater than zero."));
+                }
+
                 int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-                var transaksionet = await _db.TransaksionParkimi
-                    .Include(t => t.Cilsimet)
-                        .ThenInclude(c => c.Sherbimi)
-                    .Include(n => n.Njesia)
-                    .Include(t => t.User)
-                    .Where(t => t.UserId == userId)
+                var query = _db.TransaksionParkimi
+                   .AsNoTracking()
+                   .Include(t => t.Njesia)
+                   .Where(t => t.UserId == userId);
+
+                var transaksionQuery = _db.TransaksionDetaj.AsNoTracking().Where(d => d.TransaksionParkimi.UserId == userId && d.TransaksionParkimi.Statusi != "Pending");
+
+                if (njesiaId > 0)
+                {
+                    query = query.Where(t => t.Cilsimet.NjesiteId == njesiaId);
+                    transaksionQuery = transaksionQuery.Where(d => d.TransaksionParkimi.Cilsimet.NjesiteId == njesiaId);
+                }
+
+                var orgIds = await _db.UserOrg
+                    .AsNoTracking()
+                    .Where(u => u.UserId == userId)
+                    .Select(u => u.BiznesId)
+                    .Distinct()
+                    .ToListAsync();
+
+                var njesite = await _db.NjesiOrg
+                    .AsNoTracking()
+                    .Where(n => orgIds.Contains(n.BiznesId) && n.active)
+                    .ToListAsync();
+
+                var totalRecords = await query.CountAsync();
+                if (totalRecords == 0)
+                {
+                    var emptyResult = new TransaksionPage
+                    {
+                        PageNumber = pageNumber,
+                        PageSize = pageSize,
+                        TotalPages = 0,
+                        TotalRecords = 0,
+                        TotalAmount = 0,
+                        MonthlyAmount = 0,
+                        YearlyAmount = 0,
+                        Njesite = njesite,
+                        Data = new List<TransaksionRead>()
+                    };
+
+                    return Ok(ApiResponse<TransaksionPage>.Ok( emptyResult, "No transactions found."));
+                }
+
+                var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
+                var totalAmount = await transaksionQuery.SumAsync(d => d.Cmimi);
+
+                var now = DateTime.Now;
+                var monthStart = new DateTime(now.Year, now.Month, 1);
+                var monthEnd = monthStart.AddMonths(1);
+                var monthlyAmount = await transaksionQuery
+                    .Where(d => d.TransaksionParkimi.KohaHyrjes >= monthStart && d.TransaksionParkimi.KohaHyrjes < monthEnd)
+                    .SumAsync(d => d.Cmimi);
+
+                var yearStart = new DateTime(now.Year, 1, 1);
+                var yearEnd = yearStart.AddYears(1);
+                var yearlyAmount = await transaksionQuery
+                    .Where(d => d.TransaksionParkimi.KohaHyrjes >= yearStart && d.TransaksionParkimi.KohaHyrjes < yearEnd)
+                    .SumAsync(d => d.Cmimi);
+
+                var transaksionet = await query
+                    .OrderByDescending(t => t.TransaksioniId)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
 
                 var transaksionIds = transaksionet.Select(t => t.TransaksioniId).ToList();
 
-                var getSherbimet = await _db.TransaksionDetaj.Where(c => transaksionIds.Contains(c.TransaksionId)).Include(c => c.Sherbimi).ToListAsync();
-
-                if (transaksionet.Count() == 0)
-                {
-                    return NotFound(ApiResponse<object>.NotFound("No transactions found."));
-                }
+                var getSherbimet = await _db.TransaksionDetaj
+                    .AsNoTracking()
+                    .Where(c =>transaksionIds.Contains(c.TransaksionId))
+                    .Include(c => c.Sherbimi)
+                    .ToListAsync();
 
                 var result = transaksionet.Select(t => new TransaksionRead
                 {
@@ -290,10 +354,23 @@ namespace Parking_project.Controllers
                     Njesia = t.Njesia,
                     Cilsimi = t.Cilsimet,
                     Useri = t.User,
-                    Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList(),
-                });
+                    Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList()
+                }).ToList();
 
-                return Ok(ApiResponse<IEnumerable<TransaksionRead>>.Ok(result, "Transactions retrieved successfully"));
+                var page = new TransaksionPage
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = totalPages,
+                    TotalRecords = totalRecords,
+                    TotalAmount = totalAmount,
+                    MonthlyAmount = monthlyAmount,
+                    YearlyAmount = yearlyAmount,
+                    Njesite = njesite,
+                    Data = result
+                };
+
+                return Ok(ApiResponse<TransaksionPage>.Ok(page, "Transactions retrieved successfully"));
             }
             catch (Exception ex)
             {

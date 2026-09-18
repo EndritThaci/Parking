@@ -458,6 +458,12 @@ namespace Parking_web.Controllers
                     return RedirectToAction("Employee");
                 }
             }
+            if (User.IsInRole("Customer") && int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0") != response.Data.Useri.UserId)
+            {
+                TempData["error"] = $"Nuk keni qasje për këtë operacion.";
+                return RedirectToAction("Index");
+            }
+
             var cardDetails = await _creditCardService.GetByUserAsync<ApiResponse<IEnumerable<CreditCardReadDto>>>();
             if (cardDetails != null && cardDetails.Success)
             {

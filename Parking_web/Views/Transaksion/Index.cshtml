@@ -21,7 +21,7 @@
                         <a asp-controller="LibriShitjes" asp-action="GetLibriCustom" class="btn btn-outline-light px-4 rounded-pill fw-bold w-100">Gjenero Librin</a>
                     </div>
                     <div style="min-width: 220px;">
-                        <select id="filterNjesia" class="form-select bg-black fw-bold text-white rounded-pill border-secondary">
+                        <select id="filterNjesia" class="form-select bg-black fw-bold text-white rounded-pill border-white">
                             <option value="-1">Të gjitha Njësitë</option>
 
                             @foreach (var njesi in Model.Njesite)
@@ -41,7 +41,10 @@
                     <thead>
                         <tr>
                             <th class="ps-3 ps-md-4">Vend Parkimi</th>
-                            <th class="d-none d-md-table-cell">Perdoruesi</th>
+                            @if (!User.IsInRole("Customer"))
+                            {
+                                <th class="d-none d-md-table-cell">Perdoruesi</th>
+                            }
                             <th>Hyrja</th>
                             <th class="d-none d-lg-table-cell">Dalja</th>
                             <th class="d-none d-sm-table-cell">Statusi</th>
@@ -65,7 +68,10 @@
                                     <td class="ps-3 ps-md-4">
                                         <span class="fw-bold text-dark">@t.Njesia.Emri</span>
                                     </td>
-                                    <td class="d-none d-md-table-cell">@t.Useri?.Emri @t.Useri?.Mbiemri</td>
+                                    @if (!User.IsInRole("Customer"))
+                                    {
+                                        <td class="d-none d-md-table-cell">@t.Useri?.Emri @t.Useri?.Mbiemri</td>
+                                    }
                                     <td class="small">@t.KohaHyrjes.ToString("dd/MM/yy HH:mm")</td>
                                     <td class="d-none small d-lg-table-cell">@(t.KohaDaljes.HasValue ? t.KohaDaljes.Value.ToString("dd/MM/yy HH:mm") : "--:--")</td>
                                     <td class="d-none d-sm-table-cell">
@@ -89,7 +95,9 @@
                                         }
                                         else
                                         {
-                                            <span class="text-muted fw-normal small">Në proces</span>
+                                            <button type="button" class="btn btn-outline-success rounded-pill py-0 px-3" onclick="confirmPayment(event, @t.TransaksioniId)">
+                                                <i class="bi bi-cash-coin"></i>
+                                            </button>
                                         }
                                     </td>
                                 </tr>
@@ -121,7 +129,7 @@
                     <nav>
                         <ul class="pagination mb-0">
                             <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
-                                <a class="page-link"
+                                <a class="page-link rounded-start-pill"
                                     asp-action="Index"
                                     asp-route-pageNumber="@(Model.PageNumber - 1)"
                                     asp-route-pageSize="@Model.PageSize"
@@ -189,7 +197,7 @@
                             }
 
                             <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
-                                <a class="page-link"
+                                <a class="page-link rounded-end-pill"
                                     asp-action="Index"
                                     asp-route-pageNumber="@(Model.PageNumber + 1)"
                                     asp-route-pageSize="@Model.PageSize"
@@ -265,6 +273,11 @@
 
             window.location.href = url.toString();
         });
+
+        function confirmPayment(event, id) {
+            event.stopPropagation();
+            window.location.href = '@Url.Action("Pay", "Home")?id=' + id;
+        }
 
         function downloadReport(params) {
             const njesiaId = document.getElementById('filterNjesia').value;

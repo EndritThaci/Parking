@@ -22,7 +22,7 @@ namespace Parking_web.Controllers
             bool active = false;
 
             var biznesIdClaim = User.FindFirst("BiznesId")?.Value;
-            if (string.IsNullOrEmpty(biznesIdClaim))
+            if (string.IsNullOrEmpty(biznesIdClaim) || biznesIdClaim == "0")
             {
                 TempData["error"] = "Zgjedh një organizatë";
                 return RedirectToAction("Index", "Organizata");
@@ -65,6 +65,21 @@ namespace Parking_web.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        [Authorize(Roles = "Admin , Super Admin")]
+        public async Task<IActionResult> Details(int id)
+        {
+            UserTotalsDTO rez = new UserTotalsDTO();
+            int biznesId = int.Parse(User.FindFirst("BiznesId")?.Value ?? "0");
+
+            var response = await _userService.GetTotalsAsync<ApiResponse<UserTotalsDTO>>(id, biznesId);
+            if (response != null && response.Success && response.Data != null)
+            {
+                rez = response.Data;
+            }
+            
+            return View(rez);
         }
     }
 }

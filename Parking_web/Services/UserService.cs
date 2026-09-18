@@ -37,6 +37,15 @@ namespace Parking_web.Services
                 Url = $"{APIEndPoint}/{id}",
             });
         }
+        
+        public Task<T?> GetTotalsAsync<T>(int id, int? orgId)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.GET,
+                Url = $"{APIEndPoint}/{id}/Totals?orgId={orgId}",
+            });
+        }
 
         public Task<T?> GetUsersPaginationAsync<T>(int? orgId, string? search, string? role, bool active, int page = 1, int pageSize = 10)
         {

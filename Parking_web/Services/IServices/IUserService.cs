@@ -6,6 +6,7 @@ namespace Parking_web.Services.IServices
     {
         Task<T?> GetAllAsync<T>();
         Task<T?> GetAsync<T>(int id);
+        Task<T?> GetTotalsAsync<T>(int id, int? orgId);
         Task<T?> GetUsersPaginationAsync<T>(int? orgId, string? search, string? role, bool active, int page = 1, int pageSize = 10);
         Task<T?> UpdateAsync<T>(UserUpdateDTO dto);
         Task<T?> ChangePasswordAsync<T>(ChangePasswordDTO dto);

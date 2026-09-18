@@ -98,6 +98,12 @@
                                         <a class="nav-link text-dark" asp-area="" asp-controller="Transaksion" asp-action="IndexManager">Transaksionet</a>
                                     </li>
                                 }
+                                @if (User.IsInRole("Customer"))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Transaksion" asp-action="Index">Transaksionet</a>
+                                    </li>
+                                }
                             
                             </ul>
                             <ul class="navbar-nav">

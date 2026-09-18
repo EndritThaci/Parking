@@ -7,7 +7,7 @@ namespace Parking_web.Services.IServices
         Task<T?> GetAsync<T>(int id);
         Task<T?> GetAsync<T>(int pageNumber = 1, int pageSize = 10, int njesiaId = -1);
         Task<T?> GetByNjesiAsync<T>();
-        Task<T?> GetByUserAsync<T>();
+        Task<T?> GetByUserAsync<T>(int pageNumber = 1, int pageSize = 10, int njesiaId = 0);
         Task<T?> GetPendingAsync<T>(int? userId = null, int? njesiaId = null);
         Task<T?> GetPriceAsync<T>(int id);
         Task<T?> CreateAsync<T>(TransaksionetCreateDto dto);

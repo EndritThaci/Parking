@@ -83,6 +83,114 @@ namespace Parking_project.Controllers
             }
         }
         
+        [HttpGet("{id:int}/Totals")]
+        [ProducesResponseType(typeof(ApiResponse<UserTotalsDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<UserTotalsDTO>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<UserTotalsDTO>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse<UserTotalsDTO>>> GetUserTotalsById(int id, int? orgId)
+        {
+            try
+            {
+                if (id <= 0)
+                    return NotFound(ApiResponse<UserTotalsDTO>.NotFound("Invalid ID"));
+
+                //User
+                var userQuery = _db.Useri.AsNoTracking().Where(u => u.UserId == id && u.active);
+                if (orgId.HasValue) userQuery = userQuery.Where(u => u.UserOrgs.Any(uo => uo.BiznesId == orgId.Value));
+
+                var user = await userQuery.FirstOrDefaultAsync();
+                if (user == null)
+                    return NotFound(ApiResponse<UserTotalsDTO>.NotFound($"User with ID {id} not found"));
+
+                //Dates
+                var now = DateTime.Now;
+                var todayStart = now.Date;
+                var tomorrowStart = todayStart.AddDays(1);
+
+                int daysSinceMonday = ((int)now.DayOfWeek + 6) % 7;
+                var weekStart = todayStart.AddDays(-daysSinceMonday);
+                var weekEnd = weekStart.AddDays(7);
+
+                var monthStart = new DateTime(now.Year, now.Month, 1);
+                var monthEnd = monthStart.AddMonths(1);
+
+                var yearStart = new DateTime( now.Year, 1, 1);
+                var yearEnd = yearStart.AddYears(1);
+
+                //Transactions
+                var transactionQuery = _db.TransaksionParkimi.AsNoTracking().Where(t => t.UserId == id && t.Statusi == "Completed");
+                if (orgId.HasValue) transactionQuery = transactionQuery.Where(t => t.Njesia.BiznesId == orgId.Value);
+
+                var transaksionet = await transactionQuery
+                    .Include(t => t.Cilsimet)
+                        .ThenInclude(c => c.Sherbimi)
+                    .Include(n => n.Njesia)
+                    .Include(t => t.User)
+                    .ToListAsync();
+
+                var transaksionIds = transaksionet.Select(t => t.TransaksioniId).ToList();
+
+                var getSherbimet = await _db.TransaksionDetaj.Where(c => transaksionIds.Contains(c.TransaksionId)).Include(c => c.Sherbimi).ToListAsync();
+                var transactions = transaksionet.Select(t => new TransaksionRead
+                    {
+                        TransaksioniId = t.TransaksioniId,
+                        KohaHyrjes = t.KohaHyrjes,
+                        KohaDaljes = t.KohaDaljes,
+                        Cmimi = getSherbimet.Where(i => i.TransaksionId == t.TransaksioniId).Sum(c => c.Cmimi),
+                        Statusi = t.Statusi,
+                        Identifikues = t.Identifikues,
+                        Njesia = t.Njesia,
+                        Cilsimi = t.Cilsimet,
+                        Useri = t.User,
+                        Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList(),
+                    })
+                    .ToList();
+
+                var result = new UserTotalsDTO
+                {
+                    User = _mapper.Map<UserReadDTO>(user)
+                };
+
+                //Totals
+                var today = transactions
+                    .Where(t => t.KohaHyrjes >= todayStart && t.KohaHyrjes < tomorrowStart)
+                    .ToList();
+
+                var week = transactions
+                    .Where(t => t.KohaHyrjes >= weekStart && t.KohaHyrjes < weekEnd)
+                    .ToList();
+
+                var month = transactions
+                    .Where(t => t.KohaHyrjes >= monthStart && t.KohaHyrjes < monthEnd)
+                    .ToList();
+
+                var year = transactions
+                    .Where(t => t.KohaHyrjes >= yearStart && t.KohaHyrjes < yearEnd)
+                    .ToList();
+
+                result.Total = new TransactionTotalsDTO
+                {
+                    CountToday = today.Count,
+                    AmountToday = today.Sum(t => t.Cmimi ?? 0m),
+                    CountWeek = week.Count,
+                    AmountWeek = week.Sum(t => t.Cmimi ?? 0m),
+                    CountMonth = month.Count,
+                    AmountMonth = month.Sum(t => t.Cmimi ?? 0m),
+                    CountYear = year.Count,
+                    AmountYear = year.Sum(t => t.Cmimi ?? 0m),
+                    CountAll = transactions.Count,
+                    AmountAll = transactions.Sum(t => t.Cmimi ?? 0m)
+                };
+
+                return Ok(ApiResponse<UserTotalsDTO>.Ok(result, "User totals retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<UserTotalsDTO>.Error(500, "An Error Occurred while retrieving User", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
+        
         [HttpGet("Pagination")]
         [ProducesResponseType(typeof(ApiResponse<List<Useri>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status500InternalServerError)]
