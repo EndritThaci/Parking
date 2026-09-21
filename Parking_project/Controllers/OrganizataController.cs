@@ -52,7 +52,7 @@ namespace Parking_project.Controllers
         [ProducesResponseType(typeof(ApiResponse<OrgPage>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<OrgPage>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<OrgPage>>> GetOrganizataPagination(string? search, int? userId, int pageNumber = 1, int pageSize = 10)
+        public async Task<ActionResult<ApiResponse<OrgPage>>> GetOrganizataPagination(string? search, int? userId, bool onlyAvailable = false, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
@@ -76,6 +76,7 @@ namespace Parking_project.Controllers
                 }
 
                 if (userId != null) query = query.Where(o => _db.UserOrg.Any(uo => uo.BiznesId == o.BiznesId && uo.UserId == userId));
+                if (onlyAvailable) query = query.Where(o => _db.NjesiOrg.Any(n => n.BiznesId == o.BiznesId && n.active && n.VendeTeLira > 0));
 
                 var totalRecords = await query.CountAsync();
                 var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);

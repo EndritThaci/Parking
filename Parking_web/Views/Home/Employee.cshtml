@@ -126,7 +126,7 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
         </div>
 
         <div class="col-6 col-xl-3">
-            <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card border-0 shadow-sm rounded-4 h-100 @(ViewBag.VendeTeLira <= 0 ? "bg-danger-subtle text-danger" : "")">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -135,7 +135,7 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                                 @(ViewBag.VendeTeLira ?? "-")
                             </div>
                         </div>
-                        <div class="pos-stat-icon @(ViewBag.VendeTeLira <= 0 ? "bg-danger-subtle text-danger" : "bg-secondary-subtle text-secondary")">
+                        <div class="pos-stat-icon @(ViewBag.VendeTeLira <= 0 ? "bg-danger text-white" : "bg-secondary-subtle text-secondary")">
                             <i class="bi bi-p-square"></i>
                         </div>
                     </div>

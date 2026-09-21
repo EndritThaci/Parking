@@ -29,7 +29,7 @@ namespace Parking_web.Controllers
         
 
         [Authorize(Roles = "Manager, Admin , Super Admin")]
-        public async Task<IActionResult> Index2()
+        public async Task<IActionResult> Index()
         {
             if (User.FindFirst("BiznesId")?.Value == "0")
             {
@@ -37,67 +37,56 @@ namespace Parking_web.Controllers
                 if(User.IsInRole("Admin")) return RedirectToAction("Index", "Home");
                 return RedirectToAction("Index", "Organizata");
             }
-            else if (User.IsInRole("Manager")){
-                return RedirectToAction("Index");
-            }
+
             List<NjesiReadDto> orgList = new();
-            try
-            {
-                var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiReadDto>>>();
-                var sherbimiResponse = await _shebimiService.GetByOrgAsync<ApiResponse<List<Sherbimi>>>();
-                var cilsimiResponse = await _cilsimiService.GetByOrgAsync<ApiResponse<List<CilsimetReadDto>>>();
-                var detajetResponse = await _detajetService.GetByOrgAsync<ApiResponse<List<DetajetReadDto>>>();
-                if (response != null && response.Success && response.Data != null)
+
+            if (User.IsInRole("Manager")){
+                try
                 {
-                    orgList = response.Data;
-                    ViewBag.customers = response.Data[0].Organizata.AllowCustomers;
-                    ViewBag.Sherbimet = sherbimiResponse?.Data;
-                    ViewBag.Cilsimet = cilsimiResponse?.Data;
-                    ViewBag.Detajet = detajetResponse?.Data;
+                    int njesiaId = int.Parse(User.FindFirst("NjesiaId")!.Value);
+                    ViewBag.NjesiaId = njesiaId;
+                    var response = await _njesiaService.GetAsync<ApiResponse<NjesiReadDto>>(njesiaId);
+                    var sherbimiResponse = await _shebimiService.GetByOrgAsync<ApiResponse<List<Sherbimi>>>();
+                    var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
+                    var detajetResponse = await _detajetService.GetByNjesiAsync<ApiResponse<List<DetajetReadDto>>>();
+                    if (response != null && response.Success && response.Data != null)
+                    {
+                        orgList.Add(response.Data);
+                        ViewBag.customers = response.Data.Organizata.AllowCustomers;
+                        ViewBag.Sherbimet = sherbimiResponse?.Data;
+                        ViewBag.Cilsimet = cilsimiResponse?.Data;
+                        ViewBag.Detajet = detajetResponse?.Data;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = $"Gabim: {ex.Message}";
                 }
             }
-            catch (Exception ex)
+            else
             {
-                TempData["error"] = $"Gabim: {ex.Message}";
+                try
+                {
+                    var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiReadDto>>>();
+                    var sherbimiResponse = await _shebimiService.GetByOrgAsync<ApiResponse<List<Sherbimi>>>();
+                    var cilsimiResponse = await _cilsimiService.GetByOrgAsync<ApiResponse<List<CilsimetReadDto>>>();
+                    var detajetResponse = await _detajetService.GetByOrgAsync<ApiResponse<List<DetajetReadDto>>>();
+                    if (response != null && response.Success && response.Data != null)
+                    {
+                        orgList = response.Data;
+                        ViewBag.customers = response.Data[0].Organizata.AllowCustomers;
+                        ViewBag.Sherbimet = sherbimiResponse?.Data;
+                        ViewBag.Cilsimet = cilsimiResponse?.Data;
+                        ViewBag.Detajet = detajetResponse?.Data;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = $"Gabim: {ex.Message}";
+                }
             }
             return View(orgList);
         }
-
-        [Authorize(Roles = "Manager,  Admin , Super Admin")]
-        public async Task<IActionResult> Index()
-        {
-            if (User.FindFirst("BiznesId")?.Value == "0")
-            {
-                TempData["error"] = "Nuk keni organizatë";
-                return RedirectToAction("Index", "Home");
-            }
-            else if (User.IsInRole("Admin") || User.IsInRole("Super Admin")){
-                return RedirectToAction("Index2");
-            }
-            NjesiReadDto orgList = new();
-            try
-            {
-                int njesiaId = int.Parse(User.FindFirst("NjesiaId")!.Value);
-                var response = await _njesiaService.GetAsync<ApiResponse<NjesiReadDto>>(njesiaId);
-                var sherbimiResponse = await _shebimiService.GetByOrgAsync<ApiResponse<List<Sherbimi>>>();
-                var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
-                var detajetResponse = await _detajetService.GetByNjesiAsync<ApiResponse<List<DetajetReadDto>>>();
-                if (response != null && response.Success && response.Data != null)
-                {
-                    orgList = response.Data;
-                    ViewBag.customers = response.Data.Organizata.AllowCustomers;
-                    ViewBag.Sherbimet = sherbimiResponse?.Data;
-                    ViewBag.Cilsimet = cilsimiResponse?.Data;
-                    ViewBag.Detajet = detajetResponse?.Data;
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = $"Gabim: {ex.Message}";
-            }
-            return View(orgList);
-        }
-
 
         [Authorize(Roles = "Admin , Super Admin")]
         public async Task<IActionResult> Create()
@@ -128,7 +117,7 @@ namespace Parking_web.Controllers
                 if (response != null && response.Success && response.Data != null)
                 {
                     TempData["success"] = "Njesia u krijua me sukses";
-                    return RedirectToAction(nameof(Index2));
+                    return RedirectToAction(nameof(Index));
                 }
                 else
                 {
@@ -151,7 +140,7 @@ namespace Parking_web.Controllers
             if (id <= 0)
             {
                 TempData["error"] = "ID e gabuar.";
-                return RedirectToAction(nameof(Index2));
+                return RedirectToAction(nameof(Index));
             }
 
             try
@@ -192,7 +181,7 @@ namespace Parking_web.Controllers
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
-            return RedirectToAction(nameof(Index2));
+            return RedirectToAction(nameof(Index));
         }
 
 
@@ -202,7 +191,7 @@ namespace Parking_web.Controllers
             if (id <= 0)
             {
                 TempData["error"] = "ID e gabuar.";
-                return RedirectToAction(nameof(Index2));
+                return RedirectToAction(nameof(Index));
             }
 
             try
@@ -234,7 +223,7 @@ namespace Parking_web.Controllers
                 if (response != null && response.Success)
                 {
                     TempData["success"] = "Njesia u permirsua me sukses";
-                    return RedirectToAction(nameof(Index2));
+                    return RedirectToAction(nameof(Index));
                 }
                 else
                 {
@@ -255,7 +244,7 @@ namespace Parking_web.Controllers
             if (id <= 0)
             {
                 TempData["error"] = "ID e gabuar.";
-                return RedirectToAction(nameof(Index2));
+                return RedirectToAction(nameof(Index));
             }
             if (User.IsInRole("Manager"))
             {
@@ -275,13 +264,13 @@ namespace Parking_web.Controllers
                     if(int.Parse(User.FindFirst("BiznesId")!.Value) != response.Data.BiznesId)
                     {
                         TempData["error"] = "Nuk keni qasje në këtë njësi.";
-                        return RedirectToAction("Index2");
+                        return RedirectToAction("Index");
                     }
                 }
                 else
                 {
                     TempData["error"] = "Kjo njësi nuk ekziston.";
-                    return RedirectToAction("Index2");
+                    return RedirectToAction("Index");
                 }
             }
             return View(id);

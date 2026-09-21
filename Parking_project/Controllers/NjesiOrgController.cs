@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
-using Parking_project.Data;
-using Parking_project.Models;
-using Parking_project.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Parking_project.Data;
+using Parking_project.Models;
+using Parking_project.Models.DTO;
+using System.Security.Claims;
 
 namespace Parking_project.Controllers
 {
@@ -50,6 +51,32 @@ namespace Parking_project.Controllers
             {
                 int biznesId = id != null ? id.Value : int.Parse(User.FindFirst("BiznesId")!.Value);
                 var njesiOrgList = await _db.NjesiOrg.Where(a => a.active).Include(o => o.Organizata).Where(n => n.BiznesId == biznesId).ToListAsync();
+                var dtoResponseNjesi = _mapper.Map<List<NjesiReadDto>>(njesiOrgList);
+                var response = ApiResponse<IEnumerable<NjesiReadDto>>.Ok(dtoResponseNjesi, "Records retrieved successfully");
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<object>.Error(500, $"An Error Occurred while creating NjesiOrg: ", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
+        
+        [HttpGet]
+        [Route("ByUser")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<NjesiReadDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<IEnumerable<NjesiReadDto>>>> GetNjesiByUser(int? id)
+        {
+            try
+            {
+                int userId = id != null ? id.Value : int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var njesiOrgList = await _db.NjesiOrg
+                    .AsNoTracking()
+                    .Where(n => n.active && _db.UserOrg.Any(uo => uo.UserId == userId && uo.BiznesId == n.BiznesId))
+                    //.Include(n => n.Organizata)
+                    .ToListAsync();
                 var dtoResponseNjesi = _mapper.Map<List<NjesiReadDto>>(njesiOrgList);
                 var response = ApiResponse<IEnumerable<NjesiReadDto>>.Ok(dtoResponseNjesi, "Records retrieved successfully");
                 return Ok(response);
@@ -246,7 +273,7 @@ namespace Parking_project.Controllers
             }
             catch (Exception ex)
             {
-                var errorResponse = ApiResponse<object>.Error(500, $"An Error Occurred while creating NjesiOrg: ", ex.Message);
+                var errorResponse = ApiResponse<object>.Error(500, $"An Error Occurred while deleting NjesiOrg: ", ex.Message);
                 return StatusCode(500, errorResponse);
             }
         }

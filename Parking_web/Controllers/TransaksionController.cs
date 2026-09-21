@@ -18,7 +18,7 @@ namespace Parking_web.Controllers
             _mapper = mapper;
         }
 
-        [Authorize(Roles = "Customer, Admin , Super Admin")]
+        [Authorize(Roles = "Customer, Manager, Admin , Super Admin")]
         public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, int njesia = -1)
         {
             if (User.IsInRole("Super Admin") && User.FindFirst("BiznesId")?.Value == "0")
@@ -29,8 +29,10 @@ namespace Parking_web.Controllers
 
             try
             {
+                if (User.IsInRole("Manager")) njesia = 0;
+
                 var response = User.IsInRole("Customer") ?
-                    await _transaksionService.GetByUserAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, njesia) : 
+                    await _transaksionService.GetByUserAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, njesia) :
                     await _transaksionService.GetAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, njesia);
 
                 if (response != null && response.Success && response.Data != null)
@@ -66,48 +68,26 @@ namespace Parking_web.Controllers
             });
         }
 
-        [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> IndexManager(int pageNumber = 1, int pageSize = 10)
+        [HttpPost]
+        [Authorize(Roles = "Manager, Admin , Super Admin")]
+        public async Task<IActionResult> Delete(int id, int pageNumber = 1, int pageSize = 10, int njesia = -1)
         {
-            if (User.FindFirst("BiznesId")?.Value == "0")
-            {
-                TempData["error"] = "Nuk keni organizatë";
-                return RedirectToAction("Index", "Home");
-            }
+            if (njesia == 0) njesia = -1;
             try
             {
-                var response = await _transaksionService.GetAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, 0);
-                if (response != null && response.Success && response.Data != null)
+                var response = await _transaksionService.DeleteAsync<ApiResponse<object>>(id);
+                if (response != null && response.Success)
                 {
-                    foreach (var t in response.Data.Data)
-                    {
-                        if (t.Statusi == "Pending")
-                        {
-                            t.Cmimi = null;
-                            t.KohaDaljes = null;
-                            t.Sherbimi = null;
-                        }
-                    }
-                    return View(response.Data);
+                    TempData["success"] = "Transaksioni u largua me sukses.";
+                    return RedirectToAction("Index", new { pageNumber, pageSize, njesia });
                 }
+                TempData["error"] = "ndodhur nje gabim";
             }
-            catch (Exception ex)
+            catch
             {
-                TempData["error"] = $"Gabim: {ex.Message}";
+                TempData["error"] = "ndodhur nje gabim";
             }
-
-            return View(new TransaksionPage
-            {
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalPages = 0,
-                TotalRecords = 0,
-                TotalAmount = 0,
-                MonthlyAmount = 0,
-                YearlyAmount = 0,
-                Njesite = new List<NjesiOrg>(),
-                Data = new List<TransaksionRead>()
-            });
+            return RedirectToAction("Index", new { pageNumber, pageSize, njesia });
         }
     }
 }

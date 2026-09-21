@@ -35,14 +35,14 @@ namespace Parking_web.Controllers
             _creditCardService = creditCardService;
         }
 
-        public async Task<IActionResult> Index(string? Search, int page = 1, int pageSize = 9)
+        public async Task<IActionResult> Index(string? Search, bool onlyAvailable = false, int page = 1, int pageSize = 9)
         {
             OrgPage orgPage = new();
             try
             {
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 if (page < 1) page = 1;
-                var response = await _orgService.GetPaginationAsync<ApiResponse<OrgPage>>(Search, userId, page, pageSize);
+                var response = await _orgService.GetPaginationAsync<ApiResponse<OrgPage>>(Search, userId, onlyAvailable, page, pageSize);
                 var pendingResponse = await _transaksioniService.GetPendingAsync<ApiResponse<List<TransaksionRead>>>(userId);
 
                 if (response != null && response.Success && response.Data != null)
@@ -355,7 +355,11 @@ namespace Parking_web.Controllers
             var result = await CreateTransactionFunction( njesiaId, userId, identifikues );
 
             TempData[result.Success ? "success" : "error"] = result.Message;
-            return RedirectToAction( User.IsInRole("Customer") ? "Index" : "Employee" );
+            if (User.IsInRole("Customer"))
+            {
+                return RedirectToAction("Index");
+            }
+            return RedirectToAction("Employee", new {njesia = njesiaId});
         }
 
         [HttpGet]

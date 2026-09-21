@@ -1,9 +1,8 @@
 ﻿@using Parking_web.Models.DTO
-@model NjesiReadDto
+@model IEnumerable<NjesiReadDto>
 @{
-    ViewData["Title"] = "Menaxhimi i Njësisë";
+    ViewData["Title"] = "Menaxhimi i Njësive";
 }
-
 
 <style>
     .btn-edit-custom {
@@ -50,6 +49,7 @@
 
     .header-content {
         display: flex;
+        flex-direction: row;
         justify-content: space-between;
         align-items: center;
         width: 100%;
@@ -64,11 +64,6 @@
         z-index: 1;
     }
 
-    .action-button-area {
-        position: relative;
-        z-index: 1050;
-    }
-
     .btn-minimize i {
         display: inline-block;
         transition: transform 0.3s ease-in-out;
@@ -77,33 +72,128 @@
     .collapsed .btn-minimize i {
         transform: rotate(-90deg);
     }
+
+    .table-responsive {
+        border: none;
+    }
+
+    .text-nowrap-mobile {
+        white-space: nowrap;
+    }
+
+    @@media (max-width: 576px) {
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .action-button-area {
+            width: 100%;
+        }
+
+            .action-button-area .btn {
+                width: 100%;
+            }
+    }
 </style>
 
-<div class="container my-5 pb-5">
-    <div class="header-content">
-        <div>
-            <h2 class="fw-bold text-dark mb-1">Menaxhimi i Njesisë @Model.Emri</h2>
-            <p class="text-muted small">Kontrolloni lokacionet dhe cilësimet tuaja në një vend.</p>
-        </div>
-        @if (!Model.QRScanner && ViewBag.customers)
-        {
+<div class="container my-4 my-md-5 pb-5">
+
+    @if (User.IsInRole("Manager"))
+    {
+        <div class="header-content">
             <div>
-                <a asp-action="NjesiaQR" asp-route-id="@Model.NjesiteId" class="btn btn-outline-primary btn-sm px-4 rounded-pill fw-semibold"><i class="bi bi-qr-code-scan"></i> QR Kodi</a>
+                <h2 class="fw-bold text-dark mb-1">Menaxhimi i Njesisë @Model.FirstOrDefault().Emri</h2>
+                <p class="text-muted small">Kontrolloni sherbimet dhe cilësimet tuaja në një vend.</p>
             </div>
-        }
-    </div>
+            @if (!Model.FirstOrDefault().QRScanner && ViewBag.customers)
+            {
+                <div>
+                    <a asp-action="NjesiaQR" asp-route-id="@ViewBag.NjesiaId" class="btn btn-outline-primary btn-sm px-4 rounded-pill fw-semibold"><i class="bi bi-qr-code-scan"></i> QR Kodi</a>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="row align-items-center mb-4 px-3 px-md-0">
+            <div class="col-12">
+                <h2 class="fw-bold text-dark mb-1">Menaxhimi i Organizatës</h2>
+                <p class="text-muted small">Kontrolloni njësitë, shërbimet dhe cilësimet tuaja në një vend.</p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4 mb-md-5 mx-2 mx-md-0">
+            <div class="card-header bg-black text-white">
+                <div class="header-content">
+                    <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collNjesite">
+                        <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-white">Menaxhimi i Njësive</h5>
+                            <small class="opacity-75 d-none d-sm-block">Lista e pikave aktive</small>
+                        </div>
+                    </div>
+                    <div class="action-button-area">
+                        <a asp-controller="Njesia" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Njësi</a>
+                    </div>
+                </div>
+            </div>
+            <div id="collNjesite" class="collapse show">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 w-100">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Emri</th>
+                                    <th class="d-none d-md-table-cell">Kodi</th>
+                                    <th class="d-none d-lg-table-cell">Adresa</th>
+                                    <th>Vende</th>
+                                    <th class="text-end pe-4">Veprimet</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null)
+                                {
+                                    foreach (var njesi in Model)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold ps-4">@njesi.Emri</td>
+                                            <td class="d-none d-md-table-cell text-muted small">@njesi.Kodi</td>
+                                            <td class="d-none d-lg-table-cell">@njesi.Adresa</td>
+                                            <td>@njesi.VendeTeLira</td>
+                                            <td class="text-end pe-4">
+                                                <div class="d-flex justify-content-end gap-1">
+                                                    @if (!njesi.QRScanner && ViewBag.customers)
+                                                    {
+                                                        <a asp-action="NjesiaQR" asp-route-id="@njesi.NjesiteId" class="btn btn-sm btn-activate-custom"><i class="bi bi-qr-code-scan"></i></a>
+                                                    }
+                                                    <a asp-action="Edit" asp-route-id="@njesi.NjesiteId" class="btn btn-sm btn-edit-custom"><i class="bi bi-pencil"></i></a>
+                                                    <a asp-action="Delete" asp-route-id="@njesi.NjesiteId" class="btn btn-sm btn-delete-custom"><i class="bi bi-trash"></i></a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     @{
         var sherbimet = ViewBag.Sherbimet as List<Parking_web.Models.Sherbimi>;
     }
-    <div class="card border-0 shadow-sm mb-5">
+    <div class="card border-0 shadow-sm mb-4 mb-md-5 mx-2 mx-md-0">
         <div class="card-header bg-black text-white">
             <div class="header-content">
                 <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collSherbimet">
                     <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
                     <div>
-                        <h4 class="fw-bold mb-0 text-white">Menaxhimi i Shërbimeve</h4>
-                        <small class="opacity-75">Lista e shërbimeve dhe çmimeve</small>
+                        <h5 class="fw-bold mb-0 text-white">Menaxhimi i Shërbimeve</h5>
+                        <small class="opacity-75 d-none d-sm-block">Lista e shërbimeve dhe çmimeve</small>
                     </div>
                 </div>
                 <div class="action-button-area">
@@ -116,11 +206,7 @@
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 w-100">
                         <thead class="bg-light">
-                            <tr>
-                                <th class="ps-4">Emri</th>
-                                <th>Çmimi</th>
-                                <th class="text-end pe-4">Veprimet</th>
-                            </tr>
+                            <tr><th class="ps-4">Emri</th><th>Çmimi</th><th class="text-end pe-4">Veprimet</th></tr>
                         </thead>
                         <tbody>
                             @if (sherbimet != null)
@@ -137,12 +223,8 @@
                                         </td>
                                         <td class="text-end pe-4">
                                             <div class="d-flex justify-content-end gap-1">
-                                                <a asp-controller="Sherbimi" asp-action="Edit" asp-route-id="@s.SherbimiId" class="btn btn-sm btn-edit-custom fw-semibold">
-                                                    <i class="bi bi-pencil me-1"></i>
-                                                </a>
-                                                <a asp-controller="Sherbimi" asp-action="Delete" asp-route-id="@s.SherbimiId" class="btn btn-sm btn-delete-custom fw-semibold">
-                                                    <i class="bi bi-trash me-1"></i>
-                                                </a>
+                                                <a asp-controller="Sherbimi" asp-action="Edit" asp-route-id="@s.SherbimiId" class="btn btn-sm btn-edit-custom"><i class="bi bi-pencil"></i></a>
+                                                <a asp-controller="Sherbimi" asp-action="Delete" asp-route-id="@s.SherbimiId" class="btn btn-sm btn-delete-custom"><i class="bi bi-trash"></i></a>
                                             </div>
                                         </td>
                                     </tr>
@@ -158,18 +240,18 @@
     @{
         var cilsimet = (ViewBag.Cilsimet as List<Parking_web.Models.DTO.CilsimetReadDto>)?.OrderBy(n => n.NjesiOrg.Emri).ThenBy(c => c.Emri);
     }
-    <div class="card border-0 shadow-sm mb-5">
+    <div class="card border-0 shadow-sm mb-4 mb-md-5 mx-2 mx-md-0">
         <div class="card-header bg-black text-white">
             <div class="header-content">
                 <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collCilsimet">
                     <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
                     <div>
-                        <h4 class="fw-bold mb-0 text-white">Cilësimet e Parkimit</h4>
-                        <small class="opacity-75">Lidhja mes njësive dhe shërbimeve</small>
+                        <h5 class="fw-bold mb-0 text-white">Cilësimet e Parkimit</h5>
+                        <small class="opacity-75 d-none d-sm-block">Lidhja mes njësive dhe shërbimeve</small>
                     </div>
                 </div>
                 <div class="action-button-area">
-                    <a asp-controller="Cilsimet" asp-route-id="@Model.NjesiteId" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Cilësim</a>
+                    <a asp-controller="Cilsimet" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Cilësim</a>
                 </div>
             </div>
         </div>
@@ -200,17 +282,11 @@
                                                 {
                                                     <form asp-controller="Cilsimet" asp-action="Activate" asp-route-id="@c.CilsimetiId" method="post" class="m-0">
                                                         @Html.AntiForgeryToken()
-                                                        <button type="submit" class="btn btn-sm btn-activate-custom fw-semibold"> Aktivizo</button>
+                                                        <button type="submit" class="btn btn-sm btn-activate-custom fw-semibold">Aktivizo</button>
                                                     </form>
                                                 }
-                                                <div class="d-flex gap-1">
-                                                    <a asp-controller="Cilsimet" asp-action="Edit" asp-route-id="@c.CilsimetiId" asp-route-njesiaId="@Model.NjesiteId" class="btn btn-sm btn-edit-custom fw-semibold">
-                                                        <i class="bi bi-pencil me-1"></i>
-                                                    </a>
-                                                    <a asp-controller="Cilsimet" asp-action="Delete" asp-route-id="@c.CilsimetiId" class="btn btn-sm btn-delete-custom fw-semibold">
-                                                        <i class="bi bi-trash me-1"></i>
-                                                    </a>
-                                                </div>
+                                                <a asp-controller="Cilsimet" asp-action="Edit" asp-route-id="@c.CilsimetiId" class="btn btn-sm btn-edit-custom"><i class="bi bi-pencil"></i></a>
+                                                <a asp-controller="Cilsimet" asp-action="Delete" asp-route-id="@c.CilsimetiId" class="btn btn-sm btn-delete-custom"><i class="bi bi-trash"></i></a>
                                             </div>
                                         </td>
                                     </tr>
@@ -229,14 +305,14 @@
             .ThenBy(c => c.CilsimetParkimit.Emri)
             .ThenBy(d => d.FromHour);
     }
-    <div class="card border-0 shadow-sm mb-5">
+    <div class="card border-0 shadow-sm mb-5 mx-2 mx-md-0">
         <div class="card-header bg-black text-white">
             <div class="header-content">
                 <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collDetajet">
                     <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
                     <div>
-                        <h4 class="fw-bold mb-0 text-white">Detajet e Tarifave</h4>
-                        <small class="opacity-75">Çmimet sipas orëve</small>
+                        <h5 class="fw-bold mb-0 text-white">Detajet e Tarifave</h5>
+                        <small class="opacity-75 d-none d-sm-block">Çmimet sipas orëve</small>
                     </div>
                 </div>
                 <div class="action-button-area">
@@ -248,12 +324,13 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 w-100">
-                        <thead class="bg-light">
+                        <thead class="bg-light text-nowrap">
                             <tr>
-                                <th class="ps-4">Orari</th>
+                                <th class="ps-4">Intervali</th>
                                 <th>Çmimi/h</th>
-                                <th class="d-none d-lg-table-cell">Cilësimi</th>
-                                <th class="d-none d-md-table-cell text-center">Statusi</th>
+                                <th class="d-none d-lg-table-cell">Cilsimi</th>
+                                <th class="d-none d-md-table-cell">Njesia</th>
+                                <th>Status</th>
                                 <th class="text-end pe-4">Veprimet</th>
                             </tr>
                         </thead>
@@ -266,22 +343,19 @@
                                         <td class="ps-4">
                                             <div class="fw-bold">@d.FromHour:00 - @(d.ToHour.HasValue ? d.ToHour + ":00 h" : "∞")</div>
                                         </td>
-                                        <td class="text-success fw-bold">@d.Cmimi.ToString("N2") €</td>
-                                        <td class="d-none d-lg-table-cell small text-muted">@d.CilsimetParkimit.Emri</td>
-                                        <td class="d-none d-md-table-cell text-center">
+                                        <td class="text-success fw-bold">@d.Cmimi.ToString("N2")€</td>
+                                        <td class="d-none d-lg-table-cell small">@d.CilsimetParkimit.Emri</td>
+                                        <td class="d-none d-md-table-cell small">@d.CilsimetParkimit.NjesiOrg.Emri</td>
+                                        <td>
                                             @if (d.CilsimetParkimit.Selected)
                                             {
-                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Aktiv</span>
+                                                <span class="badge bg-primary-subtle text-primary">Aktiv</span>
                                             }
                                         </td>
                                         <td class="text-end pe-4">
                                             <div class="d-flex justify-content-end gap-1">
-                                                <a asp-controller="Detajet" asp-action="Edit" asp-route-id="@d.DetajetId" class="btn btn-sm btn-edit-custom fw-semibold">
-                                                    <i class="bi bi-pencil me-1"></i>
-                                                </a>
-                                                <a asp-controller="Detajet" asp-action="Delete" asp-route-id="@d.DetajetId" class="btn btn-sm btn-delete-custom fw-semibold">
-                                                    <i class="bi bi-trash me-1"></i>
-                                                </a>
+                                                <a asp-controller="Detajet" asp-action="Edit" asp-route-id="@d.DetajetId" class="btn btn-sm btn-edit-custom"><i class="bi bi-pencil"></i></a>
+                                                <a asp-controller="Detajet" asp-action="Delete" asp-route-id="@d.DetajetId" class="btn btn-sm btn-delete-custom"><i class="bi bi-trash"></i></a>
                                             </div>
                                         </td>
                                     </tr>
@@ -294,12 +368,11 @@
         </div>
     </div>
 </div>
+
 @section Scripts {
     <script>
         document.querySelectorAll('.action-button-area').forEach(area => {
-            area.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
+            area.addEventListener('click', e => e.stopPropagation());
         });
     </script>
 }

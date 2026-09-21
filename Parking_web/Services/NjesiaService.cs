@@ -49,6 +49,15 @@ namespace Parking_web.Services
                 Url = id == null ? $"{APIEndPoint}/ByOrg" : $"{APIEndPoint}/ByOrg?id={id}",
             });
         }
+        
+        public Task<T?> GetByUserAsync<T>(int? id)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.GET,
+                Url = id == null ? $"{APIEndPoint}/ByUser" : $"{APIEndPoint}/ByUser?id={id}",
+            });
+        }
 
         public Task<T?> GetAsync<T>(int id)
         {

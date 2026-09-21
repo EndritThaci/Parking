@@ -758,5 +758,57 @@ namespace Parking_project.Controllers
             }
         }
 
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Manager, Admin , Super Admin")]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<object>>> DeteleTransaction(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(ApiResponse<object>.BadRequest("Invalid ID supplied."));
+            }
+            await using var dbTransaction = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                var transaction = await _db.TransaksionParkimi.FindAsync(id);
+                if (transaction == null)
+                {
+                    return NotFound(ApiResponse<object>.NotFound($"Transaction with id {id} does not exist"));
+                }
+                else if(transaction.Statusi == "Completed")
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Transaction is already Payed"));
+                }
+                
+                var details = await _db.TransaksionDetaj.Where(t => t.TransaksionId == id).ToListAsync();
+                if (details != null)
+                {
+                    _db.TransaksionDetaj.RemoveRange(details);
+                }
+
+                _db.TransaksionParkimi.Remove(transaction);
+                await _db.SaveChangesAsync();
+
+                var getNjesia = await _db.NjesiOrg.Where(v => v.NjesiteId == transaction.NjesiaId).FirstOrDefaultAsync();
+                if (getNjesia == null)
+                {
+                    return NotFound(ApiResponse<object>.NotFound("Njesia could not be found"));
+                }
+                getNjesia.VendeTeLira++;
+                await _db.SaveChangesAsync();
+
+                await dbTransaction.CommitAsync();
+                return Ok(ApiResponse<object>.NoContent($"Transaction with ID {id} has been deleted."));
+            }
+            catch (Exception ex) 
+            {
+                await dbTransaction.RollbackAsync();
+                var errorResponse = ApiResponse<object>.Error(500, $"An Error Occurred while deleting Transaction: ", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
     }
 }

@@ -66,6 +66,12 @@ namespace Parking_web.Controllers
                 if (response != null && response.Success != false)
                     ViewBag.Njesia = response?.Data;
             }
+            else if (User.IsInRole("Customer"))
+            {
+                var response = await _njesiaService.GetByUserAsync<ApiResponse<List<NjesiReadDto>>>();
+                if (response != null && response.Success != false)
+                    ViewBag.Njesia = response?.Data;
+            }
             else
             {
                 var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiReadDto>>>();

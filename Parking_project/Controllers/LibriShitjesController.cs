@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
-using Parking_project.Data;
-using Parking_project.Models;
-using Parking_project.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml.Style;
+using Parking_project.Data;
+using Parking_project.Models;
+using Parking_project.Models.DTO;
+using System.Security.Claims;
 
 namespace Parking_project.Controllers
 {
@@ -34,16 +35,25 @@ namespace Parking_project.Controllers
                 return BadRequest(ApiResponse<object>.BadRequest("Please provide the parameters."));
             }
 
-            int org = int.Parse(User.FindFirst("BiznesId")?.Value ?? "0");
-
             List<TransaksionParkimi> transaksionet = new();
 
-            var query = _db.TransaksionParkimi.Where(i => i.Njesia.BiznesId == org)
+            var query = _db.TransaksionParkimi
                 .Include(t => t.Cilsimet)
                     .ThenInclude(c => c.Sherbimi)
                 .Include(l => l.Njesia)
                 .Include(t => t.User)
                 .AsQueryable();
+
+            if (User.IsInRole("Customer"))
+            {
+                int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                query = query.Where(t => t.UserId == userId);
+            }
+            else
+            {
+                int org = int.Parse(User.FindFirst("BiznesId")?.Value ?? "0");
+                query = query.Where(t => t.Njesia.BiznesId == org);
+            }
 
             if (dto.id != null)
                 query = query.Where(t => t.TransaksioniId == dto.id);

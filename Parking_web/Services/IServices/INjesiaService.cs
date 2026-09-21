@@ -7,6 +7,7 @@ namespace Parking_web.Services.IServices
         Task<T?> GetAllAsync<T>();
         Task<T?> GetAsync<T>(int id);
         Task<T?> GetByOrgAsync<T>(int? id = null);
+        Task<T?> GetByUserAsync<T>(int? id = null);
         Task<T?> CreateAsync<T>(NjesiOrgDto dto);
         Task<T?> UpdateAsync<T>(NjesiUpdateDto dto);
         Task<T?> DeleteAsync<T>(int id);

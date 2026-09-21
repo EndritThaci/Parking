@@ -24,11 +24,7 @@
                     <button onclick="window.print()" class="btn btn-primary btn-lg rounded-pill fw-bold shadow">
                         <i class="bi bi-printer me-2"></i> Printo Kodin
                     </button>
-                    @if(User.IsInRole("Manager")){
-                        <a asp-action="Index" class="btn btn-lg rounded-pill">Kthehu</a>
-                    }else{
-                        <a asp-action="Index2" class="btn btn-lg rounded-pill">Kthehu</a>
-                    }
+                    <a asp-action="Index" class="btn btn-lg rounded-pill">Kthehu</a>
                 </div>
             </div>
         </div>

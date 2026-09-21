@@ -13,5 +13,6 @@ namespace Parking_web.Services.IServices
         Task<T?> CreateAsync<T>(TransaksionetCreateDto dto);
         Task<T?> UpdateAsync<T>(int id,TransaksionUpdateDto dto);
         Task<T?> PayAsync<T>(int id);
+        Task<T?> DeleteAsync<T>(int id);
     }
 }

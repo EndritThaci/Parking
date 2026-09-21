@@ -77,25 +77,19 @@
                                         <a class="nav-link text-dark" asp-area="" asp-controller="Organizata" asp-action="Index">Menaxhimi i Organizatave</a>
                                     </li>
                                 }
-                                @if (User.IsInRole("Admin") || User.IsInRole("Super Admin"))
-                                {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Njesia" asp-action="Index2">Menaxhimi i Njesive</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Transaksion" asp-action="Index">Transaksionet</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Index">Përdoruesit</a>
-                                    </li>
-                                }
-                                @if (User.IsInRole("Manager"))
+                                @if (User.IsInRole("Admin") || User.IsInRole("Super Admin") || User.IsInRole("Manager"))
                                 {
                                     <li class="nav-item">
                                         <a class="nav-link text-dark" asp-area="" asp-controller="Njesia" asp-action="Index">Menaxhimi i Njesive</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Transaksion" asp-action="IndexManager">Transaksionet</a>
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Transaksion" asp-action="Index">Transaksionet</a>
+                                    </li>
+                                }
+                                @if (User.IsInRole("Admin") || User.IsInRole("Super Admin"))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Index">Përdoruesit</a>
                                     </li>
                                 }
                                 @if (User.IsInRole("Customer"))
@@ -104,7 +98,6 @@
                                         <a class="nav-link text-dark" asp-area="" asp-controller="Transaksion" asp-action="Index">Transaksionet</a>
                                     </li>
                                 }
-                            
                             </ul>
                             <ul class="navbar-nav">
                             
@@ -117,7 +110,7 @@
                                 {
                                     <li class="navbar-nav dropdown">
                                         <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            @* <i class="bi bi-person-add"></i>*@ Shto Punëtorë 
+                                            Shto Punëtorë 
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li>

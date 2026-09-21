@@ -40,12 +40,12 @@ namespace Parking_web.Services
             });
         }
 
-        public Task<T?> GetPaginationAsync<T>(string? search, int? userId, int pageNumber = 1, int pageSize = 10)
+        public Task<T?> GetPaginationAsync<T>(string? search, int? userId, bool onlyAvailable = false, int pageNumber = 1, int pageSize = 10)
         {
             return SendAsync<T>(new ApiRequest
             {
                 ApiType = SD.ApiType.GET,
-                Url = $"{APIEndPoint}/Pagination?search={search}&userId={userId}&pageNumber={pageNumber}&pageSize={pageSize}",
+                Url = $"{APIEndPoint}/Pagination?search={search}&userId={userId}&onlyAvailable={onlyAvailable}&pageNumber={pageNumber}&pageSize={pageSize}",
             });
         }
 

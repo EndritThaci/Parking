@@ -20,18 +20,21 @@
                     <div class="action-button-area">
                         <a asp-controller="LibriShitjes" asp-action="GetLibriCustom" class="btn btn-outline-light px-4 rounded-pill fw-bold w-100">Gjenero Librin</a>
                     </div>
-                    <div style="min-width: 220px;">
-                        <select id="filterNjesia" class="form-select bg-black fw-bold text-white rounded-pill border-white">
-                            <option value="-1">Të gjitha Njësitë</option>
+                    @if (!User.IsInRole("Manager"))
+                    {
+                        <div style="min-width: 220px;">
+                            <select id="filterNjesia" class="form-select bg-black fw-bold text-white rounded-pill border-white">
+                                <option value="-1">Të gjitha Njësitë</option>
 
-                            @foreach (var njesi in Model.Njesite)
-                            {
-                                <option value="@njesi.NjesiteId" selected="@(njesi.NjesiteId == selectedNjesia)">
-                                    @njesi.Emri
-                                </option>
-                            }
-                        </select>
-                    </div>
+                                @foreach (var njesi in Model.Njesite)
+                                {
+                                    <option value="@njesi.NjesiteId" selected="@(njesi.NjesiteId == selectedNjesia)">
+                                        @njesi.Emri
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -95,9 +98,31 @@
                                         }
                                         else
                                         {
-                                            <button type="button" class="btn btn-outline-success rounded-pill py-0 px-3" onclick="confirmPayment(event, @t.TransaksioniId)">
-                                                <i class="bi bi-cash-coin"></i>
-                                            </button>
+                                            <div class="d-inline-flex align-items-center justify-content-end gap-1">
+                                                <button type="button" class="btn btn-outline-success rounded-pill py-0 px-2" onclick="confirmPayment(event, @t.TransaksioniId)">
+                                                    <i class="bi bi-cash-coin"></i>
+                                                </button>
+                                                @if (!User.IsInRole("Customer"))
+                                                {
+                                                    <form asp-controller="Transaksion"
+                                                            asp-action="Delete"
+                                                            method="post"
+                                                            id="deleteForm-@t.TransaksioniId">
+
+                                                        @Html.AntiForgeryToken()
+
+                                                        <input type="hidden" name="Id" value="@t.TransaksioniId" />
+                                                        <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+                                                        <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                                                        <input type="hidden" name="njesia" value="@selectedNjesia" />
+
+                                                        <button type="button" class="btn btn-outline-danger rounded-pill py-0 px-2"
+                                                                onclick="event.stopPropagation(); confirmDelete('@t.TransaksioniId', 'Fshi transaksionin?', 'A jeni i sigurt që dëshironi ta fshini këtë transaksion?')">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </div>
                                         }
                                     </td>
                                 </tr>
@@ -258,21 +283,24 @@
 
 @section Scripts {
     <script>
-        document.getElementById('filterNjesia').addEventListener('change', function() {
-            const njesia = this.value;
+        var filterNjesia = document.getElementById('filterNjesia');
+        if (filterNjesia){
+            filterNjesia.addEventListener('change', function() {
+                const njesia = this.value;
 
-            const url = new URL(window.location.href);
+                const url = new URL(window.location.href);
 
-            url.searchParams.set("pageNumber", "1");
+                url.searchParams.set("pageNumber", "1");
 
-            if (njesia === "" || njesia === "-1") {
-                url.searchParams.delete("njesia");
-            } else {
-                url.searchParams.set("njesia", njesia);
-            }
+                if (njesia === "" || njesia === "-1") {
+                    url.searchParams.delete("njesia");
+                } else {
+                    url.searchParams.set("njesia", njesia);
+                }
 
-            window.location.href = url.toString();
-        });
+                window.location.href = url.toString();
+            });
+        }
 
         function confirmPayment(event, id) {
             event.stopPropagation();
@@ -280,8 +308,7 @@
         }
 
         function downloadReport(params) {
-            const njesiaId = document.getElementById('filterNjesia').value;
-            console.log(njesiaId);
+            const njesiaId = filterNjesia ? filterNjesia.value : 0;
             let url = "/LibriShitjes/GetLibri?";
             let queryParts = [];
             for (let key in params) {

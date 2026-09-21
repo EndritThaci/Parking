@@ -6,7 +6,7 @@ namespace Parking_web.Services.IServices
     {
         Task<T?> GetAllAsync<T>();
         Task<T?> GetForCustomersAsync<T>(string? search, int pageNumber = 1, int pageSize = 10);
-        Task<T?> GetPaginationAsync<T>(string? search, int? userId, int pageNumber = 1, int pageSize = 10);
+        Task<T?> GetPaginationAsync<T>(string? search, int? userId, bool onlyAvailable = false, int pageNumber = 1, int pageSize = 10);
         Task<T?> GetAsync<T>(int id );
         Task<T?> CreateAsync<T>(OrgCreateDTO dto);
         Task<T?> UpdateAsync<T>(OrgUpdateDTO dto);

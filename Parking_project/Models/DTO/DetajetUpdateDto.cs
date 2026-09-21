@@ -5,6 +5,7 @@ namespace Parking_project.Models.DTO
 {
     public class DetajetUpdateDto
     {
+        public int? DetajetId { get; set; }
         public int FromHour { get; set; }
         public int? ToHour { get; set; }
         public decimal Cmimi { get; set; }

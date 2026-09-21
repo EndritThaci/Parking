@@ -95,5 +95,14 @@ namespace Parking_web.Services
                 Url = $"{APIEndPoint}/{id}/Pay",
             });
         }
+
+        public Task<T?> DeleteAsync<T>(int id)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.DELETE,
+                Url = $"{APIEndPoint}/{id}",
+            });
+        }
     }
 }

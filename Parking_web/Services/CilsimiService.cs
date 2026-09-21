@@ -20,6 +20,16 @@ namespace Parking_web.Services
                 Url = APIEndPoint,
             });
         }
+        
+        public Task<T?> CreateWithDetailAsync<T>(CilsimetWithDetailsCreateDTO dto)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.POST,
+                Data = dto,
+                Url = $"{APIEndPoint}/Detail",
+            });
+        }
 
         public Task<T?> DeleteAsync<T>(int id)
         {

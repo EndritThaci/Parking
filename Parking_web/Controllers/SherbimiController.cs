@@ -25,11 +25,7 @@ namespace Parking_web.Controllers
         
         public async Task<IActionResult> Index()
         {
-            if (User.IsInRole("Manager"))
-            {
-                return RedirectToAction("Index", "Njesia");
-            }
-            return RedirectToAction("Index2", "Njesia");
+            return RedirectToAction("Index", "Njesia");
         }
 
         [HttpGet]
@@ -60,11 +56,7 @@ namespace Parking_web.Controllers
                 if (response != null && response.Success && response.Data != null)
                 {
                     TempData["success"] = "Sherbimi u krijua me sukses";
-                    if (User.IsInRole("Manager"))
-                    {
-                        return RedirectToAction("Index", "Njesia");
-                    }
-                    return RedirectToAction("Index2", "Njesia");
+                    return RedirectToAction("Index", "Njesia");
                 }
                 else
                 {
@@ -86,12 +78,8 @@ namespace Parking_web.Controllers
         {
             if (id <= 0)
             {
-                TempData["error"] = "ID e gabuar."; 
-                if (User.IsInRole("Manager"))
-                {
-                    return RedirectToAction("Index", "Njesia");
-                }
-                return RedirectToAction("Index2", "Njesia");
+                TempData["error"] = "ID e gabuar.";
+                return RedirectToAction("Index", "Njesia");
 
             }
 
@@ -133,11 +121,7 @@ namespace Parking_web.Controllers
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
-            if (User.IsInRole("Manager"))
-            {
-                return RedirectToAction("Index", "Njesia");
-            }
-            return RedirectToAction("Index2", "Njesia");
+            return RedirectToAction("Index", "Njesia");
         }
 
 
@@ -147,11 +131,7 @@ namespace Parking_web.Controllers
             if (id <= 0)
             {
                 TempData["error"] = "ID e gabuar.";
-                if (User.IsInRole("Manager"))
-                {
-                    return RedirectToAction("Index", "Njesia");
-                }
-                return RedirectToAction("Index2", "Njesia");
+                return RedirectToAction("Index", "Njesia");
             }
 
             try
@@ -185,11 +165,7 @@ namespace Parking_web.Controllers
                 if (response != null && response.Success)
                 {
                     TempData["success"] = "Sherbimi u permirsua me sukses";
-                    if (User.IsInRole("Manager"))
-                    {
-                        return RedirectToAction("Index", "Njesia");
-                    }
-                    return RedirectToAction("Index2", "Njesia");
+                    return RedirectToAction("Index", "Njesia");
                 }
                 else
                 {

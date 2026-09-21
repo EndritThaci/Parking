@@ -10,6 +10,7 @@ namespace Parking_web.Services.IServices
         Task<T?> GetByNjesiAsync<T>(int njsiaId);
         Task<T?> ActivateAsync<T>(int dto);
         Task<T?> CreateAsync<T>(CilsimetCreateDto dto);
+        Task<T?> CreateWithDetailAsync<T>(CilsimetWithDetailsCreateDTO dto);
         Task<T?> UpdateAsync<T>(CilsimetUpdateDto dto);
         Task<T?> DeleteAsync<T>(int id);
     }

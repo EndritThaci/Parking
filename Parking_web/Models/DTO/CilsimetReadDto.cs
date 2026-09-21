@@ -12,5 +12,6 @@ namespace Parking_web.Models.DTO
         public bool Selected { get; set; }
         public NjesiOrg NjesiOrg { get; set; }
         public Sherbimi Sherbimi { get; set; }
+        public List<DetajetReadDto>? Detajet { get; set; }
     }
 }
