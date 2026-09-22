@@ -63,6 +63,10 @@
         align-items: center;
         z-index: 1;
     }
+    
+    .clickable-row {
+        cursor: pointer;
+    }
 
     .btn-minimize i {
         display: inline-block;
@@ -272,12 +276,12 @@
                             {
                                 foreach (var c in cilsimet)
                                 {
-                                    <tr>
+                                    <tr class="clickable-row" data-href="@Url.Action("Detail", "Cilsimet", new { id = c.CilsimetiId })">
                                         <td class="fw-bold ps-4">@c.Emri</td>
                                         <td class="small">@c.NjesiOrg?.Emri</td>
                                         <td class="d-none d-md-table-cell text-muted">@c.Sherbimi.Emri</td>
                                         <td class="text-end pe-4">
-                                            <div class="d-flex justify-content-end align-items-center gap-2">
+                                            <div class="d-flex justify-content-end align-items-center gap-2 prevent-row-click">
                                                 @if (!c.Selected)
                                                 {
                                                     <form asp-controller="Cilsimet" asp-action="Activate" asp-route-id="@c.CilsimetiId" method="post" class="m-0">
@@ -298,81 +302,27 @@
             </div>
         </div>
     </div>
-
-    @{
-        var detajet = (ViewBag.Detajet as List<Parking_web.Models.DTO.DetajetReadDto>)?
-            .OrderBy(n => n.CilsimetParkimit.NjesiOrg.Emri)
-            .ThenBy(c => c.CilsimetParkimit.Emri)
-            .ThenBy(d => d.FromHour);
-    }
-    <div class="card border-0 shadow-sm mb-5 mx-2 mx-md-0">
-        <div class="card-header bg-black text-white">
-            <div class="header-content">
-                <div class="clickable-title" data-bs-toggle="collapse" data-bs-target="#collDetajet">
-                    <span class="btn-minimize me-3"><i class="bi bi-chevron-down"></i></span>
-                    <div>
-                        <h5 class="fw-bold mb-0 text-white">Detajet e Tarifave</h5>
-                        <small class="opacity-75 d-none d-sm-block">Çmimet sipas orëve</small>
-                    </div>
-                </div>
-                <div class="action-button-area">
-                    <a asp-controller="Detajet" asp-action="Create" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">Shto Detaj</a>
-                </div>
-            </div>
-        </div>
-        <div id="collDetajet" class="collapse show">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 w-100">
-                        <thead class="bg-light text-nowrap">
-                            <tr>
-                                <th class="ps-4">Intervali</th>
-                                <th>Çmimi/h</th>
-                                <th class="d-none d-lg-table-cell">Cilsimi</th>
-                                <th class="d-none d-md-table-cell">Njesia</th>
-                                <th>Status</th>
-                                <th class="text-end pe-4">Veprimet</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (detajet != null)
-                            {
-                                foreach (var d in detajet)
-                                {
-                                    <tr>
-                                        <td class="ps-4">
-                                            <div class="fw-bold">@d.FromHour:00 - @(d.ToHour.HasValue ? d.ToHour + ":00 h" : "∞")</div>
-                                        </td>
-                                        <td class="text-success fw-bold">@d.Cmimi.ToString("N2")€</td>
-                                        <td class="d-none d-lg-table-cell small">@d.CilsimetParkimit.Emri</td>
-                                        <td class="d-none d-md-table-cell small">@d.CilsimetParkimit.NjesiOrg.Emri</td>
-                                        <td>
-                                            @if (d.CilsimetParkimit.Selected)
-                                            {
-                                                <span class="badge bg-primary-subtle text-primary">Aktiv</span>
-                                            }
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <div class="d-flex justify-content-end gap-1">
-                                                <a asp-controller="Detajet" asp-action="Edit" asp-route-id="@d.DetajetId" class="btn btn-sm btn-edit-custom"><i class="bi bi-pencil"></i></a>
-                                                <a asp-controller="Detajet" asp-action="Delete" asp-route-id="@d.DetajetId" class="btn btn-sm btn-delete-custom"><i class="bi bi-trash"></i></a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 @section Scripts {
     <script>
         document.querySelectorAll('.action-button-area').forEach(area => {
             area.addEventListener('click', e => e.stopPropagation());
+        });
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".clickable-row").forEach(row => {
+                row.addEventListener("click", function (e) {
+                    if (e.target.closest(".prevent-row-click")) {
+                        return;
+                    }
+                    const url = this.getAttribute("data-href");
+                    if (url) {
+                        window.location.href = url;
+                    }
+                });
+            });
         });
     </script>
 }

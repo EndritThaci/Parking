@@ -12,6 +12,7 @@ namespace Parking_web.Services.IServices
         Task<T?> CreateAsync<T>(CilsimetCreateDto dto);
         Task<T?> CreateWithDetailAsync<T>(CilsimetWithDetailsCreateDTO dto);
         Task<T?> UpdateAsync<T>(CilsimetUpdateDto dto);
+        Task<T?> UpdateWithDetailsAsync<T>(CilsimetWithDetailsUpdateDTO dto);
         Task<T?> DeleteAsync<T>(int id);
     }
 }

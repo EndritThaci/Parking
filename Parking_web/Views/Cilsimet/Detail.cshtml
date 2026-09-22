@@ -1,0 +1,114 @@
+﻿@model Parking_web.Models.DTO.CilsimetReadDto
+@{
+    ViewData["Title"] = "Detajet e Cilësimit";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-secondary text-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"> Detajet e Cilësimit </h5>
+                    @if(Model.Selected){<span class="badge bg-white text-secondary fw-bold">Aktive</span>}
+                </div>
+                <div class="card-body p-4">
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <label class="text-muted small fw-bold text-uppercase">Emri i Cilësimit</label>
+                            <p class="fs-5 fw-semibold text-dark mb-0">
+                                <span class="badge bg-light text-dark border">
+                                    @Model.Emri
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="text-muted small fw-bold text-uppercase">Njësia</label>
+                            <p class="fs-5 fw-semibold text-dark mb-0">
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi bi-building me-1"></i> @Model.NjesiOrg.Emri
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="text-muted small fw-bold text-uppercase">Shërbimi #ID</label>
+                            <p class="fs-5 fw-semibold text-dark mb-0">
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi bi-gear me-1"></i> @Model.Sherbimi.Emri #@Model.SherbimiId
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="border rounded p-3 bg-light mb-4">
+                        <div class="mb-3">
+                            <h6 class="mb-0 fw-bold text-secondary">Tarifat sipas Orarit</h6>
+                            <small class="text-muted">Lista e orareve dhe çmimeve përkatëse</small>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered bg-white align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 30%;">Prej (Ora)</th>
+                                        <th style="width: 30%;">Deri (Ora)</th>
+                                        <th style="width: 40%;">Çmimi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model?.Detajet != null && Model.Detajet.Any())
+                                    {
+                                        foreach (var detaj in Model.Detajet.OrderBy(d => d.FromHour))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <span class="badge bg-secondary">
+                                                        <i class="bi bi-clock me-1"></i>@detaj.FromHour:00
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    @if (detaj.ToHour.HasValue)
+                                                    {
+                                                        <span class="badge bg-secondary">
+                                                            <i class="bi bi-clock me-1"></i>@detaj.ToHour.Value:00
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">
+                                                            <i class="bi bi-infinity me-1"></i>Pakufi
+                                                        </span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <strong class="text-success fs-6">@detaj.Cmimi €</strong>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-3">
+                                                <i class="bi bi-exclamation-circle me-1"></i> Nuk ka detaje tarifash të regjistruara për këtë cilësim.
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end border-top pt-3 mt-3">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4 rounded-pill">
+                            <i class="bi bi-arrow-left me-1"></i> Kthehu
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@Model.CilsimetiId" class="btn btn-warning text-white px-4 rounded-pill fw-bold shadow-sm">
+                            <i class="bi bi-pencil me-1"></i> Përditëso 
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

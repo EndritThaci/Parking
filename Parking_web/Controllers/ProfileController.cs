@@ -14,20 +14,18 @@ namespace Parking_web.Controllers
         private readonly IOrganizataService _organizataService;
         private readonly ISherbimiService _shebimiService;
         private readonly ICilsimiService _cilsimiService;
-        private readonly IDetajetService _detajetService;
         private readonly IUserService _userService; 
         private readonly IUserOrgService _userOrgService; 
         private readonly ICreditCardService _creditCardService;
         private readonly IMapper _mapper;
 
-        public ProfileController(IOrganizataService organizataService,INjesiaService njesiaService, IMapper mapper, ISherbimiService shebimiService, ICilsimiService cilsimiService, IDetajetService detajetService, IUserService userService, IUserOrgService userOrgService, ICreditCardService creditCardService)
+        public ProfileController(IOrganizataService organizataService,INjesiaService njesiaService, IMapper mapper, ISherbimiService shebimiService, ICilsimiService cilsimiService, IUserService userService, IUserOrgService userOrgService, ICreditCardService creditCardService)
         {
             _organizataService = organizataService;
             _njesiaService = njesiaService;
             _mapper = mapper;
             _shebimiService = shebimiService;
             _cilsimiService = cilsimiService;
-            _detajetService = detajetService;
             _userService = userService;
             _userOrgService = userOrgService;
             _creditCardService = creditCardService;

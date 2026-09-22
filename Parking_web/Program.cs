@@ -48,6 +48,7 @@ builder.Services.AddAutoMapper(o =>
     o.CreateMap<CilsimetParkimit, CilsimetUpdateDto>().ReverseMap();
     o.CreateMap<CilsimetReadDto, CilsimetUpdateDto>().ReverseMap();
     o.CreateMap<CilsimetReadDto, CilsimetCreateDto>().ReverseMap();
+    o.CreateMap<CilsimetReadDto, CilsimetWithDetailsUpdateDTO>().ReverseMap();
 
     o.CreateMap<Detajet, DetajetReadDto>().ReverseMap();
     o.CreateMap<Detajet, DetajetCreateDto>().ReverseMap();
@@ -81,7 +82,6 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<INjesiaService, NjesiaService>();
 builder.Services.AddScoped<ISherbimiService, SherbimiService>();
 builder.Services.AddScoped<ICilsimiService, CilsimiService>();
-builder.Services.AddScoped<IDetajetService, DetajetService>();
 builder.Services.AddScoped<ITransaksionService, TransaksionService>();
 builder.Services.AddScoped<ILibriService, LibriService>();
 builder.Services.AddScoped<IUserService, UserService>();

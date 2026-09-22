@@ -1,4 +1,4 @@
-﻿namespace Parking_project.Models.DTO
+﻿namespace Parking_web.Models.DTO
 {
     public class CilsimetWithDetailsUpdateDTO
     {

@@ -21,6 +21,7 @@ namespace Parking_project.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<CilsimetReadDto>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<IEnumerable<CilsimetReadDto>>>> GetCilsimet()
@@ -101,6 +102,7 @@ namespace Parking_project.Controllers
 
 
         [HttpGet("{id:int}")]
+        [Authorize]
         [ProducesResponseType(typeof(ApiResponse<CilsimetReadDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
@@ -156,6 +158,7 @@ namespace Parking_project.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ProducesResponseType(typeof(ApiResponse<CilsimetReadDto>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
@@ -207,6 +210,7 @@ namespace Parking_project.Controllers
         }
         
         [HttpPost("Detail")]
+        [Authorize]
         [ProducesResponseType(typeof(ApiResponse<CilsimetReadDto>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
@@ -298,6 +302,7 @@ namespace Parking_project.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize]
         [ProducesResponseType(typeof(ApiResponse<CilsimetUpdateDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
@@ -357,129 +362,158 @@ namespace Parking_project.Controllers
             }
         }
 
-        //[HttpPut("Detail/{id}")]
-        //[ProducesResponseType(typeof(ApiResponse<CilsimetReadDto>), StatusCodes.Status200OK)]
-        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
-        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        //public async Task<ActionResult<ApiResponse<CilsimetReadDto>>> UpdateCilsimeWithDetails( int id, CilsimetWithDetailsUpdateDTO cilsimetDto)
-        //{
-        //    await using var transaction = await _db.Database.BeginTransactionAsync();
+        [HttpPut("Detail/{id}")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<CilsimetReadDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<CilsimetReadDto>>> UpdateCilsimeWithDetails(int id, CilsimetWithDetailsUpdateDTO cilsimetDto)
+        {
+            await using var transaction = await _db.Database.BeginTransactionAsync();
 
-        //    try
-        //    {
-        //        if (cilsimetDto == null)
-        //        {
-        //            return BadRequest(ApiResponse<object>.BadRequest("Data is invalid."));
-        //        }
+            try
+            {
+                if (cilsimetDto == null)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Data is invalid."));
+                }
 
-        //        if (id <= 0)
-        //        {
-        //            return BadRequest(ApiResponse<object>.BadRequest($"The Cilsimet Id {id} is invalid."));
-        //        }
+                if (id <= 0)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest($"The Cilsimet Id {id} is invalid."));
+                }
 
-        //        if (cilsimetDto.NjesiteId <= 0)
-        //        {
-        //            return BadRequest(ApiResponse<object>.BadRequest($"The Njesi Id {cilsimetDto.NjesiteId} is invalid."));
-        //        }
+                if (id != cilsimetDto.CilsimetiId)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest($"Id mismatch."));
+                }
 
-        //        if (cilsimetDto.SherbimiId <= 0)
-        //        {
-        //            return BadRequest( ApiResponse<object>.BadRequest( $"The Sherbimi Id {cilsimetDto.SherbimiId} is invalid."));
-        //        }
+                if (cilsimetDto.NjesiteId <= 0)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest($"The Njesi Id {cilsimetDto.NjesiteId} is invalid."));
+                }
 
-        //        var getNjesi = await _db.NjesiOrg.AsNoTracking().FirstOrDefaultAsync(n => n.NjesiteId == cilsimetDto.NjesiteId && n.active);
-        //        if (getNjesi == null)
-        //        {
-        //            return NotFound( ApiResponse<object>.NotFound( $"The Njesi Id {cilsimetDto.NjesiteId} is not found."));
-        //        }
+                if (cilsimetDto.SherbimiId <= 0)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest($"The Sherbimi Id {cilsimetDto.SherbimiId} is invalid."));
+                }
 
-        //        var getSherbim = await _db.Sherbimi .AsNoTracking() .FirstOrDefaultAsync(s => s.SherbimiId == cilsimetDto.SherbimiId && s.active);
-        //        if (getSherbim == null)
-        //        {
-        //            return NotFound(ApiResponse<object>.NotFound( $"The Sherbimi Id {cilsimetDto.SherbimiId} is not found."));
-        //        }
+                var getNjesi = await _db.NjesiOrg.AsNoTracking().FirstOrDefaultAsync(n => n.NjesiteId == cilsimetDto.NjesiteId && n.active);
+                if (getNjesi == null)
+                {
+                    return NotFound(ApiResponse<object>.NotFound($"The Njesi Id {cilsimetDto.NjesiteId} is not found."));
+                }
 
-        //        if (getSherbim.BiznesId != getNjesi.BiznesId)
-        //        {
-        //            return BadRequest(ApiResponse<object>.BadRequest( "Sherbimi and Njesia are not in the same Organization."));
-        //        }
+                var getSherbim = await _db.Sherbimi.AsNoTracking().FirstOrDefaultAsync(s => s.SherbimiId == cilsimetDto.SherbimiId && s.active);
+                if (getSherbim == null)
+                {
+                    return NotFound(ApiResponse<object>.NotFound($"The Sherbimi Id {cilsimetDto.SherbimiId} is not found."));
+                }
 
-        //        var cilsimet = await _db.CilsimetParkimit.FirstOrDefaultAsync(c => c.CilsimetiId == id && c.active);
-        //        if (cilsimet == null)
-        //        {
-        //            return NotFound(ApiResponse<object>.NotFound( $"Cilsimet with Id {id} was not found."));
-        //        }
+                if (getSherbim.BiznesId != getNjesi.BiznesId)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Sherbimi and Njesia are not in the same Organization."));
+                }
 
-        //        cilsimet.Emri = cilsimetDto.Emri;
-        //        cilsimet.NjesiteId = cilsimetDto.NjesiteId;
-        //        cilsimet.SherbimiId = cilsimetDto.SherbimiId;
+                var cilsimet = await _db.CilsimetParkimit.FirstOrDefaultAsync(c => c.CilsimetiId == id && c.active);
+                if (cilsimet == null)
+                {
+                    return NotFound(ApiResponse<object>.NotFound($"Cilsimet with Id {id} was not found."));
+                }
 
-        //        var detajet = await _db.Detajet.Where(d => d.CilsimetiId == id).ToListAsync();
+                cilsimet.Emri = cilsimetDto.Emri;
+                cilsimet.NjesiteId = cilsimetDto.NjesiteId;
+                cilsimet.SherbimiId = cilsimetDto.SherbimiId;
 
-        //        var incomingDetails = cilsimetDto.Detajet ?? new List<DetajetUpdateDto>();
-        //        var incomingDetailIds = incomingDetails
-        //            .Where(d => d.DetajetId > 0)
-        //            .Select(d => d.DetajetId)
-        //            .ToHashSet();
+                var detajet = await _db.Detajet.Where(d => d.CilsimetiId == id).ToListAsync();
 
-        //        var detailsToRemove = detajet
-        //            .Where(d => !incomingDetailIds.Contains(d.DetajetId))
-        //            .ToList();
+                var incomingDetails = cilsimetDto.Detajet ?? new List<DetajetUpdateDto>();
+                var incomingDetailIds = incomingDetails
+                    .Where(d => d.DetajetId > 0)
+                    .Select(d => d.DetajetId)
+                    .Distinct()
+                    .ToHashSet();
 
-        //        foreach (var detail in detailsToRemove)
-        //        {
-        //            _db.Detajet.Remove(detail);
-        //        }
+                var detailsToRemove = detajet
+                    .Where(d => !incomingDetailIds.Contains(d.DetajetId))
+                    .ToList();
 
-        //        foreach (var detailDto in incomingDetails)
-        //        {
-        //            if (detailDto.DetajetId > 0)
-        //            {
-        //                var existingDetail = detajet.FirstOrDefault(d => d.DetajetId == detailDto.DetajetId);
+                for (int i = 0; i < incomingDetails.Count; i++)
+                {
+                    for (int j = i + 1; j < incomingDetails.Count; j++)
+                    {
+                        var first = incomingDetails[i];
+                        var second = incomingDetails[j];
 
-        //                if (existingDetail == null)
-        //                {
-        //                    await transaction.RollbackAsync();
-        //                    return BadRequest(ApiResponse<object>.BadRequest( $"Detajet with Id {detailDto.DetajetId} does not belong to Cilsimet {id}."));
-        //                }
+                        bool conflict =
+                            (first.FromHour == second.FromHour)
+                            || (first.FromHour <= second.FromHour && first.ToHour > second.FromHour)
+                            || (first.FromHour < second.ToHour && first.ToHour >= second.ToHour)
+                            || (first.FromHour <= second.ToHour && first.ToHour == null)
+                            || (first.FromHour <= second.FromHour && first.ToHour == null)
+                            || (first.ToHour <= second.ToHour && first.FromHour >= second.FromHour)
+                            || (first.ToHour > second.FromHour && second.ToHour == null);
 
-        //                existingDetail.FromHour = detailDto.FromHour;
-        //                existingDetail.ToHour = detailDto.ToHour;
-        //                existingDetail.Cmimi = detailDto.Cmimi;
-        //            }
-        //            else
-        //            {
-        //                var newDetail = _mapper.Map<Detajet>(detailDto);
-        //                newDetail.CilsimetiId = cilsimet.CilsimetiId;
+                        if (conflict)
+                        {
+                            await transaction.RollbackAsync();
+                            return Conflict(ApiResponse<object>.Conflict($"Time conflict between Detail {i + 1} and Detail {j + 1}."));
+                        }
+                    }
+                }
 
-        //                await _db.Detajet.AddAsync(newDetail);
-        //            }
-        //        }
+                if (detailsToRemove.Count > 0)
+                {
+                    _db.Detajet.RemoveRange(detailsToRemove);
+                }
+                
+                var incomingDetajet = detajet.Where(d => incomingDetailIds.Contains(d.DetajetId)).ToList();
+                var DetajetDict = incomingDetajet.ToDictionary(d=> d.DetajetId);
 
-        //        for (int i = 0; i < incomingDetails.Count; i++)
-        //        {
-        //            for (int j = i + 1; j < incomingDetails.Count; j++)
-        //            {
-        //                //Time Conflict
-        //            }
-        //        }
+                var DetailsToAdd = new List<Detajet>();
+                foreach (var detailDto in incomingDetails)
+                {
+                    if (detailDto.DetajetId > 0)
+                    {
+                        if (!DetajetDict.TryGetValue(detailDto.DetajetId.Value, out var existingDetail))
+                        {
+                            await transaction.RollbackAsync();
+                            return BadRequest(ApiResponse<object>.BadRequest( $"Detajet with Id {detailDto.DetajetId} does not belong to Cilsimet {id}."));
+                        }
 
-        //        await _db.SaveChangesAsync();
-        //        await transaction.CommitAsync();
+                        existingDetail.FromHour = detailDto.FromHour;
+                        existingDetail.ToHour = detailDto.ToHour;
+                        existingDetail.Cmimi = detailDto.Cmimi;
+                    }
+                    else
+                    {
+                        var newDetail = _mapper.Map<Detajet>(detailDto);
+                        newDetail.CilsimetiId = cilsimet.CilsimetiId;
+                        DetailsToAdd.Add(newDetail);
+                    }
+                }
+                if (DetailsToAdd.Count > 0)
+                {
+                    await _db.Detajet.AddRangeAsync(DetailsToAdd);
+                }
 
-        //        var response = ApiResponse<CilsimetReadDto>.Ok( _mapper.Map<CilsimetReadDto>(cilsimet), "The Cilsimet and its Details have been updated successfully.");
-        //        return Ok(response);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await transaction.RollbackAsync();
-        //        return StatusCode( 500, ApiResponse<object>.Error( 500, "An error occurred while processing your request.", ex.Message));
-        //    }
-        //}
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                var response = ApiResponse<CilsimetReadDto>.Ok(_mapper.Map<CilsimetReadDto>(cilsimet), "The Cilsimet and its Details have been updated successfully.");
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, ApiResponse<object>.Error(500, "An error occurred while processing your request.", ex.Message));
+            }
+        }
 
         [HttpDelete("{id:int}")]
+        [Authorize]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
@@ -527,6 +561,7 @@ namespace Parking_project.Controllers
         }
 
         [HttpPut("{id:int}/Activate")]
+        [Authorize]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]

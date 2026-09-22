@@ -49,12 +49,13 @@ namespace Parking_web.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Super Admin, Admin , Manager")]
-        public async Task<IActionResult> Create(int? id)
+        public async Task<IActionResult> Create()
         {
+            int? id = User.IsInRole("Manager") ? int.Parse(User.FindFirst("NjesiaId")!.Value) : null;
             await PopulateViewBag(id);
             if (id != null)
             {
-                return View(new CilsimetReadDto {NjesiteId = id.Value});
+                return View(new CilsimetWithDetailsCreateDTO { NjesiteId = id.Value});
             }
             return View();
         }
@@ -62,19 +63,19 @@ namespace Parking_web.Controllers
         [HttpPost]
         [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CilsimetCreateDto createDTO)
+        public async Task<IActionResult> Create(CilsimetWithDetailsCreateDTO createDTO)
         {
             if (!ModelState.IsValid)
             {
-                return View(_mapper.Map<CilsimetReadDto>(createDTO));
+                return View(createDTO);
             }
 
             try
             {
-                var response = await _cilsimiService.CreateAsync<ApiResponse<CilsimetCreateDto>>(createDTO);
+                var response = await _cilsimiService.CreateWithDetailAsync<ApiResponse<CilsimetReadDto>>(createDTO);
                 if (response != null && response.Success && response.Data != null)
                 {
-                    TempData["success"] = "Sherbimi u krijua me sukses";
+                    TempData["success"] = "Cilesimi u krijua me sukses";
                     return RedirectToAction("Index", "Njesia");
                 }
                 else
@@ -95,7 +96,7 @@ namespace Parking_web.Controllers
             {
                 await PopulateViewBag(null);
             }
-            return View(_mapper.Map<CilsimetReadDto>(createDTO));
+            return View(createDTO);
         }
 
 
@@ -153,7 +154,7 @@ namespace Parking_web.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Super Admin , Admin , Manager")]
-        public async Task<IActionResult> Edit(int id, int? njesiaId)
+        public async Task<IActionResult> Edit(int id)
         {
             if (id <= 0)
             {
@@ -163,12 +164,13 @@ namespace Parking_web.Controllers
 
             try
             {
+                int? njesiaId = User.IsInRole("Manager") ? int.Parse(User.FindFirst("NjesiaId")!.Value) : null;
                 await PopulateViewBag(njesiaId);
 
                 var response = await _cilsimiService.GetAsync<ApiResponse<CilsimetReadDto>>(id);
                 if (response != null && response.Success && response.Data != null)
                 {
-                    return View(_mapper.Map<CilsimetUpdateDto>(response.Data));
+                    return View(_mapper.Map<CilsimetWithDetailsUpdateDTO>(response.Data));
                 }
 
             }
@@ -182,11 +184,11 @@ namespace Parking_web.Controllers
         [HttpPost]
         [Authorize(Roles = "Super Admin , Admin , Manager")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(CilsimetUpdateDto cilsimi)
+        public async Task<IActionResult> Edit(CilsimetWithDetailsUpdateDTO cilsimi)
         {
             try
             {
-                var response = await _cilsimiService.UpdateAsync<ApiResponse<object>>(cilsimi);
+                var response = await _cilsimiService.UpdateWithDetailsAsync<ApiResponse<object>>(cilsimi);
                 if (response != null && response.Success)
                 {
                     TempData["success"] = "Cilsimi u permirsua me sukses";
@@ -211,6 +213,32 @@ namespace Parking_web.Controllers
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
+            return RedirectToAction("Index", "Njesia");
+        }
+        
+        [HttpGet]
+        [Authorize(Roles = "Super Admin , Admin , Manager")]
+        public async Task<IActionResult> Detail(int id)
+        {
+            if (id <= 0)
+            {
+                TempData["error"] = "ID e gabuar.";
+                return RedirectToAction("Index", "Njesia");
+            }
+
+            try
+            {
+                var response = await _cilsimiService.GetAsync<ApiResponse<CilsimetReadDto>>(id);
+                if (response != null && response.Success && response.Data != null)
+                {
+                    return View(response.Data);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"Gabim: {ex.Message}";
+            }
+            TempData["error"] = "Ka ndodhur një gabim";
             return RedirectToAction("Index", "Njesia");
         }
 

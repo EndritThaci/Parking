@@ -14,17 +14,15 @@ namespace Parking_web.Controllers
         private readonly IOrganizataService _orgService;
         private readonly ISherbimiService _shebimiService;
         private readonly ICilsimiService _cilsimiService;
-        private readonly IDetajetService _detajetService;
         private readonly IMapper _mapper;
 
-        public NjesiaController(INjesiaService njesiaService, IMapper mapper, IOrganizataService organizataService, ISherbimiService shebimiService, ICilsimiService cilsimiService, IDetajetService detajetService)
+        public NjesiaController(INjesiaService njesiaService, IMapper mapper, IOrganizataService organizataService, ISherbimiService shebimiService, ICilsimiService cilsimiService)
         {
             _njesiaService = njesiaService;
             _orgService = organizataService;
             _mapper = mapper;
             _shebimiService = shebimiService;
             _cilsimiService = cilsimiService;
-            _detajetService = detajetService;
         }
         
 
@@ -48,14 +46,12 @@ namespace Parking_web.Controllers
                     var response = await _njesiaService.GetAsync<ApiResponse<NjesiReadDto>>(njesiaId);
                     var sherbimiResponse = await _shebimiService.GetByOrgAsync<ApiResponse<List<Sherbimi>>>();
                     var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
-                    var detajetResponse = await _detajetService.GetByNjesiAsync<ApiResponse<List<DetajetReadDto>>>();
                     if (response != null && response.Success && response.Data != null)
                     {
                         orgList.Add(response.Data);
                         ViewBag.customers = response.Data.Organizata.AllowCustomers;
                         ViewBag.Sherbimet = sherbimiResponse?.Data;
                         ViewBag.Cilsimet = cilsimiResponse?.Data;
-                        ViewBag.Detajet = detajetResponse?.Data;
                     }
                 }
                 catch (Exception ex)
@@ -70,14 +66,12 @@ namespace Parking_web.Controllers
                     var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiReadDto>>>();
                     var sherbimiResponse = await _shebimiService.GetByOrgAsync<ApiResponse<List<Sherbimi>>>();
                     var cilsimiResponse = await _cilsimiService.GetByOrgAsync<ApiResponse<List<CilsimetReadDto>>>();
-                    var detajetResponse = await _detajetService.GetByOrgAsync<ApiResponse<List<DetajetReadDto>>>();
                     if (response != null && response.Success && response.Data != null)
                     {
                         orgList = response.Data;
                         ViewBag.customers = response.Data[0].Organizata.AllowCustomers;
                         ViewBag.Sherbimet = sherbimiResponse?.Data;
                         ViewBag.Cilsimet = cilsimiResponse?.Data;
-                        ViewBag.Detajet = detajetResponse?.Data;
                     }
                 }
                 catch (Exception ex)

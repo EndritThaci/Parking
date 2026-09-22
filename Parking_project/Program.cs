@@ -125,6 +125,7 @@ builder.Services.AddAutoMapper(o =>
 
     o.CreateMap<CilsimetParkimit, CilsimetReadDto>().ReverseMap();
     o.CreateMap<CilsimetParkimit, CilsimetCreateDto>().ReverseMap();
+    o.CreateMap<CilsimetParkimit, CilsimetWithDetailsCreateDTO>().ReverseMap();
     o.CreateMap<CilsimetParkimit, CilsimetUpdateDto>().ReverseMap();
     o.CreateMap<CilsimetWithDetailsCreateDTO, CilsimetCreateDto>().ReverseMap();
 

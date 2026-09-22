@@ -93,5 +93,15 @@ namespace Parking_web.Services
                 Url = $"{APIEndPoint}/{dto.CilsimetiId}",
             });
         }
+
+        public Task<T?> UpdateWithDetailsAsync<T>(CilsimetWithDetailsUpdateDTO dto)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.PUT,
+                Data = dto,
+                Url = $"{APIEndPoint}/Detail/{dto.CilsimetiId}",
+            });
+        }
     }
 }
