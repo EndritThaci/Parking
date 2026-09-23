@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
-using Parking_project.Data;
-using Parking_project.Models;
-using Parking_project.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Parking_project.Data;
+using Parking_project.Models;
+using Parking_project.Models.DTO;
+using Stripe;
 using System.Security.Claims;
 
 namespace Parking_project.Controllers
@@ -129,14 +130,14 @@ namespace Parking_project.Controllers
                 var totalPages = (int)Math.Ceiling(totalRecords/(double)pageSize!);
                 var totalAmount = await transaksionQuery.SumAsync(d => d.Cmimi);
 
-                var now = DateTime.Now;
-                var monthStart = new DateTime(now.Year, now.Month, 1);
+                var now = DateTime.UtcNow;
+                var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
                 var monthEnd = monthStart.AddMonths(1);
                 var monthlyAmount = await transaksionQuery
                     .Where(d => d.TransaksionParkimi.KohaHyrjes >= monthStart && d.TransaksionParkimi.KohaHyrjes < monthEnd)
                     .SumAsync(d => d.Cmimi);
 
-                var yearStart = new DateTime(now.Year, 1, 1);
+                var yearStart = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 var yearEnd = yearStart.AddYears(1);
                 var yearlyAmount = await transaksionQuery
                     .Where(d => d.TransaksionParkimi.KohaHyrjes >= yearStart && d.TransaksionParkimi.KohaHyrjes < yearEnd)
@@ -317,13 +318,13 @@ namespace Parking_project.Controllers
                 var totalAmount = await transaksionQuery.SumAsync(d => d.Cmimi);
 
                 var now = DateTime.Now;
-                var monthStart = new DateTime(now.Year, now.Month, 1);
+                var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
                 var monthEnd = monthStart.AddMonths(1);
                 var monthlyAmount = await transaksionQuery
                     .Where(d => d.TransaksionParkimi.KohaHyrjes >= monthStart && d.TransaksionParkimi.KohaHyrjes < monthEnd)
                     .SumAsync(d => d.Cmimi);
 
-                var yearStart = new DateTime(now.Year, 1, 1);
+                var yearStart = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 var yearEnd = yearStart.AddYears(1);
                 var yearlyAmount = await transaksionQuery
                     .Where(d => d.TransaksionParkimi.KohaHyrjes >= yearStart && d.TransaksionParkimi.KohaHyrjes < yearEnd)
@@ -497,13 +498,8 @@ namespace Parking_project.Controllers
                 if (parking != null)
                 {
                     parking.Cmimi = CmimiParking;
-
-                    _db.TransaksionDetaj.Update(parking);
                     await _db.SaveChangesAsync();
                 }
-
-
-                List<Sherbimi> getSherbim = getSherbimet.Select(c => c.Sherbimi).ToList();
 
                 TransaksionRead transaksionRead = new TransaksionRead
                 {
@@ -515,7 +511,7 @@ namespace Parking_project.Controllers
                     Cilsimi = gettransaksioni.Cilsimet,
                     Njesia = gettransaksioni.Njesia,
                     Useri = gettransaksioni.User,
-                    Sherbimi = getSherbim.ToList()
+                    Sherbimi = getSherbimet.Select(c => c.Sherbimi).ToList()
                 };
 
                 return Ok(ApiResponse<TransaksionRead>.Ok(transaksionRead, "Transaksion retrived successfully"));
@@ -635,7 +631,7 @@ namespace Parking_project.Controllers
                                         .Where(t => (t.ToHour < diff) || (t.FromHour <= diff && t.ToHour > diff) || (t.FromHour <= diff && t.ToHour == null) )
                                         .Include(c => c.CilsimetParkimit).ToListAsync();
 
-                if (getDetajet.Count() == 0)
+                if (getDetajet.Count == 0)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Detajet with cilsim id {findTransaktion.CilsimiId} not found."));
                 }
@@ -680,19 +676,18 @@ namespace Parking_project.Controllers
 
                 if (transaksionUpdateDto.SherbimiId != null)
                 {
+                    var toAddDetaje = new List<TransaksionDetaj>();
                     foreach (int i in transaksionUpdateDto.SherbimiId)
                     {
-                        TransaksionDetaj transaksionDetaj = new TransaksionDetaj
+                        toAddDetaje.Add( new TransaksionDetaj
                         {
                             TransaksionId = findTransaktion.TransaksioniId,
                             SherbimiId = i,
                             Cmimi = await _db.Sherbimi.Where(s => s.SherbimiId == i).Select(c => c.Cmimi).FirstOrDefaultAsync()
-                        };
-
-
-                        await _db.TransaksionDetaj.AddAsync(transaksionDetaj);
-                        await _db.SaveChangesAsync();
+                        });
                     }
+                    await _db.TransaksionDetaj.AddRangeAsync(toAddDetaje);
+                    await _db.SaveChangesAsync();
                 }
                
                 var transaksioni = _mapper.Map<TransaksionRead> (findTransaktion);
@@ -714,44 +709,133 @@ namespace Parking_project.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<TransaksionRead>>> PayTransaktions(int id)
+        public async Task<ActionResult<ApiResponse<TransaksionRead>>> PayTransaktions(int id, int? cardId)
         {
-            try
+            if (id <= 0)
             {
-                if (id <= 0)
+                return BadRequest(ApiResponse<object>.BadRequest("Invalid ID supplied."));
+            }
+            var findTransaktion = await _db.TransaksionParkimi.Where(t => t.TransaksioniId == id).Include(c => c.Cilsimet).Include(n => n.Njesia).FirstOrDefaultAsync();
+            if (findTransaktion == null)
+            {
+                return NotFound(ApiResponse<object>.NotFound($"Transaktion with id {id} not found."));
+            }
+            if (findTransaktion.Statusi == "Completed")
+            {
+                return BadRequest(ApiResponse<object>.BadRequest($"Transaktion with id {id} is Completed."));
+            }
+            var getNjesia = await _db.NjesiOrg.Where(v => v.NjesiteId == findTransaktion.NjesiaId).FirstOrDefaultAsync();
+            if (getNjesia == null)
+            {
+                return NotFound(ApiResponse<object>.NotFound("Njesia could not be found"));
+            }
+            
+            DateTime KohaDaljes = DateTime.UtcNow;
+            TimeSpan difference = KohaDaljes - findTransaktion.KohaHyrjes;
+            int diff = (int)difference.TotalHours;
+
+            var getDetajet = await _db.Detajet
+                                    .Where(c => findTransaktion.CilsimiId == c.CilsimetiId)
+                                    .Where(t => (t.ToHour < diff) || (t.FromHour <= diff && t.ToHour > diff) || (t.FromHour <= diff && t.ToHour == null))
+                                    .Include(c => c.CilsimetParkimit).ToListAsync();
+
+            if (getDetajet.Count == 0)
+            {
+                return NotFound(ApiResponse<object>.NotFound($"Detajet with cilsim id {findTransaktion.CilsimiId} not found."));
+            }
+            decimal CmimiParking = 0;
+            ++diff;
+            foreach (var item in getDetajet)
+            {
+                if (item.ToHour == null)
                 {
-                    return BadRequest(ApiResponse<object>.BadRequest("Invalid ID supplied."));
+                    int diffDetaj = diff - item.FromHour;
+                    CmimiParking += diffDetaj * item.Cmimi;
                 }
-                var findTransaktion = await _db.TransaksionParkimi.Where(t => t.TransaksioniId == id).Include(n => n.Njesia).FirstOrDefaultAsync();
-                if (findTransaktion == null)
+                else if (item.ToHour < diff)
                 {
-                    return NotFound(ApiResponse<object>.NotFound($"Transaktion with id {id} not found."));
+                    int diffDetaj = (int)item.ToHour - item.FromHour;
+                    CmimiParking += diffDetaj * item.Cmimi;
                 }
-                if (findTransaktion.Statusi == "Completed")
+                else if (item.ToHour >= diff && item.FromHour < diff)
                 {
-                    return BadRequest(ApiResponse<object>.BadRequest($"Transaktion with id {id} is Completed."));
+                    int diffDetaj = diff - item.FromHour;
+                    CmimiParking += diffDetaj * item.Cmimi;
                 }
-                var getNjesia = await _db.NjesiOrg.Where(v => v.NjesiteId == findTransaktion.NjesiaId).FirstOrDefaultAsync();
-                if (getNjesia == null)
+            }
+
+            PaymentIntent? paymentIntent = null;
+
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+            try { 
+                var getSherbimet = await _db.TransaksionDetaj.Where(t => t.TransaksionId == id).Include(c => c.Sherbimi).ToListAsync();
+                var parking = getSherbimet.Where(s => s.SherbimiId == findTransaktion.Cilsimet.SherbimiId).FirstOrDefault();
+                if (parking != null)
                 {
-                    return NotFound(ApiResponse<object>.NotFound("Njesia could not be found"));
+                    parking.Cmimi = CmimiParking;
+                    await _db.SaveChangesAsync();
                 }
+
                 getNjesia.VendeTeLira++;
 
-                await _db.SaveChangesAsync();
-
+                findTransaktion.KohaDaljes = KohaDaljes;
                 findTransaktion.Statusi = "Completed";
 
                 _db.TransaksionParkimi.Update(findTransaktion);
                 await _db.SaveChangesAsync();
 
+                if (cardId.HasValue)
+                {
+                    var card = await _db.CreditCards.FirstOrDefaultAsync(c => c.Id == cardId);
+                    if (card == null)
+                    {
+                        await transaction.RollbackAsync();
+                        return NotFound(ApiResponse<object>.NotFound("Card not found"));
+                    }
+                    if (card.UserId != findTransaktion.UserId)
+                    {
+                        await transaction.RollbackAsync();
+                        return BadRequest(ApiResponse<object>.BadRequest($"This Card is not for this User"));
+                    }
+                    var finalPrice = getSherbimet.Where(i => i.TransaksionId == id).Sum(c => c.Cmimi);
+
+                    var paymentIntentService = new PaymentIntentService();
+                    paymentIntent = await paymentIntentService.CreateAsync(new PaymentIntentCreateOptions
+                    {
+                        Amount = (long)(finalPrice * 100),
+                        Currency = "eur",
+                        Customer = card.StripeCustomerId,
+                        PaymentMethod = card.StripePaymentMethodId,
+                        OffSession = true,
+                        Confirm = true
+                    });
+                    if (paymentIntent.Status != "succeeded")
+                    {
+                        await transaction.RollbackAsync();
+                        return BadRequest(ApiResponse<object>.BadRequest($"Payment was not completed. Stripe status: {paymentIntent.Status}"));
+                    }
+                }
                 var transaksioni = _mapper.Map<TransaksionRead>(findTransaktion);
 
+                await transaction.CommitAsync();
                 return Ok(ApiResponse<TransaksionRead>.Ok(transaksioni, "Transaksioni has been updated"));
 
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
+                if (paymentIntent?.Status == "succeeded")
+                {
+                    try
+                    {
+                        var refundService = new RefundService();
+                        await refundService.CreateAsync(new RefundCreateOptions { PaymentIntent = paymentIntent.Id });
+                    }
+                    catch
+                    {
+                        return StatusCode(500, ApiResponse<object>.Error(500, "Failed To Refund"));
+                    }
+                }
                 var innerMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
                 return StatusCode(500, ApiResponse<object>.Error(500, "An error occurred while processing the request.", innerMessage));
 

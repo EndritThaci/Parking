@@ -66,7 +66,7 @@ namespace Parking_web.Controllers
                     var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiReadDto>>>();
                     var sherbimiResponse = await _shebimiService.GetByOrgAsync<ApiResponse<List<Sherbimi>>>();
                     var cilsimiResponse = await _cilsimiService.GetByOrgAsync<ApiResponse<List<CilsimetReadDto>>>();
-                    if (response != null && response.Success && response.Data != null)
+                    if (response != null && response.Success && response.Data != null && response.Data.Count > 0)
                     {
                         orgList = response.Data;
                         ViewBag.customers = response.Data[0].Organizata.AllowCustomers;

@@ -322,19 +322,10 @@ namespace Parking_web.Controllers
                     return (false, "Ky QR Kod është për njësi tjetër." );
                 }
 
-                var dto = new PayRequestDto();
-                dto.CreditCardId = cardId;
-                dto.Amount = amount;
-
-                var response = await _creditCardService.PayAsync<ApiResponse<CreditCardReadDto>>(dto);
+                var response = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(transactionId,cardId);
                 if (response != null && response.Success)
                 {
-                    var responsePay = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(transactionId);
-                    if (responsePay != null && responsePay.Success)
-                    {
-                        return (true, "Pagesa u krye me sukses!" );
-                    }
-                    return (false, "Pagesa u regjistrua si sukses por dështoi në marrjen e parave");
+                    return (true, "Pagesa u krye me sukses!" );
                 }
                 else
                 {
@@ -462,7 +453,7 @@ namespace Parking_web.Controllers
                     return RedirectToAction("Employee");
                 }
             }
-            if (User.IsInRole("Customer") && int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0") != response.Data.Useri.UserId)
+            if (User.IsInRole("Customer") && int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0") != response.Data?.Useri.UserId)
             {
                 TempData["error"] = $"Nuk keni qasje për këtë operacion.";
                 return RedirectToAction("Index");
@@ -490,7 +481,7 @@ namespace Parking_web.Controllers
                     return RedirectToAction("Pay", new {id});
                 }
 
-                var response = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(id);
+                var response = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(id, null);
                 if (response != null && response.Success)
                 {
                     TempData["success"] = "Transaksioni u mbyll me sukses. Faleminderit për përdorimin e Parkingut tonë";

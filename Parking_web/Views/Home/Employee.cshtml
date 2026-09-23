@@ -232,6 +232,8 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                         var index = 1;
                         foreach (var item in transactions)
                         {
+                            var kosovoTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Belgrade");
+                            var entryTime = TimeZoneInfo.ConvertTimeFromUtc(item.KohaHyrjes, kosovoTimeZone);
                             var identifier = item.Identifikues ?? "";
                             var serviceCount = item.Sherbimi?.Count ?? 0;
 
@@ -259,8 +261,8 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                                     }
                                 </td>
                                 <td>
-                                    <div class="fw-semibold"> @item.KohaHyrjes.ToString("dd/MM/yyyy") </div>
-                                    <small class="text-muted"> @item.KohaHyrjes.ToString("HH:mm") </small>
+                                    <div class="fw-semibold"> @entryTime.ToString("dd/MM/yyyy") </div>
+                                    <small class="text-muted"> @entryTime.ToString("HH:mm") </small>
                                 </td>
 
                                 <td>

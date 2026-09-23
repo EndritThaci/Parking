@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Parking_project.Data;
-using Parking_project.Migrations;
 using Parking_project.Models;
 using Parking_project.Models.DTO;
 using Parking_project.Services;
@@ -398,7 +397,7 @@ namespace Parking_project.Controllers
         }
 
         [HttpPut("{orgId:int}/ActivateSuperAdmin")]
-        [Authorize]
+        [Authorize(Roles = "Super Admin")]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
@@ -425,6 +424,12 @@ namespace Parking_project.Controllers
                 }
                 else
                 {
+                    var existingUserOrgs = user.UserOrgs?.Where(x => x.UserId == userId).ToList();
+                    if(existingUserOrgs != null && existingUserOrgs.Count > 0)
+                    {
+                        _db.UserOrg.RemoveRange(existingUserOrgs);
+                    }
+
                     var newUserOrg = new UserOrg
                     {
                         UserId = user.UserId,

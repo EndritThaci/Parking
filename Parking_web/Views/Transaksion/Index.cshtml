@@ -60,6 +60,10 @@
                         {
                             foreach (var t in Model.Data.OrderByDescending(x => x.KohaHyrjes))
                             {
+                                var kosovoTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Belgrade");
+                                var entryTime = TimeZoneInfo.ConvertTimeFromUtc(t.KohaHyrjes, kosovoTimeZone);
+                                DateTime? exitTime = t.KohaDaljes.HasValue ? TimeZoneInfo.ConvertTimeFromUtc(t.KohaDaljes.Value, kosovoTimeZone) : null;
+
                                 <tr class="transaksion-row"
                                     style="cursor: pointer;"
                                     data-id="@t.TransaksioniId"
@@ -75,8 +79,8 @@
                                     {
                                         <td class="d-none d-md-table-cell">@t.Useri?.Emri @t.Useri?.Mbiemri</td>
                                     }
-                                    <td class="small">@t.KohaHyrjes.ToString("dd/MM/yy HH:mm")</td>
-                                    <td class="d-none small d-lg-table-cell">@(t.KohaDaljes.HasValue ? t.KohaDaljes.Value.ToString("dd/MM/yy HH:mm") : "--:--")</td>
+                                    <td class="small">@entryTime.ToString("dd/MM/yy HH:mm")</td>
+                                    <td class="d-none small d-lg-table-cell">@(exitTime.HasValue ? exitTime.Value.ToString("dd/MM/yy HH:mm") : "--:--")</td>
                                     <td class="d-none d-sm-table-cell">
                                         <span class="badge @(t.Statusi?.ToLower() == "completed" ? "bg-primary-subtle text-primary" : "bg-warning-subtle text-secondary") rounded-pill">
                                             @t.Statusi

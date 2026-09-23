@@ -315,7 +315,7 @@ namespace Parking_web.Controllers
             var oldBiznesNameClaim = identity.FindFirst("OrgName");
             if (oldBiznesNameClaim != null) identity.RemoveClaim(oldBiznesNameClaim);
 
-            identity.AddClaim(new Claim("BiznesId", newBiznesId ?? ""));
+            identity.AddClaim(new Claim("BiznesId", newBiznesId ?? "0"));
             identity.AddClaim(new Claim("OrgName", newBiznesName ?? ""));
 
             var principal = new ClaimsPrincipal(identity);

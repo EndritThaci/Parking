@@ -87,12 +87,12 @@ namespace Parking_web.Services
             });
         }
 
-        public Task<T?> PayAsync<T>(int id)
+        public Task<T?> PayAsync<T>(int id, int? cardId)
         {
             return SendAsync<T>(new ApiRequest
             {
                 ApiType = SD.ApiType.PUT,
-                Url = $"{APIEndPoint}/{id}/Pay",
+                Url = $"{APIEndPoint}/{id}/Pay?cardId={cardId}",
             });
         }
 
