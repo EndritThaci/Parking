@@ -1,9 +1,11 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Parking_web.Models;
 using Parking_web.Models.DTO;
 using Parking_web.Services.IServices;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using System.Drawing.Printing;
 using System.Security.Claims;
 
 namespace Parking_web.Controllers
@@ -22,12 +24,12 @@ namespace Parking_web.Controllers
         }
 
         [Authorize(Roles = "Super Admin")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? Search, int page = 1, int pageSize = 10)
         {
-            List<Organizata> orgList = new();
+            OrgPage orgList = new();
             try
             {
-                 var response = await _organizataService.GetAllAsync<ApiResponse<List<Organizata>>>();
+                var response = await _organizataService.GetPaginationAsync<ApiResponse<OrgPage>>(Search, null, false, false, page, pageSize);
                 if (response != null && response.Success && response.Data != null)
                 {
                     orgList = response.Data;

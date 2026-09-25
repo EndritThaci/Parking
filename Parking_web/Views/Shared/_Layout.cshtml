@@ -51,7 +51,7 @@
     @if (!isAuthPage)
     {
         <header>
-            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow fixed-top">
+            <nav class="navbar navbar-expand-lg navbar-toggleable-lg navbar-light bg-white border-bottom box-shadow fixed-top">
                 <div class="container-fluid">
                     <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
                         @(User.FindFirst("OrgName")?.Value ?? "Parking")
@@ -60,7 +60,7 @@
                             aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
-                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
                         
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
@@ -68,34 +68,34 @@
                                 @if(!User.IsInRole("Super Admin"))
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Shtëpia</a>
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index"><i class="bi bi-house-door-fill"></i> Shtëpia</a>
                                     </li>
                                 }
                                 @if (User.IsInRole("Super Admin"))
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Organizata" asp-action="Index">Menaxhimi i Organizatave</a>
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Organizata" asp-action="Index"><i class="bi bi-building-fill"></i> Menaxhimi i Organizatave</a>
                                     </li>
                                 }
                                 @if (User.IsInRole("Admin") || User.IsInRole("Super Admin") || User.IsInRole("Manager"))
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Njesia" asp-action="Index">Menaxhimi i Njesive</a>
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Njesia" asp-action="Index"><i class="bi bi-grid-3x3-gap-fill"></i> Menaxhimi i Njesive</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Transaksion" asp-action="Index">Transaksionet</a>
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Transaksion" asp-action="Index"><i class="bi bi-receipt-cutoff"></i> Transaksionet</a>
                                     </li>
                                 }
                                 @if (User.IsInRole("Admin") || User.IsInRole("Super Admin"))
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Index">Përdoruesit</a>
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Index"><i class="bi bi-people-fill"></i> Përdoruesit</a>
                                     </li>
                                 }
                                 @if (User.IsInRole("Customer"))
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Transaksion" asp-action="Index">Transaksionet</a>
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Transaksion" asp-action="Index"><i class="bi bi-receipt-cutoff"></i> Transaksionet</a>
                                     </li>
                                 }
                             </ul>
@@ -104,27 +104,27 @@
                                 @if (User.IsInRole("Super Admin"))
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="RegisterAdmin">Krijo Admin</a>
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="RegisterAdmin"><i class="bi bi-person-plus-fill"></i> Krijo Admin</a>
                                     </li>
                                 }else if (User.IsInRole("Admin"))
                                 {
                                     <li class="navbar-nav dropdown">
                                         <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            Shto Punëtorë 
+                                            <i class="bi bi-person-plus-fill"></i> Shto Punëtorë
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li>
-                                                <a class="dropdown-item" asp-area="" asp-controller="Auth" asp-action="RegisterManager"><i class="bi bi-person-plus-fill text-primary"></i> Shto Menaxher</a>
+                                                <a class="dropdown-item" asp-area="" asp-controller="Auth" asp-action="RegisterManager"><i class="bi bi-person-plus-fill text-warning"></i> Shto Menaxher</a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item" asp-area="" asp-controller="Auth" asp-action="RegisterEmployee"><i class="bi bi-person-plus-fill text-primary"></i> Shto Punëtorë</a>
+                                                <a class="dropdown-item" asp-area="" asp-controller="Auth" asp-action="RegisterEmployee"><i class="bi bi-person-plus-fill text-info"></i> Shto Punëtorë</a>
                                             </li>
                                         </ul>
                                     </li>
                                 }
                                 <li class="navbar-nav dropdown">
                                     <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        @User.Identity.Name
+                                        <i class="bi bi-person-circle"></i> @User.Identity.Name
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" asp-controller="Profile" asp-action="index"><i class="bi bi-person-circle text-primary"></i> Profili</a></li>
@@ -132,7 +132,7 @@
                                         {
                                             <li><a class="dropdown-item" asp-controller="Profile" asp-action="UserOrgs"><i class="bi bi-building text-primary"></i> Organizatat</a></li>
                                         }
-                                        <li><a class="dropdown-item" asp-controller="Auth" asp-action="LogOut"><i class="bi bi-box-arrow-right text-primary"></i> Dil</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Auth" asp-action="LogOut"><i class="bi bi-box-arrow-right text-danger"></i> Dil</a></li>
                                     </ul>
                                 </li>
                             </ul>

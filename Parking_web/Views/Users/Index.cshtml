@@ -297,7 +297,6 @@
 
                     <nav>
                         <ul class="pagination mb-0">
-                            <!-- Previous -->
                             <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
                                 <a class="page-link rounded-start-pill"
                                    asp-controller="Users"
@@ -316,7 +315,6 @@
                                 int endPage = Math.Min(totalPages, currentPage + 2);
                             }
 
-                            <!-- First page -->
                             @if (startPage > 1)
                             {
                                 <li class="page-item">
@@ -341,7 +339,6 @@
                                 }
                             }
 
-                            <!-- Pages -->
                             @for (int i = startPage; i <= endPage; i++)
                             {
                                 <li class="page-item @(i == currentPage ? "active" : "")">
@@ -359,7 +356,6 @@
                                 </li>
                             }
 
-                            <!-- Last page -->
                             @if (endPage < totalPages)
                             {
                                 @if (endPage < totalPages - 1)
@@ -385,7 +381,6 @@
                                 </li>
                             }
 
-                            <!-- Next -->
                             <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
 
                                 <a class="page-link rounded-end-pill"

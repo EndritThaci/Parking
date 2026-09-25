@@ -8,6 +8,7 @@ using Parking_web.Models.DTO;
 using Parking_web.Services.IServices;
 using QRCoder;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Security.Claims;
 using System.Security.Cryptography.Xml;
 using System.Xml.Linq;
@@ -42,7 +43,7 @@ namespace Parking_web.Controllers
             {
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 if (page < 1) page = 1;
-                var response = await _orgService.GetPaginationAsync<ApiResponse<OrgPage>>(Search, userId, onlyAvailable, page, pageSize);
+                var response = await _orgService.GetPaginationAsync<ApiResponse<OrgPage>>(Search, userId, onlyAvailable, true, page, pageSize);
                 var pendingResponse = await _transaksioniService.GetPendingAsync<ApiResponse<List<TransaksionRead>>>(userId);
 
                 if (response != null && response.Success && response.Data != null)
@@ -634,9 +635,10 @@ namespace Parking_web.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Employee , Manager , Admin , Super Admin")]
-        public async Task<IActionResult> Employee(int? njesia)
+        public async Task<IActionResult> Employee(int? njesia, string? Search, DateTime? dateFrom, DateTime? dateTo, int page = 1, int pageSize = 10)
         {
-            List<TransaksionRead>? pending = new List<TransaksionRead>();
+            //List<TransaksionRead>? pending = new List<TransaksionRead>();
+            TransaksionPage? pending = new TransaksionPage();
             try
             {
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -648,10 +650,13 @@ namespace Parking_web.Controllers
                         var response = await _njesiaService.GetByOrgAsync<ApiResponse<List<NjesiOrg>>>(orgId);
                         if (response != null && response.Success && response.Data != null && response.Data.Count == 1)
                         {
-                            return RedirectToAction("Employee", "Home", new { njesia = response.Data[0].NjesiteId });
+                            njesia = response.Data[0].NjesiteId;
                         }
                     }
-                    return RedirectToAction("SelectNjesi");
+                    else
+                    {
+                        return RedirectToAction("SelectNjesi");
+                    }
                 }
 
                 if (!int.TryParse(User.FindFirst("NjesiaId")?.Value, out int njesiaId) || njesiaId == 0)
@@ -672,7 +677,11 @@ namespace Parking_web.Controllers
                     ViewBag.VendeTeLira = njesiaResponse.Data.VendeTeLira;
                 }
 
-                var pendingResponse = await _transaksioniService.GetPendingAsync<ApiResponse<List<TransaksionRead>>>(null, njesiaId);
+                ViewBag.Search = Search;
+                ViewBag.DateFrom = dateFrom?.ToString("yyyy-MM-ddTHH:mm");
+                ViewBag.DateTo = dateTo?.ToString("yyyy-MM-ddTHH:mm");
+                //var pendingResponse = await _transaksioniService.GetPendingAsync<ApiResponse<List<TransaksionRead>>>(null, njesiaId);
+                var pendingResponse = await _transaksioniService.GetByNjesiAsync<ApiResponse<TransaksionPage>>(njesiaId,Search,dateFrom,dateTo,"Pending",page,pageSize);
 
                 if (pendingResponse != null && pendingResponse.Success)
                 {

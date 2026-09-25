@@ -31,12 +31,12 @@ namespace Parking_web.Services
             });
         }
 
-        public Task<T?> GetByNjesiAsync<T>()
+        public Task<T?> GetByNjesiAsync<T>(int? njesia, string? search, DateTime? dateFrom, DateTime? dateTo, string? status, int page = 1, int pageSize = 10)
         {
             return SendAsync<T>(new ApiRequest
             {
                 ApiType = SD.ApiType.GET,
-                Url = $"{APIEndPoint}/ByNjesi",
+                Url = $"{APIEndPoint}/ByNjesi?njesia={njesia}&search={search}&dateFrom={dateFrom}&dateTo={dateTo}&status={status}&page={page}&pageSize={pageSize}",
             });
         }
 

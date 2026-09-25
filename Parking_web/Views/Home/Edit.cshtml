@@ -3,6 +3,8 @@
     ViewData["Title"] = "Mbyllja e Transaksionit";
 
     var existingIds = ViewBag.ExistingSherbim as List<int> ?? new List<int>();
+    var kosovoTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Belgrade");
+    var entryTime = TimeZoneInfo.ConvertTimeFromUtc(Model.KohaHyrjes, kosovoTimeZone);
 }
 @if (Model.Statusi != "Pending")
 {
@@ -43,7 +45,7 @@ else
                             </div>
                             <div class="col-md-4 border-end">
                                 <label class="text-muted small fw-bold text-uppercase">Koha e Hyrjes</label>
-                                <p class="h6 text-dark">@Model.KohaHyrjes.ToString("HH:mm")</p>
+                                <p class="h6 text-dark">@entryTime.ToString("HH:mm")</p>
                             </div>
                             <div class="col-md-4">
                                 <label class="text-muted small fw-bold text-uppercase">Përdoruesi</label>

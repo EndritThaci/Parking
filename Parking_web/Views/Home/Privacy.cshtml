@@ -4,52 +4,593 @@
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5">
-                <h1 class="display-5 fw-bold text-primary mb-4 text-center">@ViewData["Title"]</h1>
-                <p class="lead text-muted mb-5 text-center">Ne vlerësojmë besimin tuaj dhe jemi të përkushtuar për të mbrojtur të dhënat tuaja personale.</p>
+        <div class="col-xl-9 col-lg-10">
 
-                <hr class="my-5">
+            <div class="card privacy-card shadow-sm border-0">
 
-                <div class="mb-5">
-                    <h3 class="fw-bold"><i class="bi bi-shield-lock me-2"></i>1. Çfarë të dhënash mbledhim?</h3>
-                    <p>Për funksionimin e sistemit <strong>Endriti Parking</strong>, ne mbledhim informacionet e mëposhtme:</p>
-                    <ul class="list-group list-group-flush mb-3">
-                        <li class="list-group-item"><i class="bi bi-check2-circle me-2 text-success"></i><strong>Të dhënat e llogarisë:</strong> Emri, mbiemri, adresa e email-it dhe roli juaj (Admin, Manager, etj.).</li>
-                        <li class="list-group-item"><i class="bi bi-check2-circle me-2 text-success"></i><strong>Të dhënat e organizatës:</strong> Emri i organizatës dhe njësitë organizative përkatëse.</li>
-                        <li class="list-group-item"><i class="bi bi-check2-circle me-2 text-success"></i><strong>Transaksionet:</strong> Të dhënat mbi shitjet dhe operacionet që kryhen brenda sistemit.</li>
-                    </ul>
+                <!-- Header -->
+                <div class="privacy-header text-center">
+                    <div class="privacy-icon mb-3">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+
+                    <h1 class="fw-bold mb-3">@ViewData["Title"]</h1>
+
+                    <p class="lead mb-0">
+                        Ne respektojmë privatësinë tuaj dhe jemi të përkushtuar
+                        të mbrojmë të dhënat personale që përpunohen gjatë
+                        përdorimit të sistemit <strong>Endriti Parking</strong>.
+                    </p>
                 </div>
 
-                <div class="mb-5">
-                    <h3 class="fw-bold"><i class="bi bi-cpu me-2"></i>2. Si i përdorim të dhënat tuaja?</h3>
-                    <p>Informacioni i mbledhur përdoret ekskluzivisht për:</p>
-                    <ul>
-                        <li>Gjenerimin e raporteve (Libri i Shitjes, etj.).</li>
-                        <li>Menaxhimin e aksesit dhe sigurisë së llogarisë tuaj.</li>
-                        <li>Përmirësimin e funksionaliteteve të sistemit.</li>
-                    </ul>
-                </div>
+                <div class="privacy-content">
 
-                <div class="mb-5">
-                    <h3 class="fw-bold"><i class="bi bi-eye-slash me-2"></i>3. Siguria e të dhënave</h3>
-                    <p>Të dhënat tuaja ruhen në serverë të sigurt dhe aksesohen vetëm përmes protokolleve të autorizuara (JWT Tokens). Ne nuk i ndajmë, shesim apo japim të dhënat tuaja palëve të treta për qëllime marketingu.</p>
-                </div>
+                    <!-- 1 -->
+                    <section class="privacy-section">
+                        <div class="section-title">
+                            <span class="section-number">1</span>
+                            <div>
+                                <h3>Të dhënat që mbledhim</h3>
+                                <p class="section-description">
+                                    Informacioni që nevojitet për funksionimin e platformës.
+                                </p>
+                            </div>
+                        </div>
 
-                <div class="mb-5">
-                    <h3 class="fw-bold"><i class="bi bi-file-earmark-text me-2"></i>4. Cookies</h3>
-                    <p>Ky aplikacion përdor "Cookies" vetëm për të mbajtur sesionin tuaj të hapur (Authentication)</p>
-                </div>
+                        <p>
+                            Në varësi të mënyrës se si përdorni sistemin,
+                            mund të përpunohen kategoritë e mëposhtme të të dhënave:
+                        </p>
 
-                <div class="bg-light p-4 rounded-4 border-start border-4 border-primary">
-                    <h5 class="fw-bold">Pyetje rreth privatësisë?</h5>
-                    <p class="mb-0">Nëse keni ndonjë pyetje rreth mënyrës se si ne i trajtojmë të dhënat tuaja, ju lutemi kontaktoni administratorin e sistemit.</p>
-                </div>
+                        <div class="row g-3 mt-2">
 
-                <div class="text-center mt-5">
-                    <small class="text-muted">Përditësuar së fundmi më: @DateTime.Now.ToString("dd MMMM yyyy")</small>
+                            <div class="col-md-6">
+                                <div class="data-item">
+                                    <i class="bi bi-person"></i>
+                                    <div>
+                                        <h6>Të dhënat e llogarisë</h6>
+                                        <p>
+                                            Emri, mbiemri, adresa e email-it,
+                                            roli dhe informacionet e nevojshme
+                                            për autentikim dhe autorizim.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="data-item">
+                                    <i class="bi bi-building"></i>
+                                    <div>
+                                        <h6>Të dhënat e organizatës</h6>
+                                        <p>
+                                            Emri i organizatës, njësitë organizative,
+                                            shërbimet dhe informacionet administrative
+                                            të lidhura me llogarinë.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="data-item">
+                                    <i class="bi bi-receipt"></i>
+                                    <div>
+                                        <h6>Të dhënat e transaksioneve</h6>
+                                        <p>
+                                            Informacioni lidhur me hyrjet, parkimet,
+                                            pagesat, shërbimet dhe transaksionet
+                                            e kryera përmes sistemit.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="data-item">
+                                    <i class="bi bi-gear"></i>
+                                    <div>
+                                        <h6>Të dhënat teknike</h6>
+                                        <p>
+                                            Informacioni teknik i nevojshëm për
+                                            funksionimin, sigurinë dhe mirëmbajtjen
+                                            e platformës.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <!-- 2 -->
+                    <section class="privacy-section">
+                        <div class="section-title">
+                            <span class="section-number">2</span>
+                            <div>
+                                <h3>Si i përdorim të dhënat?</h3>
+                                <p class="section-description">
+                                    Të dhënat përdoren për qëllime të përcaktuara dhe të nevojshme.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p>
+                            Informacioni i mbledhur mund të përdoret për:
+                        </p>
+
+                        <ul class="privacy-list">
+                            <li>
+                                <i class="bi bi-check-circle"></i>
+                                Menaxhimin dhe administrimin e llogarisë tuaj.
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle"></i>
+                                Autentikimin dhe kontrollin e autorizimeve.
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle"></i>
+                                Menaxhimin e parkimeve dhe transaksioneve.
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle"></i>
+                                Gjenerimin e raporteve dhe dokumentacionit
+                                të nevojshëm për aktivitetin e sistemit.
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle"></i>
+                                Monitorimin dhe përmirësimin e funksionalitetit,
+                                performancës dhe sigurisë së platformës.
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle"></i>
+                                Zbulimin dhe parandalimin e përdorimit
+                                të paautorizuar ose abuziv të sistemit.
+                            </li>
+                        </ul>
+                    </section>
+
+                    <!-- 3 -->
+                    <section class="privacy-section">
+                        <div class="section-title">
+                            <span class="section-number">3</span>
+                            <div>
+                                <h3>Siguria e të dhënave</h3>
+                                <p class="section-description">
+                                    Mbrojtja e informacionit është pjesë e rëndësishme e sistemit.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p>
+                            Ne përdorim masa teknike dhe organizative të përshtatshme
+                            për të mbrojtur të dhënat nga aksesi i paautorizuar,
+                            humbja, ndryshimi ose përdorimi i parregullt.
+                        </p>
+
+                        <div class="security-box">
+                            <i class="bi bi-shield-lock"></i>
+
+                            <div>
+                                <strong>Kontroll i autorizuar i aksesit</strong>
+                                <p class="mb-0">
+                                    Aksesimi i funksionaliteteve dhe të dhënave
+                                    kontrollohet në bazë të roleve dhe autorizimeve
+                                    të përdoruesit.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p class="mt-3 mb-0">
+                            Sistemi përdor mekanizma autentikimi dhe autorizimi,
+                            përfshirë token-at e sigurisë, për të kontrolluar
+                            aksesin në burimet e mbrojtura.
+                        </p>
+                    </section>
+
+                    <!-- 4 -->
+                    <section class="privacy-section">
+                        <div class="section-title">
+                            <span class="section-number">4</span>
+                            <div>
+                                <h3>Ndarja e të dhënave me palë të treta</h3>
+                                <p class="section-description">
+                                    Privatësia e informacionit tuaj respektohet.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p>
+                            Të dhënat personale nuk shiten ose përdoren për
+                            qëllime marketingu nga ne.
+                        </p>
+
+                        <p class="mb-0">
+                            Në rastet kur përdorimi i shërbimeve të jashtme është
+                            i nevojshëm për funksionimin e platformës, vetëm
+                            informacioni i nevojshëm për ofrimin e shërbimit
+                            mund të përpunohet nga ofruesi përkatës, në përputhje
+                            me kushtet dhe politikat e tij të aplikueshme.
+                        </p>
+                    </section>
+
+                    <!-- 5 -->
+                    <section class="privacy-section">
+                        <div class="section-title">
+                            <span class="section-number">5</span>
+                            <div>
+                                <h3>Pagesat</h3>
+                                <p class="section-description">
+                                    Informacioni i pagesave trajtohet me kujdes.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p class="mb-0">
+                            Kur përdoren shërbime të pagesave elektronike,
+                            informacioni i nevojshëm për përpunimin e pagesës
+                            mund të trajtohet nga ofruesi përkatës i pagesave.
+                            Të dhënat e plota të kartës së pagesës nuk duhet të
+                            ruhen nga sistemi përveç rasteve kur kjo është
+                            e nevojshme dhe e lejuar sipas mënyrës së integrimit
+                            të përdorur.
+                        </p>
+                    </section>
+
+                    <!-- 6 -->
+                    <section class="privacy-section">
+                        <div class="section-title">
+                            <span class="section-number">6</span>
+                            <div>
+                                <h3>Cookies</h3>
+                                <p class="section-description">
+                                    Cookies ndihmojnë në funksionimin e aplikacionit.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p>
+                            Platforma mund të përdorë cookies dhe teknologji të
+                            ngjashme për funksione të nevojshme, si ruajtja e
+                            sesionit të autentikimit dhe funksionimi i sigurt
+                            i aplikacionit.
+                        </p>
+
+                        <div class="cookie-box">
+                            <i class="bi bi-cookie"></i>
+                            <span>
+                                Cookies funksionale përdoren për të ofruar
+                                funksionet bazë të aplikacionit dhe nuk përdoren
+                                për qëllime marketingu pa bazën përkatëse.
+                            </span>
+                        </div>
+                    </section>
+
+                    <!-- 7 -->
+                    <section class="privacy-section">
+                        <div class="section-title">
+                            <span class="section-number">7</span>
+                            <div>
+                                <h3>Ruajtja e të dhënave</h3>
+                                <p class="section-description">
+                                    Të dhënat ruhen për aq kohë sa është e nevojshme.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p class="mb-0">
+                            Të dhënat ruhen për periudhën e nevojshme për
+                            funksionimin e shërbimit, përmbushjen e qëllimeve
+                            për të cilat janë mbledhur dhe, kur është e
+                            aplikueshme, për përmbushjen e detyrimeve ligjore
+                            ose administrative.
+                        </p>
+                    </section>
+
+                    <!-- 8 -->
+                    <section class="privacy-section">
+                        <div class="section-title">
+                            <span class="section-number">8</span>
+                            <div>
+                                <h3>Të drejtat tuaja</h3>
+                                <p class="section-description">
+                                    Ju mund të kërkoni informacion rreth të dhënave tuaja.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p>
+                            Në varësi të ligjit të aplikueshëm, ju mund të keni
+                            të drejtë të kërkoni:
+                        </p>
+
+                        <ul class="privacy-list">
+                            <li>
+                                <i class="bi bi-check-circle"></i>
+                                Informacion mbi të dhënat personale që përpunohen.
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle"></i>
+                                Korrigjimin e të dhënave të pasakta ose jo të plota.
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle"></i>
+                                Fshirjen e të dhënave kur lejohet nga ligji.
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle"></i>
+                                Kufizimin ose kundërshtimin e përpunimit
+                                në rastet e parashikuara nga ligji.
+                            </li>
+                        </ul>
+                    </section>
+
+                    <!-- 9 -->
+                    <section class="privacy-section">
+                        <div class="section-title">
+                            <span class="section-number">9</span>
+                            <div>
+                                <h3>Përditësimet e politikës</h3>
+                                <p class="section-description">
+                                    Kjo politikë mund të përditësohet kur është e nevojshme.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p class="mb-0">
+                            Mund ta përditësojmë këtë Politikë të Privatësisë
+                            për të reflektuar ndryshime në funksionalitetet e
+                            sistemit, mënyrën e përpunimit të të dhënave ose
+                            kërkesat ligjore. Versioni më i fundit do të
+                            publikohet në këtë faqe.
+                        </p>
+                    </section>
+
+                    <!-- Contact -->
+                    <div class="privacy-contact">
+                        <div class="contact-icon">
+                            <i class="bi bi-envelope"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-2">
+                                Pyetje rreth privatësisë?
+                            </h5>
+
+                            <p class="mb-0">
+                                Nëse keni pyetje, kërkesa ose shqetësime lidhur
+                                me mënyrën se si trajtohen të dhënat tuaja,
+                                ju lutemi kontaktoni administratorin e sistemit.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Last updated -->
+                    <div class="text-center mt-5 pt-4 border-top">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            Përditësuar së fundmi më: 24 Shtatorë 2026
+                        </small>
+                    </div>
+
                 </div>
             </div>
+
         </div>
     </div>
 </div>
+
+<style>
+    .privacy-card {
+        overflow: hidden;
+        border-radius: 18px;
+    }
+
+    .privacy-header {
+        padding: 3.5rem 2rem 3rem;
+        background: linear-gradient(135deg, #f5f9ff 0%, #ffffff 100%);
+        border-bottom: 1px solid #e9ecef;
+    }
+
+        .privacy-header h1 {
+            color: #0d6efd;
+        }
+
+        .privacy-header .lead {
+            max-width: 760px;
+            margin: 0 auto;
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+
+    .privacy-icon {
+        width: 68px;
+        height: 68px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        background: #eaf3ff;
+        color: #0d6efd;
+        font-size: 2rem;
+    }
+
+    .privacy-content {
+        padding: 2.5rem 3rem 3rem;
+    }
+
+    .privacy-section {
+        padding: 0 0 2.5rem;
+        margin-bottom: 2.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+        .privacy-section:last-of-type {
+            margin-bottom: 2rem;
+        }
+
+    .section-title {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .section-number {
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #eaf3ff;
+        color: #0d6efd;
+        font-weight: 700;
+        border-radius: 10px;
+    }
+
+    .section-title h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .section-description {
+        margin: .25rem 0 0;
+        color: #6c757d;
+        font-size: .9rem;
+    }
+
+    .privacy-section p {
+        color: #495057;
+        line-height: 1.8;
+    }
+
+    .data-item {
+        height: 100%;
+        display: flex;
+        gap: 1rem;
+        padding: 1.25rem;
+        border: 1px solid #e9ecef;
+        background: #fff;
+        border-radius: 12px;
+    }
+
+        .data-item > i {
+            flex: 0 0 40px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f6ff;
+            color: #0d6efd;
+            border-radius: 10px;
+            font-size: 1.15rem;
+        }
+
+        .data-item h6 {
+            margin-bottom: .4rem;
+            font-weight: 700;
+        }
+
+        .data-item p {
+            margin: 0;
+            font-size: .9rem;
+            line-height: 1.6;
+            color: #6c757d;
+        }
+
+    .privacy-list {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0 0;
+    }
+
+        .privacy-list li {
+            display: flex;
+            gap: .7rem;
+            align-items: flex-start;
+            margin-bottom: .8rem;
+            color: #495057;
+            line-height: 1.7;
+        }
+
+        .privacy-list i {
+            color: #198754;
+            margin-top: .25rem;
+        }
+
+    .security-box,
+    .cookie-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.25rem;
+        border: 1px solid #dce8f8;
+        background: #f7faff;
+        border-radius: 12px;
+    }
+
+        .security-box > i,
+        .cookie-box > i {
+            color: #0d6efd;
+            font-size: 1.5rem;
+        }
+
+        .security-box p,
+        .cookie-box span {
+            margin-top: .35rem;
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+    .privacy-contact {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        border-radius: 10px;
+    }
+
+    .contact-icon {
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #eaf3ff;
+        color: #0d6efd;
+        border-radius: 10px;
+        font-size: 1.2rem;
+    }
+
+    .privacy-contact p {
+        color: #6c757d;
+        line-height: 1.7;
+    }
+
+    @@media (max-width: 768px) {
+        .privacy-header {
+            padding: 2.5rem 1.25rem 2rem;
+        }
+
+        .privacy-content {
+            padding: 2rem 1.25rem;
+        }
+
+        .privacy-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .section-title h3 {
+            font-size: 1.15rem;
+        }
+    }
+</style>

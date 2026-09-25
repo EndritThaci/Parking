@@ -43,7 +43,6 @@ namespace Parking_web.Controllers
                         {
                             t.Cmimi = null;
                             t.KohaDaljes = null;
-                            t.Sherbimi = null;
                         }
                     }
                     return View(response.Data);

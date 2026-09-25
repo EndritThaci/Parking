@@ -164,6 +164,27 @@
             
             @if (User.IsInRole("Customer"))
             {
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold mb-4">
+                        <i class="bi bi-credit-card-2-front me-2 text-primary"></i>Regjistro Kartelën Bankare
+                    </h5>
+
+                    <form id="stripe-form" asp-controller="BankAccount" asp-action="createCard" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Kartela</label>
+                            <div id="card-element" class="form-control"></div>
+                            <div id="card-errors" class="text-danger small mt-1"></div>
+                        </div>
+
+                        <input type="hidden" name="paymentMethodId" id="paymentMethodId" />
+
+                        <button type="submit" class="btn btn-primary">
+                            Ruaj Kartelën
+                        </button>
+                    </form>
+                </div>
 
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                     <h5 class="fw-bold mb-4">
@@ -238,29 +259,6 @@
                     }
                 </div>
         
-                <div>
-                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
-                        <h5 class="fw-bold mb-4">
-                            <i class="bi bi-credit-card-2-front me-2 text-primary"></i>Regjistro Kartelën Bankare
-                        </h5>
-
-                        <form id="stripe-form" asp-controller="BankAccount" asp-action="createCard" method="post">
-                            @Html.AntiForgeryToken()
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Kartela</label>
-                                <div id="card-element" class="form-control"></div>
-                                <div id="card-errors" class="text-danger small mt-1"></div>
-                            </div>
-
-                            <input type="hidden" name="paymentMethodId" id="paymentMethodId" />
-
-                            <button type="submit" class="btn btn-primary">
-                                Ruaj Kartelën
-                            </button>
-                        </form>
-                    </div>
-                </div>
             }
         </div>
     </div>

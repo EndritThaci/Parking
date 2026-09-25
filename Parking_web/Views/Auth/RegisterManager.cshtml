@@ -5,15 +5,15 @@
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
+        <div class="col-md-6 col-lg-6">
             <div class="card shadow mt-5 mb-5">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
                         <div class="mb-3">
-                            <i class="bi bi-person-plus-fill text-primary display-1"></i>
+                            <i class="bi bi-person-plus-fill text-warning display-1"></i>
                         </div>
-                        <h3 class="fw-bold text-primary mb-2">Krijo Llogari Menaxher</h3>
-                        <p class="text-muted">Plotësoni të dhënat për t'u regjistruar Menaxherin</p>
+                        <h3 class="fw-bold text-primary mb-2">Krijo Llogari <span class="text-warning">Menaxher</span></h3>
+                        <p class="text-muted">Plotësoni të dhënat për të regjistruar Menaxherin</p>
                     </div>
 
                     <form asp-action="RegisterManager" method="post">
@@ -67,15 +67,6 @@
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="bi bi-check-circle me-2"></i> Krijo Llogarinë
                             </button>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <div class="text-center">
-                            <p class="mb-3 text-muted">Keni një llogari ekzistuese?</p>
-                            <a asp-action="Login" class="btn btn-outline-primary">
-                                <i class="bi bi-box-arrow-in-right me-2"></i> Kyçu Këtu
-                            </a>
                         </div>
                     </form>
                 </div>

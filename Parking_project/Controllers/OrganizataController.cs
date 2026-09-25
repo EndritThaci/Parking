@@ -52,7 +52,7 @@ namespace Parking_project.Controllers
         [ProducesResponseType(typeof(ApiResponse<OrgPage>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<OrgPage>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<OrgPage>>> GetOrganizataPagination(string? search, int? userId, bool onlyAvailable = false, int pageNumber = 1, int pageSize = 10)
+        public async Task<ActionResult<ApiResponse<OrgPage>>> GetOrganizataPagination(string? search, int? userId, bool onlyAvailable = false, bool includeNjesi = false, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
@@ -100,7 +100,7 @@ namespace Parking_project.Controllers
                         Email = o.Email,
                         AllowCustomers = o.AllowCustomers,
 
-                        Njesite = _db.NjesiOrg
+                        Njesite = !includeNjesi ? new List<NjesiReadDto>() : _db.NjesiOrg
                             .Where(n => n.BiznesId == o.BiznesId && n.active)
                             .Select(n => new NjesiReadDto
                             {
@@ -301,7 +301,7 @@ namespace Parking_project.Controllers
 
                 var defaultCilsimi = new CilsimetParkimit
                 {
-                    Emri = "Sezona e Pare",
+                    Emri = "Kryesor",
                     NjesiOrg = defaultNjesia,
                     Sherbimi = defaultSherbim1,
                     Selected = true
@@ -391,6 +391,13 @@ namespace Parking_project.Controllers
                     return Conflict(ApiResponse<Organizata>.Conflict($"An Organizata with the fiscal number '{organizataDTO.NumriFiskal}' already exists."));
                 }
 
+                if (!organizataDTO.AllowCustomers)
+                {
+                    var findCustumerOrg = await _db.UserOrg.Where(o => o.BiznesId == id && o.User.Role == "Customer").Include(u => u.User).ToListAsync();
+                    if (findCustumerOrg.Count > 0)
+                        _db.UserOrg.RemoveRange(findCustumerOrg);
+                }
+
                 _mapper.Map(organizataDTO, existingOrganizata);
                 await _db.SaveChangesAsync();
 
@@ -411,23 +418,40 @@ namespace Parking_project.Controllers
         [ProducesResponseType(typeof(ApiResponse<Organizata>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<Organizata>>> DeleteOrganizata(int id)
         {
+            var existingOrganizata = await _db.Organizata.FirstOrDefaultAsync(u => u.BiznesId == id);
+            if (existingOrganizata == null)
+            {
+                return NotFound(ApiResponse<Organizata>.NotFound($"Organizata with ID {id} not found."));
+            }
+
+            var orgWorkers = await _db.Useri
+                .Where(u => 
+                    u.active && 
+                    u.Role != "Customer" && 
+                    u.Role != "Super Admin" && 
+                    u.UserOrgs.Any(o=> o.BiznesId == id))
+                .Include(o=> o.UserOrgs)
+                .ToListAsync();
+
+            await using var transaction = await _db.Database.BeginTransactionAsync();
             try
             {
-                var existingOrganizata = await _db.Organizata.FirstOrDefaultAsync(u => u.BiznesId == id);
-
-                if (existingOrganizata == null)
-                {
-                    return NotFound(ApiResponse<Organizata>.NotFound($"Organizata with ID {id} not found."));
-                }
-
                 _db.Organizata.Remove(existingOrganizata);
                 await _db.SaveChangesAsync();
+
+                if (orgWorkers.Count > 0) {
+                    _db.Useri.RemoveRange(orgWorkers);
+                    await _db.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
 
                 return Ok(ApiResponse<Organizata>.NoContent("Organizata deletet successfully"));
 
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 var innerMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
                 var errorResponse = ApiResponse<Organizata>.Error(500, "An Error Occurred while deleting Org", innerMessage);
                 return StatusCode(500, errorResponse);

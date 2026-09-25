@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Parking_project.Data;
+using Parking_project.Helper;
 using Parking_project.Models;
 using Parking_project.Models.DTO;
 using Stripe;
@@ -169,14 +170,18 @@ namespace Parking_project.Controllers
                     Identifikues = t.Identifikues,
                     Njesia = t.Njesia,
                     Cilsimi = t.Cilsimet,
-                    Useri = t.User,
+                    Useri = new Useri
+                        {
+                            UserId = t.User.UserId,
+                            Emri = t.User.Emri,
+                            Mbiemri = t.User.Mbiemri,
+                            Email = t.User.Email,
+                            Role = t.User.Role,
+                            Passwordi = "",
+                            active = t.User.active
+                        },
                     Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList()
                 }).ToList();
-
-                foreach (var rez in result)
-                {
-                    rez.Useri.Passwordi = "";
-                }
 
                 var page = new TransaksionPage
                 {
@@ -203,31 +208,93 @@ namespace Parking_project.Controllers
         [HttpGet]
         [Authorize]
         [Route("ByNjesi")]
-        [ProducesResponseType(typeof(ApiResponse<TransaksionRead>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<TransaksionPage>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<IEnumerable<TransaksionRead>>>> GetTransaksioninByNjesi()
+        public async Task<ActionResult<ApiResponse<TransaksionPage>>> GetTransaksioninByNjesi(int? njesia, string? search, DateTime? dateFrom, DateTime? dateTo, string? status, int page = 1, int pageSize = 10)
         {
             try
             {
-                int njeisaId = int.Parse(User.FindFirst("NjesiaId")!.Value);
+                if (page <= 0 || pageSize <= 0)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Page number and page size must be greater than zero."));
+                }
 
-                var transaksionet = await _db.TransaksionParkimi
+                int njesiaId = njesia ?? 0;
+                if (User.IsInRole("Manager") || User.IsInRole("Employee"))
+                {
+                    njesiaId = int.Parse(User.FindFirst("NjesiaId")!.Value);
+                }
+                else if (njesiaId == 0)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Njesia is required for your role and it can't be Id = 0"));
+                }
+
+                var query = _db.TransaksionParkimi
                     .Include(t => t.Cilsimet)
                         .ThenInclude(c => c.Sherbimi)
                     .Include(n=> n.Njesia)
                     .Include(t => t.User)
-                    .Where(t => t.Cilsimet.NjesiteId == njeisaId)
+                    .Where(t => t.Cilsimet.NjesiteId == njesiaId);
+
+                if (dateFrom != null) query = query.Where(t => t.KohaHyrjes >= TimeZoneConverter.KosovoTimeToUtc(dateFrom.Value));
+                if (dateTo != null) query = query.Where(t => t.KohaHyrjes <= TimeZoneConverter.KosovoTimeToUtc(dateTo.Value));
+                if (!string.IsNullOrEmpty(status))
+                {
+                    query = query.Where(t => t.Statusi.ToLower().Contains(status.ToLower().Trim()));
+                }
+                if (!string.IsNullOrEmpty(search))
+                {
+                    var searchVal = search.ToLower().Trim();
+                    query = query.Where(t => 
+                        (t.Identifikues != null && t.Identifikues.ToLower().Contains(searchVal)) || 
+                        t.User.Emri.ToLower().Contains(searchVal) || 
+                        t.User.Mbiemri.ToLower().Contains(searchVal) ||
+                        t.User.Email.ToLower().Contains(searchVal));
+                }
+
+                var totalRecords = await query.CountAsync();
+                if (totalRecords == 0)
+                {
+                    var rez = new TransaksionPage
+                    {
+                        PageNumber = page,
+                        PageSize = pageSize,
+                        TotalPages = 0,
+                        TotalRecords = totalRecords,
+                        TotalAmount = 0,
+                        MonthlyAmount = 0,
+                        YearlyAmount = 0,
+                        Njesite = new List<NjesiOrg>(),
+                        Data = new List<TransaksionRead>()
+                    };
+                    return Ok(ApiResponse<TransaksionPage>.Ok(rez, "No transactions found."));
+                }
+                var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize!);
+
+                var nowKs = TimeZoneConverter.UtcToKosovoTime(DateTime.UtcNow);
+
+                var totalTransactionsToday = await _db.TransaksionParkimi
+                    .CountAsync(t =>
+                        t.Cilsimet.NjesiteId == njesiaId &&
+                        t.KohaHyrjes >= TimeZoneConverter.KosovoTimeToUtc(nowKs.Date) &&
+                        t.KohaHyrjes < TimeZoneConverter.KosovoTimeToUtc(nowKs));
+
+                var transaksionet = await query
+                    .OrderByDescending(t => t.TransaksioniId)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
 
-                var transaksionIds = transaksionet.Select(t => t.TransaksioniId).ToList();
+                var transaksionIds = transaksionet
+                    .Select(t => t.TransaksioniId)
+                    .ToList();
 
-                var getSherbimet = await _db.TransaksionDetaj.Where(c => transaksionIds.Contains(c.TransaksionId)).Include(c => c.Sherbimi).ToListAsync();
-
-                if (transaksionet.Count() == 0)
-                {
-                    return NotFound(ApiResponse<object>.NotFound("No transactions found."));
-                }
+                var getSherbimet = await _db.TransaksionDetaj
+                    .AsNoTracking()
+                    .Where(c => transaksionIds.Contains(c.TransaksionId))
+                    .Include(c => c.Sherbimi)
+                    .ToListAsync();
 
                 var result = transaksionet.Select(t => new TransaksionRead
                 {
@@ -236,21 +303,42 @@ namespace Parking_project.Controllers
                     KohaDaljes = t.KohaDaljes,
                     Cmimi = getSherbimet.Where(i => i.TransaksionId == t.TransaksioniId).Sum(c => c.Cmimi),
                     Statusi = t.Statusi,
+                    Identifikues = t.Identifikues,
                     Njesia = t.Njesia,
                     Cilsimi = t.Cilsimet,
-                    Useri = t.User,
-                    Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList(),
-                });
+                    Useri = new Useri
+                        {
+                            UserId = t.User.UserId,
+                            Emri = t.User.Emri,
+                            Mbiemri = t.User.Mbiemri,
+                            Email = t.User.Email,
+                            Role = t.User.Role,
+                            Passwordi = "",
+                            active = t.User.active
+                        },
+                    Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList()
+                }).ToList();
 
-                return Ok(ApiResponse<IEnumerable<TransaksionRead>>.Ok(result, "Transactions retrieved successfully"));
+                var rezPage = new TransaksionPage
+                {
+                    PageNumber = page,
+                    PageSize = pageSize,
+                    TotalPages = totalPages,
+                    TotalRecords = totalRecords,
+                    TotalAmount = totalTransactionsToday,
+                    MonthlyAmount = 0,
+                    YearlyAmount = 0,
+                    Njesite = new List<NjesiOrg>(),
+                    Data = result
+                };
+
+                return Ok(ApiResponse<TransaksionPage>.Ok(rezPage, "Transactions retrieved successfully"));
             }
             catch (Exception ex)
             {
                 var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
                 return StatusCode(500, ApiResponse<object>.Error(500, "An error occurred while processing the request.", innerMessage));
-
             }
-
         }
 
         [HttpGet]
@@ -487,10 +575,6 @@ namespace Parking_project.Controllers
                         CmimiParking += diffDetaj * item.Cmimi;
                     }
                 }
-
-                gettransaksioni.KohaDaljes = DateTime.UtcNow;
-                _db.TransaksionParkimi.Update(gettransaksioni);
-                await _db.SaveChangesAsync();
 
                 var getSherbimet = await _db.TransaksionDetaj.Where(t => t.TransaksionId == transaksioniId).Include(c => c.Sherbimi).ToListAsync();
 

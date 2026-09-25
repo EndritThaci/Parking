@@ -22,6 +22,10 @@ else
 
     ViewData["Title"] = "Shtepia";
 
+    var currentPage = Model.PageNumber;
+    var pageSize = Model.PageSize;
+    var totalPages = Model.TotalPages;
+
     <div class="container py-5">
         @if ((pendingList != null && pendingList.Any()))
         {
@@ -138,7 +142,7 @@ else
 
                                 <div class="col-12 col-md-auto">
                                     <div class="d-flex align-items-center justify-content-between justify-content-md-end gap-3 px-2 px-md-0">
-                                        <div class="card bg-white border-0 rounded-4 p-md-2">
+                                        <div class="card bg-white border-0 rounded-4 p-md-2 px-1">
                                             <div class="form-check form-switch m-0 d-flex align-items-center gap-2 ps-0">
                                                 <input class="form-check-input ms-0 mt-0 flex-shrink-0" 
                                                        type="checkbox" 
@@ -266,43 +270,93 @@ else
             @if (Model.TotalPages > 1)
             {
                 <nav class="mt-3">
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                    <ul class="pagination mb-0 justify-content-center">
+                        <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
                             <a class="page-link rounded-start-pill"
-                            asp-controller="Home"
-                            asp-action="Index"
-                            asp-route-Search="@currentSearch"
-                            asp-route-onlyAvailable="@onlyAvailable"
-                            asp-route-page="@(Model.PageNumber - 1)"
-                            asp-route-pageSize="@currentPageSize">
+                               asp-controller="Home"
+                               asp-action="Index"
+                               asp-route-Search="@currentSearch"
+                               asp-route-onlyAvailable="@onlyAvailable"
+                               asp-route-page="@(currentPage - 1)"
+                               asp-route-pageSize="@currentPageSize">
 
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
 
-                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        @{
+                            int startPage = Math.Max(1, currentPage - 2);
+                            int endPage = Math.Min(totalPages, currentPage + 2);
+                        }
+                        @if (startPage > 1)
                         {
-                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                            <li class="page-item">
                                 <a class="page-link"
-                                asp-controller="Home"
-                                asp-action="Index"
-                                asp-route-Search="@currentSearch"
-                                asp-route-onlyAvailable="@onlyAvailable"
-                                asp-route-page="@i"
-                                asp-route-pageSize="@currentPageSize">
+                                   asp-controller="Home"
+                                   asp-action="Index"
+                                   asp-route-Search="@currentSearch"
+                                   asp-route-onlyAvailable="@onlyAvailable"
+                                   asp-route-page="1"
+                                   asp-route-pageSize="@currentPageSize">
+                                    1
+                                </a>
+                            </li>
+
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link"
+                                   asp-controller="Home"
+                                   asp-action="Index"
+                                   asp-route-Search="@currentSearch"
+                                   asp-route-onlyAvailable="@onlyAvailable"
+                                   asp-route-page="@i"
+                                   asp-route-pageSize="@currentPageSize">
+
                                     @i
                                 </a>
                             </li>
                         }
 
-                        <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                        @if (endPage < totalPages)
+                        {
+                            @if (endPage < totalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+
+                            <li class="page-item">
+                                <a class="page-link"
+                                   asp-controller="Home"
+                                   asp-action="Index"
+                                   asp-route-Search="@currentSearch"
+                                   asp-route-onlyAvailable="@onlyAvailable"
+                                   asp-route-page="@totalPages"
+                                   asp-route-pageSize="@currentPageSize">
+
+                                    @totalPages
+                                </a>
+                            </li>
+                        }
+
+                        <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
                             <a class="page-link rounded-end-pill"
-                            asp-controller="Home"
-                            asp-action="Index"
-                            asp-route-Search="@currentSearch"
-                            asp-route-onlyAvailable="@onlyAvailable"
-                            asp-route-page="@(Model.PageNumber + 1)"
-                            asp-route-pageSize="@currentPageSize">
+                               asp-controller="Home"
+                               asp-action="Index"
+                               asp-route-Search="@currentSearch"
+                               asp-route-onlyAvailable="@onlyAvailable"
+                               asp-route-page="@(currentPage + 1)"
+                               asp-route-pageSize="@currentPageSize">
 
                                 <i class="bi bi-chevron-right"></i>
                             </a>
@@ -506,10 +560,18 @@ else
         overflow: hidden;
     }
 
-    .page-link {
-        min-width: 40px;
+    .pagination .page-link {
+        border: none;
+        margin: 0 2px;
+        border-radius: 10px;
+        min-width: 38px;
         text-align: center;
     }
+
+        .pagination .page-item.active .page-link {
+            background: #0d6efd;
+            color: #fff;
+        }
 
     .njesia-full {
         display: block;
