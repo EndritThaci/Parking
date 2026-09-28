@@ -4,61 +4,280 @@
     ViewData["Title"] = "Kyqu";
 }
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow mt-5 mb-5">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <div class="mb-3">
-                            <i class="bi bi-person-circle text-primary display-1"></i>
-                        </div>
-                        <h3 class="fw-bold text-primary mb-2">Mirë se vini</h3>
-                        <p class="text-muted">Kyquni në llogarin tuaj</p>
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="brand-section">
+            <div class="brand-glow"></div>
+            <div class="brand-content">
+                <div class="logo-box mb-4">
+                    <img src="~/Logo/Logo.png" alt="Endriti Parking Logo" class="brand-logo" asp-append-version="true" />
+                </div>
+                <h2 class="fw-bold text-white mb-2">Endriti Parking</h2>
+                <p class="brand-subtitle">Sistemi modern për menaxhimin e parkimit tuaj me lehtësi dhe siguri.</p>
+                
+                <div class="brand-features mt-4 d-none d-md-flex flex-column gap-3 text-start">
+                    <div class="feature-item d-flex align-items-center gap-3">
+                        <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                        <span>Qasje e sigurt dhe e shpejtë</span>
                     </div>
-
-                    <form asp-action="Login" method="post">
-                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
-                        <div class="form-floating mb-3">
-                            <input asp-for="Email" class="form-control" placeholder="name@example.com" />
-                            <label asp-for="Email" class="form-label">
-                                <i class="bi bi-envelope me-2"></i>Email
-                            </label>
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-floating mb-4">
-                            <input asp-for="Password" class="form-control" placeholder="Password" type="password" />
-                            <label asp-for="Password" class="form-label">
-                                <i class="bi bi-lock me-2"></i>Fjalkalimi
-                            </label>
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-
-                        <div class="d-grid mb-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Kyqu
-                            </button>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <div class="text-center">
-                            <p class="mb-3 text-muted">Nuk keni një llogari?</p>
-                            <a asp-action="Register" class="btn btn-outline-primary">
-                                <i class="bi bi-person-plus me-2"></i>Krijo Llogari
-                            </a>
-                        </div>
-                    </form>
+                    <div class="feature-item d-flex align-items-center gap-3">
+                        <div class="feature-icon"><i class="bi bi-clock-history"></i></div>
+                        <span>Monitorim në kohë reale</span>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-header text-center text-md-start mb-4">
+                <h3 class="fw-bold text-dark mb-1">Mirë se vini!</h3>
+                <p class="text-muted">Ju lutem shkruani të dhënat tuaja për t'u kyçur.</p>
+            </div>
+
+            <form asp-action="Login" method="post" id="loginForm">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm rounded-3 mb-3 small"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label text-secondary fw-semibold small">Adresa e Email-it</label>
+                    <div class="input-group" onclick="emailInput.focus();">
+                        <span class="input-group-text custom-addon">
+                            <i class="bi bi-envelope text-primary"></i>
+                        </span>
+                        <input asp-for="Email" id="emailInput" class="form-control custom-input last-input" placeholder="emri@shembull.com" autocomplete="email" />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label asp-for="Password" class="form-label text-secondary fw-semibold small mb-0">Fjalëkalimi</label>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text custom-addon" onclick="passwordInput.focus();">
+                            <i class="bi bi-lock text-primary"></i>
+                        </span>
+                        <input asp-for="Password" id="passwordInput" type="password" class="form-control custom-input" style="border-right: none;" placeholder="••••••••" autocomplete="current-password" />
+                        <button class="custom-addon-btn" type="button" id="togglePassword">
+                            <i class="bi bi-eye text-muted pe-2" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-submit w-100 py-2-5 fw-bold mb-4">
+                    <span>Kyqu në Llogari</span>
+                    <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+
+                <div class="text-center pt-2 border-top">
+                    <p class="text-muted small mb-0">
+                        Nuk keni një llogari?
+                        <a asp-action="Register" class="text-primary fw-bold text-decoration-none ms-1 hover-underline">Krijo Llogari</a>
+                    </p>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <style>
-    .form-floating > .form-control::placeholder {
-        font-size: 0.85rem;
-        color: #adb5bd;
+    .login-wrapper {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 960px;
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 10px 15px rgba(0, 0, 0, 0.04);
+        display: flex;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .brand-section {
+        flex: 1;
+        background: linear-gradient(135deg, #0a192f 0%, #0d3b66 50%, #001f3f 100%);
+        padding: 3.5rem 3rem;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: #ffffff;
+        overflow: hidden;
+    }
+
+    .brand-glow {
+        position: absolute;
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, rgba(13, 110, 253, 0.35) 0%, rgba(0, 0, 0, 0) 70%);
+        top: 20%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+
+    .brand-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .brand-logo {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        border-radius: 30px;
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.35);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        transition: transform 0.3s ease;
+    }
+
+    .brand-logo:hover {
+        transform: scale(1.05);
+    }
+
+    .brand-subtitle {
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .feature-item {
+        background: rgba(255, 255, 255, 0.06);
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(5px);
+        font-size: 0.9rem;
+    }
+
+    .feature-icon {
+        width: 32px;
+        height: 32px;
+        background: rgba(13, 110, 253, 0.3);
+        color: #6ea8fe;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .form-section {
+        flex: 1.1;
+        padding: 3.5rem 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: #ffffff;
+    }
+
+    .custom-input {
+        border-left: none !important;
+        border-color: #e2e8f0;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .last-input {
+        border-top-right-radius: 12px !important;
+        border-bottom-right-radius: 12px !important;
+    }
+
+    .custom-addon {
+        background-color: #f8fafc;
+        border-color: #e2e8f0;
+        border-right: none !important;
+        padding-left: 1rem;
+        padding-right: 0.5rem;
+        border-top-left-radius: 12px !important;
+        border-bottom-left-radius: 12px !important;
+    }
+
+    .custom-addon-btn {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-left: none;
+        border-top-right-radius: 12px !important;
+        border-bottom-right-radius: 12px !important;
+    }
+
+    .input-group:focus-within .custom-addon,
+    .input-group:focus-within .custom-input,
+    .input-group:focus-within .custom-addon-btn {
+        border-color: #0d6efd;
+        background-color: #ffffff;
+    }
+
+    .custom-input:focus {
+        box-shadow: none !important;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        border: none;
+        padding: 0.85rem;
+        border-radius: 12px;
+        font-size: 1rem;
+        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.25);
+        transition: all 0.25s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(13, 110, 253, 0.35);
+        background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+    }
+
+    .hover-underline:hover {
+        text-decoration: underline !important;
+    }
+
+    @@media (max-width: 768px) {
+        .login-card {
+            flex-direction: column;
+            border-radius: 18px;
+        }
+
+        .brand-section {
+            padding: 2.5rem 1.5rem;
+        }
+
+        .form-section {
+            padding: 2.5rem 1.5rem;
+        }
+
+        .brand-logo {
+            width: 90px;
+            height: 90px;
+        }
     }
 </style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const togglePassword = document.getElementById("togglePassword");
+            const passwordInput = document.getElementById("passwordInput");
+            const toggleIcon = document.getElementById("toggleIcon");
+
+            if (togglePassword && passwordInput && toggleIcon) {
+                togglePassword.addEventListener("click", function () {
+                    const isPassword = passwordInput.getAttribute("type") === "password";
+                    passwordInput.setAttribute("type", isPassword ? "text" : "password");
+                    toggleIcon.classList.toggle("bi-eye");
+                    toggleIcon.classList.toggle("bi-eye-slash");
+                });
+            }
+        });
+    </script>
+}

@@ -475,13 +475,6 @@ namespace Parking_web.Controllers
         {
             try
             {
-                var transaksioni = await _transaksioniService.GetAsync<ApiResponse<TransaksionRead>>(id);
-                if (transaksioni == null || !transaksioni.Success || transaksioni.Data == null)
-                {
-                    TempData["error"] = $"Gabim: {transaksioni?.Message ?? "Diçka shkoi keq."}";
-                    return RedirectToAction("Pay", new {id});
-                }
-
                 var response = await _transaksioniService.PayAsync<ApiResponse<TransaksionRead>>(id, null);
                 if (response != null && response.Success)
                 {
@@ -492,7 +485,7 @@ namespace Parking_web.Controllers
                     }
                     else
                     {
-                        return RedirectToAction("Employee");
+                        return RedirectToAction("Employee", new {njesia = response.Data?.Njesia.NjesiteId});
                     }
                 }
                 else
@@ -637,7 +630,6 @@ namespace Parking_web.Controllers
         [Authorize(Roles = "Employee , Manager , Admin , Super Admin")]
         public async Task<IActionResult> Employee(int? njesia, string? Search, DateTime? dateFrom, DateTime? dateTo, int page = 1, int pageSize = 10)
         {
-            //List<TransaksionRead>? pending = new List<TransaksionRead>();
             TransaksionPage? pending = new TransaksionPage();
             try
             {
@@ -680,7 +672,7 @@ namespace Parking_web.Controllers
                 ViewBag.Search = Search;
                 ViewBag.DateFrom = dateFrom?.ToString("yyyy-MM-ddTHH:mm");
                 ViewBag.DateTo = dateTo?.ToString("yyyy-MM-ddTHH:mm");
-                //var pendingResponse = await _transaksioniService.GetPendingAsync<ApiResponse<List<TransaksionRead>>>(null, njesiaId);
+                
                 var pendingResponse = await _transaksioniService.GetByNjesiAsync<ApiResponse<TransaksionPage>>(njesiaId,Search,dateFrom,dateTo,"Pending",page,pageSize);
 
                 if (pendingResponse != null && pendingResponse.Success)

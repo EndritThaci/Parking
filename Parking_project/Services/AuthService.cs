@@ -144,7 +144,7 @@ namespace Parking_project.Services
                     new Claim(ClaimTypes.Role, useri.Role),
                     new Claim("BiznesId", singleOrg?.BiznesId.ToString() ?? "0"),
                     new Claim("NjesiaId", singleOrg?.NjesiaId.ToString() ?? "0"),
-                    new Claim("OrgName", org.Result?.EmriBiznesit.ToString() ?? "Parking"),
+                    new Claim("OrgName", org.Result?.EmriBiznesit.ToString() ?? ""),
                 }),
                 Expires = DateTime.UtcNow.AddHours(3),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

@@ -210,6 +210,7 @@ namespace Parking_project.Controllers
         [Route("ByNjesi")]
         [ProducesResponseType(typeof(ApiResponse<TransaksionPage>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<TransaksionPage>>> GetTransaksioninByNjesi(int? njesia, string? search, DateTime? dateFrom, DateTime? dateTo, string? status, int page = 1, int pageSize = 10)
         {
@@ -346,6 +347,7 @@ namespace Parking_project.Controllers
         [Route("ByUser")]
         [ProducesResponseType(typeof(ApiResponse<TransaksionPage>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<TransaksionPage>>> GetTransaksioninByUser(int pageNumber = 1, int pageSize = 10, int njesiaId = 0)
         {
@@ -523,9 +525,7 @@ namespace Parking_project.Controllers
             {
                 var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
                 return StatusCode(500, ApiResponse<object>.Error(500, "An error occurred while processing the request.", innerMessage));
-
             }
-
         }
 
         [HttpGet("{transaksioniId:int}/Price")]
@@ -613,6 +613,7 @@ namespace Parking_project.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponse<TransaksionetCreateDto>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<TransaksionetCreateDto>>> CreateTransaksion(TransaksionetCreateDto transaksionetCreateDto)
         {
