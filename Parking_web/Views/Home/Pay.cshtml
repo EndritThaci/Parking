@@ -33,7 +33,6 @@
                 <div class="bg-primary py-4 text-center text-white">
                     <i class="bi bi-wallet2 display-4"></i>
                     <h3 class="fw-bold">Pagesa e Transaksionit</h3>
-                    <p class="mb-0 opacity-75">ID e Faturës: #@Model.TransaksioniId</p>
                 </div>
 
                 <div class="card-body p-4 p-md-5">
@@ -41,6 +40,13 @@
                         <span class="text-muted">Vendi i Parkimit:</span>
                         <span class="fw-bold text-end">@Model.Njesia.Emri</span>
                     </div>
+                    @if (!User.IsInRole("Customer"))
+                    {
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Përdoruesi:</span>
+                            <span class="fw-bold text-end text-truncate ms-2" style="max-width: 180px;" title="@(Model.Useri.Username)">@Model.Useri.Username</span>
+                        </div>
+                    }
                     <div class="d-flex justify-content-between mb-3">
                         <span class="text-muted">Koha e qëndrimit:</span>
                         <span class="fw-bold">@entryTime.ToString("HH:mm") - @nowTime.ToString("HH:mm")</span>
@@ -171,7 +177,7 @@
                         </div>
                     
                         <div class="mt-4 opacity-50 small">
-                            <i class="bi bi-shield-check"></i> Kod i siguruar për ID #@Model.TransaksioniId
+                            <i class="bi bi-shield-check"></i> Kod i siguruar për këtë transaksion
                         </div>
                     </div>
                 </div>

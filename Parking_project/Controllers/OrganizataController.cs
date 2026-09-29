@@ -264,9 +264,9 @@ namespace Parking_project.Controllers
                     return Conflict(ApiResponse<Organizata>.Conflict($"An Organizata with the fiscal number '{organizataDTO.NumriFiskal}' already exists."));
                 }
                 
-                if (await _authService.IsEmailExistsAsync(organizataDTO.Email))
+                if (await _authService.UsernameExistsAsync(organizataDTO.Email))
                 {
-                    return Conflict(ApiResponse<UserReadDTO>.Conflict("Email already exists"));
+                    return Conflict(ApiResponse<UserReadDTO>.Conflict("Username already exists"));
                 }
 
 

@@ -88,7 +88,7 @@ namespace Parking_web.Controllers
         {
             return View(new UserCreateDTO
             {
-                Email = string.Empty,
+                Username = string.Empty,
                 Emri = string.Empty,
                 Passwordi = string.Empty,
             });
@@ -102,7 +102,7 @@ namespace Parking_web.Controllers
                 ApiResponse<UserReadDTO>? response = await _authService.RegisterAsync<ApiResponse<UserReadDTO>>(userDTO);
                 if (response != null && response.Success && response.Data != null)
                 {
-                    var loginDTO = new LoginDTO () { Email = userDTO.Email , Password = userDTO.Passwordi };
+                    var loginDTO = new LoginDTO () { Username = userDTO.Username , Password = userDTO.Passwordi };
                     var loginResponse = await _authService.LoginAsync<ApiResponse<LoginResponseDTO>>(loginDTO);
                     if (loginResponse != null && loginResponse.Success && loginResponse.Data != null)
                     {
@@ -116,7 +116,6 @@ namespace Parking_web.Controllers
                 else
                 {
                     TempData["error"] = response?.Message ?? "Regjistrimi deshtoj. Ju lutem provoni perseri.";
-                    await PopulateOrgViewBag();
                     return View(userDTO);
                 }
 
@@ -125,7 +124,6 @@ namespace Parking_web.Controllers
             {
                 TempData["error"] = $"Gabim: {ex.Message}";
             }
-            await PopulateOrgViewBag();
             return View(userDTO);
         }
 
@@ -148,7 +146,7 @@ namespace Parking_web.Controllers
             await PopulateOrgViewBag();
             return View(new UserCreateDTO
             {
-                Email = string.Empty,
+                Username = string.Empty,
                 Emri = string.Empty,
                 Passwordi = string.Empty,
             });
@@ -207,7 +205,7 @@ namespace Parking_web.Controllers
             await PopulateNjesiteViewBag();
             return View(new UserCreateDTO
             {
-                Email = string.Empty,
+                Username = string.Empty,
                 Emri = string.Empty,
                 Passwordi = string.Empty
             });
@@ -260,7 +258,7 @@ namespace Parking_web.Controllers
             await PopulateNjesiteViewBag();
             return View(new UserCreateDTO
             {
-                Email = string.Empty,
+                Username = string.Empty,
                 Emri = string.Empty,
                 Passwordi = string.Empty
             });

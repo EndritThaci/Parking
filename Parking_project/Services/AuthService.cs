@@ -27,16 +27,16 @@ namespace Parking_project.Services
         }
 
 
-        public async Task<bool> IsEmailExistsAsync(string email)
+        public async Task<bool> UsernameExistsAsync(string username)
         {
-            return await _db.Useri.Where(a => a.active).AnyAsync(u => u.Email.ToLower() == email.ToLower());
+            return await _db.Useri.Where(a => a.active).AnyAsync(u => u.Username.ToLower() == username.ToLower());
         }
 
         public async Task<LoginResponseDTO> LoginAsync(LoginDTO loginDTO)
         {
             try
             {
-                var user = await _db.Useri.Where(a => a.active).Include(u=> u.UserOrgs).FirstOrDefaultAsync(u => u.Email.ToLower() == loginDTO.Email.ToLower());
+                var user = await _db.Useri.Where(a => a.active).Include(u=> u.UserOrgs).FirstOrDefaultAsync(u => u.Username.ToLower() == loginDTO.Username.ToLower());
 
                 if (user == null || _passwordHasher.VerifyHashedPassword(user, user.Passwordi, loginDTO.Password) == PasswordVerificationResult.Failed)
                 {
@@ -66,15 +66,15 @@ namespace Parking_project.Services
         {
             try
             {
-                if (await IsEmailExistsAsync(userCreate.Email))
+                if (await UsernameExistsAsync(userCreate.Username))
                 {
-                    throw new InvalidOperationException($"User with email '{userCreate.Email}' already exists");
+                    throw new InvalidOperationException($"User with username '{userCreate.Username}' already exists");
                 }
 
 
                 Useri user = new()
                 {
-                    Email = userCreate.Email,
+                    Username = userCreate.Username,
                     Emri = userCreate.Emri,
                     Mbiemri = userCreate.Mbiemri,
                     Passwordi = _passwordHasher.HashPassword(null, userCreate.Passwordi),
@@ -139,7 +139,7 @@ namespace Parking_project.Services
             {
                 Subject = new ClaimsIdentity(new[] {
                     new Claim(ClaimTypes.NameIdentifier, useri.UserId.ToString()),
-                    new Claim(ClaimTypes.Email, useri.Email),
+                    new Claim(ClaimTypes.Email, useri.Username),
                     new Claim(ClaimTypes.Name, useri.Emri),
                     new Claim(ClaimTypes.Role, useri.Role),
                     new Claim("BiznesId", singleOrg?.BiznesId.ToString() ?? "0"),

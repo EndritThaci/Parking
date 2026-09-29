@@ -158,7 +158,7 @@ namespace Parking_project.Controllers
                 worksheet.Cells[row, 3].Value = transaction.KohaDaljes;
                 worksheet.Cells[row, 3].Style.Numberformat.Format = "dd.MM.yyyy HH:mm";
 
-                worksheet.Cells[row, 4].Value = transaction.Useri?.Emri;
+                worksheet.Cells[row, 4].Value = transaction.Useri?.Username;
 
                 worksheet.Cells[row, 5].Value = string.Join(", ",
                     transaction.Sherbimi?.Select(s => s.Emri) ?? Enumerable.Empty<string>());

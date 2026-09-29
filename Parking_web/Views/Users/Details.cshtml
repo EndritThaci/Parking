@@ -30,8 +30,10 @@
 
                     <div class="text-start small text-muted">
                         <div class="d-flex justify-content-between mb-2">
-                            <span>Emaili:</span>
-                            <strong class="text-dark">@(Model.User?.Email ?? "N/A")</strong>
+                            <span>Username:</span>
+                            <strong class="text-dark text-truncate ms-2" style="max-width: 180px;" title="@(Model.User?.Username ?? "N/A")">
+                                @(Model.User?.Username ?? "N/A")
+                            </strong>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span>Roli:</span>

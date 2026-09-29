@@ -241,7 +241,7 @@ namespace Parking_project.Migrations
                     b.Property<DateTime>("DataRegjistrimit")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Email")
+                    b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
@@ -386,7 +386,7 @@ namespace Parking_project.Migrations
                     b.Property<int?>("BiznesId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Email")
+                    b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");

@@ -13,9 +13,8 @@ namespace Parking_project.Models.DTO
         public string Mbiemri { get; set; }
 
         [Required]
-        [EmailAddress]
         [StringLength(150)]
-        public string Email { get; set; }
+        public string Username { get; set; }
 
         [Required]
         [StringLength(255)]

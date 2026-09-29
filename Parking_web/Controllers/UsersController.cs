@@ -19,8 +19,6 @@ namespace Parking_web.Controllers
         [Authorize(Roles = "Admin , Super Admin")]
         public async Task<IActionResult> Index(string? search, string? role, int page = 1, int pageSize = 10)
         {
-            bool active = false;
-
             var biznesIdClaim = User.FindFirst("BiznesId")?.Value;
             if (string.IsNullOrEmpty(biznesIdClaim) || biznesIdClaim == "0")
             {
@@ -29,11 +27,11 @@ namespace Parking_web.Controllers
             }
             int biznesId = int.Parse(biznesIdClaim);
             
-            var response = await _userService.GetUsersPaginationAsync<ApiResponse<UserPage>>(biznesId, search, role, active, page, pageSize);
+            var response = await _userService.GetUsersPaginationAsync<ApiResponse<UserPage>>(biznesId, search, role, false, page, pageSize);
             if (response == null || !response.Success || response.Data == null)
             {
                 ViewBag.Error = response?.Message;
-                return View(await _userService.GetUsersPaginationAsync<ApiResponse<UserPage>>(biznesId, null, null, active, page, pageSize));
+                return View(await _userService.GetUsersPaginationAsync<ApiResponse<UserPage>>(biznesId, null, null, false, page, pageSize));
             }
 
             ViewBag.Search = search;

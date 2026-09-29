@@ -57,7 +57,7 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                         <input type="hidden" name="userId" value="@userId" />
 
                         <div class="input-group pos-create-input">
-                            <span class="input-group-text">
+                            <span class="input-group-text" onclick="identifikues.focus()">
                                 <i class="bi bi-car-front-fill"></i>
                             </span>
 
@@ -81,7 +81,6 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
         </div>
     </div>
 
-    <!-- Stat Cards -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-xl-3">
             <div class="card border-0 shadow-sm rounded-4 h-100">
@@ -124,7 +123,7 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="text-muted small"> Total Transaksione Sot </div>
+                            <div class="text-muted small"> Transaksione Sot </div>
                             <div class="fs-3 fw-bold">
                                 @(pageModel.TotalAmount)
                             </div>
@@ -167,7 +166,7 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                     <div class="col-12 col-lg-5">
                         <label class="form-label small fw-bold text-muted"> Kërko sipas targës </label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white">
+                            <span class="input-group-text bg-white" onclick="transactionSearch.focus()">
                                 <i class="bi bi-car-front-fill text-muted"></i>
                             </span>
                             <input type="text"
@@ -319,10 +318,10 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
                                         </span>
                                     }
                                 </td>
-                                <td>
-                                    @if (item.Useri != null && (!string.IsNullOrEmpty(item.Useri.Emri) || !string.IsNullOrEmpty(item.Useri.Mbiemri)))
+                                <td class="text-truncate" style="max-width: 150px;" title="@item.Useri?.Username">
+                                    @if (item.Useri != null && (!string.IsNullOrEmpty(item.Useri.Username)))
                                     {
-                                        <span class="text-muted"> @item.Useri.Emri @item.Useri.Mbiemri </span>
+                                        <span class="text-muted"> @item.Useri.Username </span>
                                     }
                                     else
                                     {
@@ -648,12 +647,12 @@ else if (User.IsInRole("Super Admin") || User.IsInRole("Customer"))
             border-right: 0;
         }
 
-        .pos-create-input .form-control {
+        .pos-create-input .form-control, #transactionSearch {
             border-left: 0;
             letter-spacing: 1px;
         }
 
-            .pos-create-input .form-control:focus {
+            .form-control:focus {
                 box-shadow: none;
                 border-color: #dee2e6;
             }

@@ -175,7 +175,7 @@ namespace Parking_project.Controllers
                             UserId = t.User.UserId,
                             Emri = t.User.Emri,
                             Mbiemri = t.User.Mbiemri,
-                            Email = t.User.Email,
+                            Username = t.User.Username,
                             Role = t.User.Role,
                             Passwordi = "",
                             active = t.User.active
@@ -251,7 +251,7 @@ namespace Parking_project.Controllers
                         (t.Identifikues != null && t.Identifikues.ToLower().Contains(searchVal)) || 
                         t.User.Emri.ToLower().Contains(searchVal) || 
                         t.User.Mbiemri.ToLower().Contains(searchVal) ||
-                        t.User.Email.ToLower().Contains(searchVal));
+                        t.User.Username.ToLower().Contains(searchVal));
                 }
 
                 var totalRecords = await query.CountAsync();
@@ -312,7 +312,7 @@ namespace Parking_project.Controllers
                             UserId = t.User.UserId,
                             Emri = t.User.Emri,
                             Mbiemri = t.User.Mbiemri,
-                            Email = t.User.Email,
+                            Username = t.User.Username,
                             Role = t.User.Role,
                             Passwordi = "",
                             active = t.User.active

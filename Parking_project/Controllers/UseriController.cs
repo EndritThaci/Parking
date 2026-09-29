@@ -94,7 +94,7 @@ namespace Parking_project.Controllers
                     return NotFound(ApiResponse<UserTotalsDTO>.NotFound("Invalid ID"));
 
                 //User
-                var userQuery = _db.Useri.AsNoTracking().Where(u => u.UserId == id && u.active);
+                var userQuery = _db.Useri.AsNoTracking().Where(u => u.UserId == id);
                 if (orgId.HasValue) userQuery = userQuery.Where(u => u.UserOrgs.Any(uo => uo.BiznesId == orgId.Value));
 
                 var user = await userQuery.FirstOrDefaultAsync();
@@ -208,7 +208,7 @@ namespace Parking_project.Controllers
                 if (!string.IsNullOrWhiteSpace(search))
                 {
                     search = search.Trim().ToLower();
-                    query = query.Where(u => u.Emri.ToLower().Contains(search) || u.Mbiemri.ToLower().Contains(search) || u.Email.ToLower().Contains(search));
+                    query = query.Where(u => u.Emri.ToLower().Contains(search) || u.Mbiemri.ToLower().Contains(search) || u.Username.ToLower().Contains(search));
                 }
 
                 var totalCount = await query.CountAsync();
@@ -335,24 +335,47 @@ namespace Parking_project.Controllers
         [HttpDelete("{id:int}")]
         [Authorize]
         [ProducesResponseType(typeof(ApiResponse<UserReadDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<UserReadDTO>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ApiResponse<UserReadDTO>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<UserReadDTO>>> DeleteUser(int id)
         {
             try
             {
                 var user = await _db.Useri.FirstOrDefaultAsync(u => u.UserId == id);
                 if (user == null)
-                    return NotFound(ApiResponse<UserReadDTO>.NotFound($"User with ID {id} not found"));
+                    return NotFound(ApiResponse<object>.NotFound($"User with ID {id} not found"));
 
-                user.active = false;
+                var pendingTransaction = await _db.TransaksionParkimi.Where(s=> s.Statusi == "Pending").AnyAsync(u => u.UserId == id);
+                if (pendingTransaction)
+                    return BadRequest(ApiResponse<object>.BadRequest($"User has Pending Transactions"));
+
+                var transaction = await _db.TransaksionParkimi.AnyAsync(u => u.UserId == id);
+                if (transaction)
+                {
+                    user.active = false;
+
+                    var newUsername = "";
+                    while (true)
+                    {
+                        newUsername = user.Username + "   **" + Guid.NewGuid().ToString() + "**";
+                        var exists = await _authService.UsernameExistsAsync(newUsername);
+                        if (!exists) break;
+                    }
+                    user.Username = newUsername;
+                }
+                else
+                {
+                    _db.Useri.Remove(user);
+                }
+
                 await _db.SaveChangesAsync();
 
-                return Ok(ApiResponse<UserReadDTO>.NoContent("User deleted successfully"));
+                return Ok(ApiResponse<UserReadDTO>.NoContent("User removed successfully"));
             }
             catch (Exception ex)
             {
-                var errorResponse = ApiResponse<UserReadDTO>.Error(500, "An Error Occurred while deleting User", ex.Message);
+                var errorResponse = ApiResponse<object>.Error(500, "An Error Occurred while deleting User", ex.Message);
                 return StatusCode(500, errorResponse);
             }
         }

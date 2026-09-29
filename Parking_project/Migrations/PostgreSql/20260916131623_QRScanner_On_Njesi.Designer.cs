@@ -187,7 +187,7 @@ namespace Parking_project.Migrations.PostgreSql
                     b.Property<DateTime>("DataRegjistrimit")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Email")
+                    b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
@@ -348,7 +348,7 @@ namespace Parking_project.Migrations.PostgreSql
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserId"));
 
-                    b.Property<string>("Email")
+                    b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");

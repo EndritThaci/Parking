@@ -73,7 +73,6 @@ namespace Parking_web.Controllers
         {
             try
             {
-                createDTO.Admin?.Email = createDTO.Email;
                 var response = await _organizataService.CreateAsync<ApiResponse<Organizata>>(createDTO);
                 if (response != null && response.Success && response.Data != null)
                 {

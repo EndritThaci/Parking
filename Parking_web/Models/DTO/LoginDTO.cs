@@ -5,8 +5,7 @@ namespace Parking_web.Models.DTO
     public class LoginDTO
     {
         [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+        public string Username { get; set; }
         [Required]
         public string Password { get; set; }
     }

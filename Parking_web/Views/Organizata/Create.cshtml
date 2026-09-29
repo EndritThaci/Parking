@@ -64,8 +64,8 @@
                             <div class="col-md-6 mb-4">
                                 <label asp-for="Telefoni" class="form-label fw-semibold">Telefoni</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
-                                    <input asp-for="Telefoni" class="form-control" placeholder="+383..." />
+                                    <span class="input-group-text bg-light" onclick="orgTel.focus()"><i class="bi bi-telephone"></i></span>
+                                    <input asp-for="Telefoni" id="orgTel" class="form-control" placeholder="+383..." />
                                 </div>
                                 <span asp-validation-for="Telefoni" class="text-danger small"></span>
                             </div>
@@ -73,8 +73,8 @@
                             <div class="col-md-6 mb-4">
                                 <label asp-for="Email" class="form-label fw-semibold">Email Adresa</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
-                                    <input asp-for="Email" type="email" class="form-control" placeholder="emri@shembull.com" />
+                                    <span class="input-group-text bg-light" onclick="orgEmail.focus()"><i class="bi bi-envelope"></i></span>
+                                    <input asp-for="Email" id="orgEmail" type="email" class="form-control" placeholder="emri@shembull.com" />
                                 </div>
                                 <span asp-validation-for="Email" class="text-danger small"></span>
                             </div>
@@ -86,27 +86,35 @@
                             </span>
                         </div>
                         <div class="row">
-                            <div class="col-md-4 mb-4">
+                            <div class="col-md-3 mb-4">
                                 <label asp-for="Admin.Emri" class="form-label fw-semibold">Emri</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
-                                    <input asp-for="Admin.Emri" type="text" class="form-control" />
+                                    <span class="input-group-text bg-light" onclick="adminEmri.focus()"><i class="bi bi-person"></i></span>
+                                    <input asp-for="Admin.Emri" id="adminEmri" type="text" class="form-control" />
                                 </div>
                                 <span asp-validation-for="Admin.Emri" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-4 mb-4">
+                            <div class="col-md-3 mb-4">
                                 <label asp-for="Admin.Mbiemri" class="form-label fw-semibold">Mbiemri</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
-                                    <input asp-for="Admin.Mbiemri" type="text" class="form-control"/>
+                                    <span class="input-group-text bg-light" onclick="adminMbiemri.focus()"><i class="bi bi-person"></i></span>
+                                    <input asp-for="Admin.Mbiemri" id="adminMbiemri" type="text" class="form-control"/>
                                 </div>
                                 <span asp-validation-for="Admin.Mbiemri" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-4 mb-4">
+                            <div class="col-md-3 mb-4">
+                                <label asp-for="Admin.Username" class="form-label fw-semibold">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light" onclick="adminUsername.focus()"><i class="bi bi-person-fill"></i></span>
+                                    <input asp-for="Admin.Username" id="adminUsername" type="text" class="form-control"/>
+                                </div>
+                                <span asp-validation-for="Admin.Username" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-3 mb-4">
                                 <label asp-for="Admin.Passwordi" class="form-label fw-semibold">Fjalkalimi</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
-                                    <input asp-for="Admin.Passwordi" type="password" class="form-control" placeholder="****" />
+                                    <span class="input-group-text bg-light" onclick="adminPass.focus()"><i class="bi bi-lock"></i></span>
+                                    <input asp-for="Admin.Passwordi" id="adminPass" type="password" class="form-control" placeholder="****" />
                                 </div>
                                 <span asp-validation-for="Admin.Passwordi" class="text-danger small"></span>
                             </div>

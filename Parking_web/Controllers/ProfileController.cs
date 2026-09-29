@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Parking_web.Models;
@@ -167,8 +169,33 @@ namespace Parking_web.Controllers
             }
             else
             {
-                TempData["error"] = response?.Message ?? "U shfaq një gabim gjat përmirësimit të të organizatave";
+                TempData["error"] = response?.Message ?? "U shfaq një gabim gjat përmirësimit të të dhënave";
                 return RedirectToAction("UserOrgs");
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveAccount()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim)) return RedirectToAction("Login", "Auth");
+
+            int userId = int.Parse(userIdClaim);
+
+            var user = await _userService.DeleteAsync<ApiResponse<UserReadDTO>>(userId);
+            if (user == null || !user.Success)
+            {
+                TempData["error"] = user?.Message ?? "U shfaq një gabim gjat largimit të përdoruesit";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                TempData["success"] = "Përdoruesi u largua me sukses";
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                HttpContext.Session.Remove(SD.SessionToken);
+                return RedirectToAction("Login", "Auth");
             }
         }
     }

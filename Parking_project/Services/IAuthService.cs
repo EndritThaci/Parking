@@ -11,7 +11,7 @@ namespace Parking_project.Services
 
         Task<string> ChangePassword(Useri user, string OldPassword, string NewPassword);
 
-        Task<bool> IsEmailExistsAsync(string email);
+        Task<bool> UsernameExistsAsync(string email);
 
         string GenerateToken(Useri user);
     }

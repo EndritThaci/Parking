@@ -30,9 +30,9 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<UserReadDTO>.BadRequest("Data is required"));
                 }
 
-                if (await _authService.IsEmailExistsAsync(userDTO.Email))
+                if (await _authService.UsernameExistsAsync(userDTO.Username))
                 {
-                    return Conflict(ApiResponse<UserReadDTO>.Conflict("Email already exists"));
+                    return Conflict(ApiResponse<UserReadDTO>.Conflict("Username already exists"));
                 }
 
                 var user = await _authService.RegisterAsync(userDTO, "Customer");
@@ -66,9 +66,9 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<UserReadDTO>.BadRequest("Data is required"));
                 }
 
-                if (await _authService.IsEmailExistsAsync(userDTO.Email))
+                if (await _authService.UsernameExistsAsync(userDTO.Username))
                 {
-                    return Conflict(ApiResponse<UserReadDTO>.Conflict("Email already exists"));
+                    return Conflict(ApiResponse<UserReadDTO>.Conflict("Username already exists"));
                 }
 
                 if (userDTO.UserOrgs != null && userDTO.UserOrgs.Count > 1)
@@ -107,9 +107,9 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<UserReadDTO>.BadRequest("Data is required"));
                 }
 
-                if (await _authService.IsEmailExistsAsync(userDTO.Email))
+                if (await _authService.UsernameExistsAsync(userDTO.Username))
                 {
-                    return Conflict(ApiResponse<UserReadDTO>.Conflict("Email already exists"));
+                    return Conflict(ApiResponse<UserReadDTO>.Conflict("Username already exists"));
                 }
 
                 if (userDTO.UserOrgs != null && userDTO.UserOrgs.Count > 1)
@@ -148,9 +148,9 @@ namespace Parking_project.Controllers
                     return BadRequest(ApiResponse<UserReadDTO>.BadRequest("Data is required"));
                 }
 
-                if (await _authService.IsEmailExistsAsync(userDTO.Email))
+                if (await _authService.UsernameExistsAsync(userDTO.Username))
                 {
-                    return Conflict(ApiResponse<UserReadDTO>.Conflict("Email already exists"));
+                    return Conflict(ApiResponse<UserReadDTO>.Conflict("Username already exists"));
                 }
 
                 if (userDTO.UserOrgs != null && userDTO.UserOrgs.Count > 1)
@@ -221,9 +221,9 @@ namespace Parking_project.Controllers
         //            return BadRequest(ApiResponse<UserReadDTO>.BadRequest("Data is required"));
         //        }
 
-        //        if (await _authService.IsEmailExistsAsync(userDTO.Email))
+        //        if (await _authService.UsernameExistsAsync(userDTO.Username))
         //        {
-        //            return Conflict(ApiResponse<UserReadDTO>.Conflict("Email already exists"));
+        //            return Conflict(ApiResponse<UserReadDTO>.Conflict("Username already exists"));
         //        }
 
         //        var user = await _authService.RegisterAsync(userDTO, "Super Admin");

@@ -2,18 +2,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Parking_project.Data;
 
 #nullable disable
 
-namespace Parking_project.Migrations.PostgreSql
+namespace Parking_project.Migrations.SqlServer
 {
-    [DbContext(typeof(PostgreSqlDbContext))]
-    [Migration("20260911092223_InitialCreatePostgreSQL")]
-    partial class InitialCreatePostgreSQL
+    [DbContext(typeof(SqlServerDbContext))]
+    [Migration("20260929085517_Email_Swaped_For_Username")]
+    partial class Email_Swaped_For_Username
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,33 +21,33 @@ namespace Parking_project.Migrations.PostgreSql
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "10.0.12")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("Parking_project.Models.CilsimetParkimit", b =>
                 {
                     b.Property<int>("CilsimetiId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CilsimetiId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CilsimetiId"));
 
                     b.Property<string>("Emri")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("NjesiteId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<bool>("Selected")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<int>("SherbimiId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<bool>("active")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.HasKey("CilsimetiId");
 
@@ -62,34 +62,34 @@ namespace Parking_project.Migrations.PostgreSql
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Brand")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ExpMonth")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int>("ExpYear")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("Last4")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StripeCustomerId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StripePaymentMethodId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -100,24 +100,24 @@ namespace Parking_project.Migrations.PostgreSql
                 {
                     b.Property<int>("DetajetId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DetajetId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DetajetId"));
 
                     b.Property<int>("CilsimetiId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Cmimi")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("FromHour")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int?>("ToHour")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<bool>("active")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.HasKey("DetajetId");
 
@@ -130,33 +130,36 @@ namespace Parking_project.Migrations.PostgreSql
                 {
                     b.Property<int>("NjesiteId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("NjesiteId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NjesiteId"));
 
                     b.Property<string>("Adresa")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("BiznesId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("Emri")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Kodi")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("QRScanner")
+                        .HasColumnType("bit");
 
                     b.Property<int>("VendeTeLira")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<bool>("active")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.HasKey("NjesiteId");
 
@@ -169,61 +172,58 @@ namespace Parking_project.Migrations.PostgreSql
                 {
                     b.Property<int>("BiznesId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("BiznesId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BiznesId"));
 
                     b.Property<string>("Adresa")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("AllowCustomers")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("DataRegjistrimit")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime2");
 
-                    b.Property<string>("Username")
+                    b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("EmriBiznesit")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Komuna")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("NumriBiznesit")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("NumriFiskal")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("NumriPunetoreve")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("NumriUnikIdentifikues")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<bool>("QRScanner")
-                        .HasColumnType("boolean");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Telefoni")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.HasKey("BiznesId");
 
@@ -234,12 +234,12 @@ namespace Parking_project.Migrations.PostgreSql
                 {
                     b.Property<int>("SherbimiId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SherbimiId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SherbimiId"));
 
                     b.Property<int>("BiznesId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Cmimi")
                         .HasColumnType("decimal(10,2)");
@@ -247,10 +247,10 @@ namespace Parking_project.Migrations.PostgreSql
                     b.Property<string>("Emri")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("active")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.HasKey("SherbimiId");
 
@@ -262,10 +262,10 @@ namespace Parking_project.Migrations.PostgreSql
             modelBuilder.Entity("Parking_project.Models.TransaksionDetaj", b =>
                 {
                     b.Property<int>("TransaksionId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int>("SherbimiId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Cmimi")
                         .HasColumnType("decimal(18,2)");
@@ -281,33 +281,33 @@ namespace Parking_project.Migrations.PostgreSql
                 {
                     b.Property<int>("TransaksioniId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TransaksioniId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransaksioniId"));
 
                     b.Property<int>("CilsimiId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("Identifikues")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime?>("KohaDaljes")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("KohaHyrjes")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("NjesiaId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("Statusi")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("TransaksioniId");
 
@@ -323,13 +323,13 @@ namespace Parking_project.Migrations.PostgreSql
             modelBuilder.Entity("Parking_project.Models.UserOrg", b =>
                 {
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int>("BiznesId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int?>("NjesiaId")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("UserId", "BiznesId");
 
@@ -344,37 +344,37 @@ namespace Parking_project.Migrations.PostgreSql
                 {
                     b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserId"));
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
                     b.Property<string>("Emri")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Mbiemri")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Passwordi")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<bool>("active")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.HasKey("UserId");
 

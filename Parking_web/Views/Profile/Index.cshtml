@@ -115,10 +115,10 @@
                             <input type="text" name="Mbiemri" class="form-control bg-light border-0" value="@Model.Mbiemri">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small text-muted">Adresa Email</label>
+                            <label class="form-label small text-muted">Username</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-envelope"></i></span>
-                                <input type="text" class="form-control bg-light border-0" value="@Model.Email" readonly>
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control bg-light border-0" value="@Model.Username" readonly>
                             </div>
                         </div>
                         <div id="passwordBtnSection" class="col-6 mt-4">
@@ -260,6 +260,33 @@
                 </div>
         
             }
+
+            <div class="card border-danger border-opacity-25 shadow-sm rounded-4 p-4 mb-4 bg-danger bg-opacity-10">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div>
+                        <h5 class="fw-bold text-danger mb-1">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Fshi Llogarinë
+                        </h5>
+                        <p class="text-muted small mb-0">
+                            Llogaria juaj do të fshihet përgjithmonë bashkë me të gjitha të dhënat. Ky veprim nuk mund të kthehet mbrapa.
+                        </p>
+                    </div>
+
+                    <form id="deleteAccountForm"
+                          asp-controller="Profile"
+                          asp-action="RemoveAccount"
+                          method="post"
+                          class="m-0">
+                        @Html.AntiForgeryToken()
+
+                        <button type="button"
+                                class="btn btn-danger btn-sm rounded-pill px-4 py-2 fw-bold shadow-sm"
+                                onclick="confirmDelete(null, 'Fshij llogarinë?', 'A jeni i sigurt që dëshironi ta fshini llogarinë tuaj përgjithmonë?', 'deleteAccountForm')">
+                            <i class="bi bi-trash me-1"></i> Fshi Llogarinë
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -313,29 +340,32 @@
 
 <script src="https://js.stripe.com/v3/"></script>
 
-<script>
-    const stripe = Stripe("pk_test_51T6URw2KyY4CWYf6n7QDoHhRq749SJuvwzfzSNLLLcMqyF0MiDccEVCq9jXFx46Jb3I11KqEvBIWNCpnkhWfKmPN002onMdS88");
-    const elements = stripe.elements();
+@if (User.IsInRole("Customer"))
+{
+    <script>
+        const stripe = Stripe("pk_test_51T6URw2KyY4CWYf6n7QDoHhRq749SJuvwzfzSNLLLcMqyF0MiDccEVCq9jXFx46Jb3I11KqEvBIWNCpnkhWfKmPN002onMdS88");
+        const elements = stripe.elements();
 
-    const card = elements.create("card");
-    card.mount("#card-element");
+        const card = elements.create("card");
+        card.mount("#card-element");
 
-    const form = document.getElementById("stripe-form");
+        const form = document.getElementById("stripe-form");
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
 
-        const { paymentMethod, error } = await stripe.createPaymentMethod({
-            type: "card",
-            card: card
+            const { paymentMethod, error } = await stripe.createPaymentMethod({
+                type: "card",
+                card: card
+            });
+
+            if (error) {
+                document.getElementById("card-errors").textContent = error.message;
+                return;
+            }
+
+            document.getElementById("paymentMethodId").value = paymentMethod.id;
+            form.submit();
         });
-
-        if (error) {
-            document.getElementById("card-errors").textContent = error.message;
-            return;
-        }
-
-        document.getElementById("paymentMethodId").value = paymentMethod.id;
-        form.submit();
-    });
-</script>
+    </script>
+}

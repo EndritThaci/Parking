@@ -77,7 +77,7 @@
                                     </td>
                                     @if (!User.IsInRole("Customer"))
                                     {
-                                        <td class="d-none d-md-table-cell">@t.Useri?.Emri @t.Useri?.Mbiemri</td>
+                                        <td class="d-none d-md-table-cell text-truncate" style="max-width: 150px;" title="@t.Useri?.Username">@t.Useri?.Username</td>
                                     }
                                     <td class="small">@entryTime.ToString("dd/MM/yy HH:mm")</td>
                                     <td class="d-none small d-lg-table-cell">@(exitTime.HasValue ? exitTime.Value.ToString("dd/MM/yy HH:mm") : "--:--")</td>

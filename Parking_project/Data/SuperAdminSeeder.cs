@@ -5,15 +5,15 @@ public static class SuperAdminSeeder
 {
     public static async Task SeedAsync(IAuthService authService)
     {
-        string email = "superadmin@gmail.com";
+        string username = "superadmin";
 
-        var exists = await authService.IsEmailExistsAsync(email);
+        var exists = await authService.UsernameExistsAsync(username);
         if (exists)
             return;
 
         var superAdmin = new UserCreateDTO
         {
-            Email = email,
+            Username = username,
             Passwordi = "super1234",
             Emri = "Super",
             Mbiemri = "Admin"

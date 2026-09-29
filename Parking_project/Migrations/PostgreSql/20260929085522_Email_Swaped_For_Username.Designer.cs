@@ -12,8 +12,8 @@ using Parking_project.Data;
 namespace Parking_project.Migrations.PostgreSql
 {
     [DbContext(typeof(PostgreSqlDbContext))]
-    [Migration("20260911092223_InitialCreatePostgreSQL")]
-    partial class InitialCreatePostgreSQL
+    [Migration("20260929085522_Email_Swaped_For_Username")]
+    partial class Email_Swaped_For_Username
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -152,6 +152,9 @@ namespace Parking_project.Migrations.PostgreSql
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<bool>("QRScanner")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("VendeTeLira")
                         .HasColumnType("integer");
 
@@ -184,7 +187,7 @@ namespace Parking_project.Migrations.PostgreSql
                     b.Property<DateTime>("DataRegjistrimit")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Username")
+                    b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
@@ -216,9 +219,6 @@ namespace Parking_project.Migrations.PostgreSql
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<bool>("QRScanner")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Telefoni")
                         .IsRequired()
@@ -348,11 +348,6 @@ namespace Parking_project.Migrations.PostgreSql
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserId"));
 
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
                     b.Property<string>("Emri")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -372,6 +367,11 @@ namespace Parking_project.Migrations.PostgreSql
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<bool>("active")
                         .HasColumnType("boolean");

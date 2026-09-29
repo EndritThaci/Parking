@@ -18,9 +18,8 @@ namespace Parking_project.Models
         public string Mbiemri { get; set; }
 
         [Required]
-        [EmailAddress]
         [StringLength(150)]
-        public string Email { get; set; }
+        public string Username { get; set; }
 
         [Required]
         [StringLength(255)]

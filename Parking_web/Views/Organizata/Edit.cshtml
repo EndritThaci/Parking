@@ -15,14 +15,12 @@
                     <form method="post">
                         <input type="hidden" asp-for="BiznesId" />
 
-                        <!-- Emri Biznesit -->
                         <div class="mb-3">
                             <label asp-for="EmriBiznesit" class="form-label fw-semibold">Emri i Biznesit</label>
                             <input asp-for="EmriBiznesit" class="form-control" placeholder="Shkruani emrin e biznesit" />
                             <span asp-validation-for="EmriBiznesit" class="text-danger small"></span>
                         </div>
 
-                        <!-- Numri Unik & Numri Biznesit -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="NumriUnikIdentifikues" class="form-label fw-semibold">NUI (Numri Unik)</label>

@@ -60,14 +60,14 @@
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Email" class="form-label text-secondary fw-semibold small">Adresa e Email-it</label>
-                    <div class="input-group" onclick="document.getElementById('emailInput').focus();">
+                    <label asp-for="Username" class="form-label text-secondary fw-semibold small">Username</label>
+                    <div class="input-group" onclick="document.getElementById('usernameInput').focus();">
                         <span class="input-group-text custom-addon">
-                            <i class="bi bi-envelope text-primary"></i>
+                            <i class="bi bi-person-fill text-primary"></i>
                         </span>
-                        <input asp-for="Email" id="emailInput" class="form-control custom-input last-input" placeholder="emri@shembull.com" autocomplete="email" />
+                        <input asp-for="Username" id="usernameInput" class="form-control custom-input last-input" placeholder="Username" autocomplete="username" />
                     </div>
-                    <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
+                    <span asp-validation-for="Username" class="text-danger small mt-1 d-block"></span>
                 </div>
 
                 <div class="mb-4">
