@@ -6,6 +6,7 @@
         public int PageSize { get; set; }
         public int TotalPages { get; set; }
         public int TotalRecords { get; set; }
+        public int? TotalRecordsWithoutFilters { get; set; } = null;
         public decimal TotalAmount { get; set; }
         public decimal MonthlyAmount { get; set; }
         public decimal YearlyAmount { get; set; }

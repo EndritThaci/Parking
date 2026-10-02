@@ -54,7 +54,7 @@ namespace Parking_web.Controllers
         [Authorize]
         public async Task<IActionResult> GetLibriCustom()
         {
-            if (User.IsInRole("Super Admin") && string.IsNullOrEmpty(User.FindFirst("BiznesId")?.Value))
+            if (User.IsInRole("Super Admin") && User.FindFirst("BiznesId")?.Value == "0")
             {
                 TempData["error"] = "Zgjedh një organizatë";
                 return RedirectToAction("Index", "Organizata");

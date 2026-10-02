@@ -259,6 +259,12 @@ namespace Parking_project.Controllers
                 user.Emri = dto.Emri;
                 user.Mbiemri = dto.Mbiemri;
 
+                var existsUsername = await _db.Useri.Where(u => u.Username.ToLower() == dto.Username.ToLower() && u.UserId != dto.UserId).AnyAsync();
+                if (existsUsername || string.IsNullOrEmpty(dto.Username))
+                    return BadRequest(ApiResponse<UserUpdateDTO>.BadRequest("Username is taken"));
+
+                user.Username = dto.Username;
+
                 if (dto.UserOrgs != null)
                 {
                     var biznesIds = dto.UserOrgs

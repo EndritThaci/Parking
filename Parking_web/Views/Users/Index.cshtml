@@ -35,8 +35,27 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="d-lg-none mb-3">
+        <button class="btn btn-outline-primary rounded-pill w-100 d-flex align-items-center justify-content-center gap-2"
+                type="button"
+                id="toggleFilterBtn"
+                data-bs-toggle="collapse"
+                data-bs-target="#filterCollapse"
+                aria-expanded="false"
+                aria-controls="filterCollapse">
+            <i class="bi bi-funnel"></i>
+            <span>Shfaq Filtrat</span>
+        </button>
+    </div>
+
+    <div class="collapse d-lg-block card border-0 shadow-sm rounded-4 mb-4 position-relative" id="filterCollapse">
         <div class="card-body p-4">
+            <button type="button" 
+                    class="btn-close position-absolute top-0 end-0 m-3 d-lg-none" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#filterCollapse" 
+                    aria-label="Mbyll"></button>
+
             <form asp-controller="Users" asp-action="Index" method="get">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-6 col-lg-5">
@@ -84,7 +103,7 @@
                             Për faqe
                         </label>
 
-                        <select name="pageSize"  class="form-select">
+                        <select name="pageSize" class="form-select">
                             <option value="10" selected="@(pageSize == 10)">
                                 10
                             </option>
@@ -99,7 +118,7 @@
 
                     <div class="col-md-12 col-lg-2">
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary rounded-pill px-4 flex-grow-1">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 flex-grow-1 text-nowrap">
                                 <i class="bi bi-funnel me-1"></i>
                                 Filtro
                             </button>
@@ -108,7 +127,6 @@
                                asp-action="Index"
                                class="btn btn-outline-secondary rounded-pill"
                                title="Pastro filtrat">
-
                                 <i class="bi bi-x-lg"></i>
                             </a>
                         </div>
@@ -696,6 +714,20 @@
             activeUserMenu.remove();
             activeUserMenu = null;
             activeUserButton = null;
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const filterCollapse = document.getElementById("filterCollapse");
+        const toggleBtn = document.getElementById("toggleFilterBtn");
+
+        if (filterCollapse && toggleBtn) {
+            filterCollapse.addEventListener("show.bs.collapse", function () {
+                toggleBtn.classList.add("d-none");
+            });
+            filterCollapse.addEventListener("hide.bs.collapse", function () {
+                toggleBtn.classList.remove("d-none");
+            });
         }
     });
 </script>

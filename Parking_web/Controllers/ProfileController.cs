@@ -94,6 +94,16 @@ namespace Parking_web.Controllers
                 var response = await _userService.UpdateAsync<ApiResponse<Useri>>(dto);
                 if (response != null && response.Success)
                 {
+                    var identity = User.Identity as ClaimsIdentity;
+                    if (identity != null && !string.IsNullOrWhiteSpace(dto.Username))
+                    {
+                        var nameClaim = identity.FindFirst(ClaimTypes.Name);
+                        if (nameClaim != null) identity.RemoveClaim(nameClaim);
+
+                        identity.AddClaim(new Claim(ClaimTypes.Name, dto.Username));
+                    }
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity!));
+
                     TempData["success"] = "Të dhënat u përmirësuan me sukses";
                     return RedirectToAction("Index");
                 }

@@ -63,7 +63,7 @@ namespace Parking_web.Controllers
             var jwt = handler.ReadJwtToken(model.Token);
 
             var identety = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-            identety.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value ?? string.Empty));
+            identety.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(c => c.Type == "Username")?.Value ?? string.Empty));
             identety.AddClaim(new Claim(ClaimTypes.NameIdentifier, jwt.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value ?? string.Empty));
             identety.AddClaim(new Claim("Emri", jwt.Claims.FirstOrDefault(c => c.Type == "emri")?.Value ?? string.Empty));
             identety.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(c => c.Type == "role")?.Value ?? string.Empty));

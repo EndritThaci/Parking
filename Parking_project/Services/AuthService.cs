@@ -139,8 +139,8 @@ namespace Parking_project.Services
             {
                 Subject = new ClaimsIdentity(new[] {
                     new Claim(ClaimTypes.NameIdentifier, useri.UserId.ToString()),
-                    new Claim(ClaimTypes.Email, useri.Username),
-                    new Claim(ClaimTypes.Name, useri.Emri),
+                    new Claim("Username", useri.Username),
+                    new Claim("emri", useri.Emri),
                     new Claim(ClaimTypes.Role, useri.Role),
                     new Claim("BiznesId", singleOrg?.BiznesId.ToString() ?? "0"),
                     new Claim("NjesiaId", singleOrg?.NjesiaId.ToString() ?? "0"),

@@ -14,6 +14,10 @@ namespace Parking_web.Models.DTO
         [Required]
         [StringLength(100)]
         public string Mbiemri { get; set; }
+        
+        [Required]
+        [StringLength(150)]
+        public string Username { get; set; }
 
         public List<UserOrgCreateDto>? UserOrgs { get; set; }
     }

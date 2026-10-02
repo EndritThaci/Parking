@@ -243,6 +243,7 @@ namespace Parking_project.Controllers
                 if (!string.IsNullOrEmpty(status))
                 {
                     query = query.Where(t => t.Statusi.ToLower().Contains(status.ToLower().Trim()));
+
                 }
                 if (!string.IsNullOrEmpty(search))
                 {
@@ -253,6 +254,9 @@ namespace Parking_project.Controllers
                         t.User.Mbiemri.ToLower().Contains(searchVal) ||
                         t.User.Username.ToLower().Contains(searchVal));
                 }
+                
+                var totalRecordsByStatus = await _db.TransaksionParkimi
+                    .CountAsync(t => t.Cilsimet.NjesiteId == njesiaId && (string.IsNullOrWhiteSpace(status) || t.Statusi.ToLower().Contains(status.Trim().ToLower())));
 
                 var totalRecords = await query.CountAsync();
                 if (totalRecords == 0)
@@ -263,6 +267,7 @@ namespace Parking_project.Controllers
                         PageSize = pageSize,
                         TotalPages = 0,
                         TotalRecords = totalRecords,
+                        TotalRecordsWithoutFilters = totalRecordsByStatus,
                         TotalAmount = 0,
                         MonthlyAmount = 0,
                         YearlyAmount = 0,
@@ -326,6 +331,7 @@ namespace Parking_project.Controllers
                     PageSize = pageSize,
                     TotalPages = totalPages,
                     TotalRecords = totalRecords,
+                    TotalRecordsWithoutFilters = totalRecordsByStatus,
                     TotalAmount = totalTransactionsToday,
                     MonthlyAmount = 0,
                     YearlyAmount = 0,

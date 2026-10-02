@@ -58,8 +58,8 @@
                                     <h6 class="mb-0 fw-bold text-secondary">Detajet e Çmimeve për Orë</h6>
                                     <small class="text-muted">Caktoni tarifat sipas orëve (nga ora - tek ora)</small>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-success rounded-pill px-3" id="btnAddDetail">
-                                    <i class="bi bi-plus-lg me-1"></i> Shto Tarifë
+                                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 text-nowrap" id="btnAddDetail">
+                                    <i class="bi bi-plus-lg me-1"></i> Shto
                                 </button>
                             </div>
 
@@ -69,12 +69,15 @@
                                         <tr>
                                             <th>Prej</th>
                                             <th>Deri
-                                                <i class="bi bi-info-circle text-primary ms-1"
+                                                <i class="bi bi-info-circle text-primary ms-1 d-none d-sm-inline"
                                                    data-bs-toggle="tooltip"
                                                    data-bs-placement="top"
                                                    title="Nëse lihet bosh, nënkupton pa kufi kohor (pakufi)."></i>
                                             </th>
-                                            <th>Çmimi (€)</th>
+                                            <th>
+                                                <span class="d-none d-sm-inline">Çmimi për orë (€)</span>
+                                                <span class="d-sm-none">Çmimi(€)</span>
+                                            </th>
                                             <th class="text-center" style="width: 70px;">Veprim</th>
                                         </tr>
                                     </thead>

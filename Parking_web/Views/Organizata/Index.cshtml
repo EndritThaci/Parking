@@ -46,6 +46,32 @@
             color: #0a58ca;
         }
 
+    .org-dropdown-menu {
+        display: none;
+        position: fixed !important;
+        z-index: 999999999 !important;
+        min-width: 180px;
+        padding: .5rem 0;
+        margin: 0;
+        background: #fff;
+        border-radius: .75rem;
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
+        list-style: none;
+    }
+
+        .org-dropdown-menu.show {
+            display: block;
+        }
+
+        .org-dropdown-menu .dropdown-item {
+            padding: .6rem 1rem;
+            white-space: nowrap;
+        }
+
+            .org-dropdown-menu .dropdown-item:hover {
+                background-color: #f8f9fa;
+            }
+
     .pagination .page-link {
         border: none;
         margin: 0 2px;
@@ -119,7 +145,7 @@
                             <span class="input-group-text bg-light border-end-0 text-muted">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" name="Search" value="@currentSearch" class="form-control bg-light border-start-0" placeholder="Kërko sipas emrit apo lokacionit..." />
+                            <input type="text" name="Search" value="@currentSearch" class="form-control bg-light border-start-0" placeholder="Kërko..." />
                             @if (!string.IsNullOrEmpty(currentSearch))
                             {
                                 <a asp-controller="Organizata" asp-action="Index" class="btn btn-white border-0 text-muted d-flex align-items-center">
@@ -206,10 +232,10 @@
                                         </div>
 
                                         <div class="dropdown d-lg-none">
-                                            <button class="btn btn-sm btn-light border-0 px-2 text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Më shumë veprime">
+                                            <button class="btn btn-sm btn-light border-0 px-2 text-muted org-actions-btn" type="button" onclick="toggleOrgMenu(this)" aria-label="Më shumë veprime">
                                                 <i class="bi bi-three-dots-vertical fs-6"></i>
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                            <ul class="org-dropdown-menu shadow-sm">
                                                 <li>
                                                     @if (ViewBag.OrgId != null && ViewBag.OrgId == org.BiznesId)
                                                     {
@@ -391,5 +417,93 @@
             urlParams.set('page', '1');
             window.location.search = urlParams.toString();
         }
+
+        let activeOrgMenu = null;
+        let activeOrgButton = null;
+
+        function toggleOrgMenu(button) {
+            if (activeOrgButton === button) {
+                if (activeOrgMenu) {
+                    activeOrgMenu.remove();
+                }
+
+                activeOrgMenu = null;
+                activeOrgButton = null;
+                return;
+            }
+            var pastActive = activeOrgMenu;
+            if (activeOrgMenu) {
+                activeOrgMenu.remove();
+                activeOrgMenu = null;
+            }
+
+            activeOrgButton = button;
+            const originalMenu = button.parentElement.querySelector(".org-dropdown-menu");
+
+            if (!originalMenu) return;
+
+            const menu = originalMenu.cloneNode(true);
+
+            document.body.appendChild(menu);
+
+            const rect = button.getBoundingClientRect();
+
+            menu.style.display = "block";
+
+            // Position relative to the button
+            let top = rect.bottom + 6;
+            let left = rect.right - menu.offsetWidth;
+
+            // Don't allow it to go outside the right side
+            if (left + menu.offsetWidth > window.innerWidth - 10) {
+                left = window.innerWidth - menu.offsetWidth - 10;
+            }
+
+            // Don't allow it to go outside the left side
+            if (left < 10) {
+                left = 10;
+            }
+
+            // If there isn't enough space below, open above
+            if (top + menu.offsetHeight > window.innerHeight - 10) {
+                top = rect.top - menu.offsetHeight - 6;
+            }
+
+            // Don't allow it to go above the screen
+            if (top < 10) {
+                top = 10;
+            }
+
+            menu.style.left = `${left}px`;
+            menu.style.top = `${top}px`;
+
+            menu.classList.add("show");
+
+            activeOrgMenu = menu;
+        }
+
+        document.addEventListener("click", function (event) {
+            if (activeOrgMenu && !event.target.closest(".org-actions-btn") && !event.target.closest(".org-dropdown-menu")) {
+                activeOrgMenu.remove();
+                activeOrgMenu = null;
+                activeOrgButton = null;
+            }
+        });
+
+        window.addEventListener("scroll", function () {
+            if (activeOrgMenu) {
+                activeOrgMenu.remove();
+                activeOrgMenu = null;
+                activeOrgButton = null;
+            }
+        }, true);
+
+        window.addEventListener("resize", function () {
+            if (activeOrgMenu) {
+                activeOrgMenu.remove();
+                activeOrgMenu = null;
+                activeOrgButton = null;
+            }
+        });
     </script>
 }
