@@ -48,6 +48,42 @@ namespace Parking_project.Controllers
             }
         }
 
+        [HttpPost("Njesi")]
+        [ProducesResponseType(typeof(ApiResponse<UserOrg>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<UserOrg>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<UserOrg>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<UserOrg>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<UserOrg>>> CreateUserOrgByNjesia(int userId, int njesiaId)
+        {
+            try
+            {
+                if (userId <= 0 || njesiaId <= 0)
+                    return BadRequest(ApiResponse<UserOrg>.BadRequest("Invalid ID"));
+
+                var njesia = await _db.NjesiOrg.FindAsync(njesiaId);
+                if(njesia == null)
+                    return NotFound(ApiResponse<UserOrg>.NotFound("Njesi not found"));
+
+                var user = await _db.UserOrg.Where(u => u.UserId == userId && u.BiznesId == njesia.BiznesId).FirstOrDefaultAsync();
+                if (user != null)
+                    return Ok(ApiResponse<UserOrg>.Ok(user, "UserOrg already exists"));
+
+                var newUserOrg = new UserOrg
+                {
+                    UserId = userId,
+                    BiznesId = njesia.BiznesId
+                };
+
+                await _db.UserOrg.AddAsync(newUserOrg);
+                return Ok(ApiResponse<UserOrg>.Ok(newUserOrg, "UserOrg created successfully successfully"));
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<UserOrg>.Error(500, "An Error Occurred while retrieving User", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
+
         [HttpDelete("User/{userId:int}")]
         [Authorize]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]

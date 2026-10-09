@@ -81,8 +81,19 @@ namespace Parking_project.Controllers
                 var totalRecords = await query.CountAsync();
                 var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
 
+                if (userId.HasValue)
+                {
+                    query = query
+                        .OrderByDescending(o => _db.TransaksionParkimi.Count(t => t.Njesia.BiznesId == o.BiznesId && t.UserId == userId.Value))
+                        .ThenByDescending(o => o.BiznesId);
+                }
+                else
+                {
+                    query = query
+                        .OrderByDescending(o => o.BiznesId);
+                }
+
                 var organizata = await query
-                    .OrderByDescending(t => t.BiznesId)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .Select(o => new OrgDTO

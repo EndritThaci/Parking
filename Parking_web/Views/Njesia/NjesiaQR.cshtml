@@ -63,28 +63,54 @@
         }
     }
 
+    @@page {
+        size: A4 portrait;
+        margin: 0;
+    }
+
     @@media print {
-        body {
-            margin: 0;
-            padding: 2cm;
+        html, body {
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            background: #ffffff !important;
         }
             
-            body * {
-                visibility: hidden;
-            }
+        body * {
+            visibility: hidden;
+        }
+
         #qr-to-print, #qr-to-print * {
-            visibility: visible;
-            background-color: white !important;
+            visibility: visible !important;
         }
 
         #qr-to-print {
-            position: absolute;
-            left: 0;
-            top: 1cm;
-            width: 100%;
-            text-align: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85vw !important;
+            max-width: 85vh !important; 
+            height: auto;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
         }
-        .btn, .btn-link, .no-print {
+
+        .qr-image {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            border: 20px solid white !important; 
+        }
+
+        .btn, .btn-link, .no-print, h3, p {
             display: none !important;
         }
     }

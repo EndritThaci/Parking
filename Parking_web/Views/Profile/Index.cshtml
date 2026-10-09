@@ -16,61 +16,64 @@
                     <i class="bi bi-shield-check me-1"></i> @Model.Role
                 </span>
 
-                <hr class="my-4 opacity-50">
+                @if (!User.IsInRole("Customer"))
+                {
+                    <hr class="my-4 opacity-50">
 
-                <div class="text-start">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="icon-shape bg-light rounded-3 me-3">
-                            <i class="bi bi-building text-muted"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted d-block">Biznesi / Organizata</small>
-                            @if (ViewBag.UserOrg != null && ViewBag.UserOrg.Count > 0)
-                            {
-                                foreach (var userOrg in ViewBag.UserOrg)
-                                {
-                                    <span class="fw-semibold d-block">
-                                        @(userOrg.Organizata?.EmriBiznesit ?? "Pa Organizatë")
-                                    </span>
-                                }
-                            }
-                            else
-                            {
-                                <span class="fw-semibold">
-                                    Pa Organizatë
-                                </span>
-                            }
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        
-                        @if (User.IsInRole("Manager") || User.IsInRole("Employee"))
-                        {
+                    <div class="text-start">
+                        <div class="d-flex align-items-center mb-3">
                             <div class="icon-shape bg-light rounded-3 me-3">
-                                <i class="bi bi-geo-alt text-muted"></i>
+                                <i class="bi bi-building text-muted"></i>
                             </div>
                             <div>
-                                <small class="text-muted d-block">Njësia Organizative</small>
-                                 @if (ViewBag.UserOrg != null &&
-                                        ViewBag.UserOrg.Count > 0)
+                                <small class="text-muted d-block">Biznesi / Organizata</small>
+                                @if (ViewBag.UserOrg != null && ViewBag.UserOrg.Count > 0)
                                 {
                                     foreach (var userOrg in ViewBag.UserOrg)
                                     {
                                         <span class="fw-semibold d-block">
-                                            @(userOrg.Njesi?.Emri ?? "Pa Njësi")
+                                            @(userOrg.Organizata?.EmriBiznesit ?? "Pa Organizatë")
                                         </span>
                                     }
                                 }
                                 else
                                 {
                                     <span class="fw-semibold">
-                                        Pa Njësi
+                                        Pa Organizatë
                                     </span>
                                 }
                             </div>
-                        }
+                        </div>
+                        <div class="d-flex align-items-center">
+                        
+                            @if (User.IsInRole("Manager") || User.IsInRole("Employee"))
+                            {
+                                <div class="icon-shape bg-light rounded-3 me-3">
+                                    <i class="bi bi-geo-alt text-muted"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Njësia Organizative</small>
+                                     @if (ViewBag.UserOrg != null &&
+                                            ViewBag.UserOrg.Count > 0)
+                                    {
+                                        foreach (var userOrg in ViewBag.UserOrg)
+                                        {
+                                            <span class="fw-semibold d-block">
+                                                @(userOrg.Njesi?.Emri ?? "Pa Njësi")
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="fw-semibold">
+                                            Pa Njësi
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
                     </div>
-                </div>
+                }
             </div>
             
             @if(User.IsInRole("Manager") || User.IsInRole("Admin") || User.IsInRole("Super Admin"))

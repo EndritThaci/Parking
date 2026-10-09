@@ -8,6 +8,7 @@ using Parking_web.Models.DTO;
 using Parking_web.Services.IServices;
 using QRCoder;
 using System.Diagnostics;
+using System.Drawing;
 using System.Net.NetworkInformation;
 using System.Security.Claims;
 using System.Security.Cryptography.Xml;
@@ -23,9 +24,11 @@ namespace Parking_web.Controllers
         private readonly ICilsimiService _cilsimiService;
         private readonly ISherbimiService _sherbimiService;
         private readonly ICreditCardService _creditCardService;
+        private readonly IUserOrgService _userOrgService;
         private readonly IMapper _mapper;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public HomeController(IOrganizataService organizataService,INjesiaService njesiaService, ITransaksionService transaksioniService, ISherbimiService sherbimiService, ICilsimiService cilsimiService, IMapper mapper, ICreditCardService creditCardService)
+        public HomeController(IOrganizataService organizataService,INjesiaService njesiaService, ITransaksionService transaksioniService, ISherbimiService sherbimiService, ICilsimiService cilsimiService, IMapper mapper, ICreditCardService creditCardService, IUserOrgService userOrgService, IWebHostEnvironment webHostEnvironment)
         {
             _orgService = organizataService;
             _njesiaService = njesiaService;
@@ -34,6 +37,8 @@ namespace Parking_web.Controllers
             _sherbimiService = sherbimiService;
             _mapper = mapper;
             _creditCardService = creditCardService;
+            _userOrgService = userOrgService;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public async Task<IActionResult> Index(string? Search, bool onlyAvailable = false, int page = 1, int pageSize = 9)
@@ -227,6 +232,30 @@ namespace Parking_web.Controllers
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
                 var res = await PayTransactionFunction(id.Value, cardId.Value, qrData.NjesiaID.Value, userId);
+                return new JsonResult(new { success = res.Success, message = res.Message });
+            }
+            else if (qrData.Type == "Njesia" && type == "Random")
+            {
+                if (qrData.NjesiaID == null )
+                {
+                    return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
+                }
+
+                string expectedSignature = GenerateSignature(njesiaId: qrData.NjesiaID);
+                if (qrData.Signature != expectedSignature)
+                {
+                    return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
+                }
+
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+                var resp = await _userOrgService.CreateUserOrgByNjesiAsync<ApiResponse<UserOrg>>(userId, qrData.NjesiaID.Value);
+                if(resp == null || !resp.Success)
+                {
+                    return new JsonResult(new { success = false, message = "Ka ndodhur nje gabim ne lidhjen e perdoruesit me organizaten" });
+                }
+
+                var res = await CreateTransactionFunction(qrData.NjesiaID.Value, userId, null);
                 return new JsonResult(new { success = res.Success, message = res.Message });
             }
             else if (qrData.Type == "Njesia")
@@ -560,11 +589,26 @@ namespace Parking_web.Controllers
                     return View("Index");
                 }
 
-                QRCodeData qrCodeData = qrGenerator.CreateQrCode(encrypted, QRCodeGenerator.ECCLevel.Q);
-                PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
-                byte[] qrCodeAsPngByteArr = qrCode.GetGraphic(20);
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(encrypted, QRCodeGenerator.ECCLevel.H);
+                string logoPath = Path.Combine(_webHostEnvironment.WebRootPath, "Logo", "Logo.png");
+                Bitmap? logoBitmap = null;
+                if (System.IO.File.Exists(logoPath))
+                {
+                    logoBitmap = new Bitmap(logoPath);
+                }
 
-                return File(qrCodeAsPngByteArr, "image/png");
+                using (QRCode qrCode = new QRCode(qrCodeData))
+                {
+                    using (Bitmap qrCodeImage = qrCode.GetGraphic(20, Color.DarkBlue, Color.White, logoBitmap, 20, 6, true))
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            qrCodeImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                            byte[] byteImage = ms.ToArray();
+                            return File(byteImage, "image/png");
+                        }
+                    }
+                }
             }
         }
 
