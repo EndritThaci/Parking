@@ -590,25 +590,42 @@ namespace Parking_web.Controllers
                 }
 
                 QRCodeData qrCodeData = qrGenerator.CreateQrCode(encrypted, QRCodeGenerator.ECCLevel.H);
-                string logoPath = Path.Combine(_webHostEnvironment.WebRootPath, "Logo", "Logo.png");
-                Bitmap? logoBitmap = null;
-                if (System.IO.File.Exists(logoPath))
-                {
-                    logoBitmap = new Bitmap(logoPath);
-                }
+                byte[]? byteImage = null;
 
-                using (QRCode qrCode = new QRCode(qrCodeData))
+                try
                 {
-                    using (Bitmap qrCodeImage = qrCode.GetGraphic(20, Color.DarkBlue, Color.White, logoBitmap, 20, 6, true))
+                    string logoPath = Path.Combine(_webHostEnvironment.WebRootPath ?? "", "Logo", "Logo.png");
+                    Bitmap? logoBitmap = null;
+
+                    if (System.IO.File.Exists(logoPath))
                     {
-                        using (MemoryStream ms = new MemoryStream())
+                        logoBitmap = new Bitmap(logoPath);
+                    }
+
+                    using (QRCode qrCode = new QRCode(qrCodeData))
+                    {
+                        using (Bitmap qrCodeImage = qrCode.GetGraphic(20, Color.DarkBlue, Color.White, logoBitmap, logoBitmap != null ? 20 : 0, 6, true))
                         {
-                            qrCodeImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                            byte[] byteImage = ms.ToArray();
-                            return File(byteImage, "image/png");
+                            using (MemoryStream ms = new MemoryStream())
+                            {
+                                qrCodeImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                                byteImage = ms.ToArray();
+                            }
                         }
                     }
                 }
+                catch (Exception)
+                {
+                    byteImage = null;
+                }
+
+                if (byteImage == null)
+                {
+                    PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
+                    byteImage = qrCode.GetGraphic(20);
+                }
+
+                return File(byteImage, "image/png");
             }
         }
 
