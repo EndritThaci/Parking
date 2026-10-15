@@ -345,6 +345,9 @@ namespace Parking_project.Migrations.PostgreSql
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserId"));
 
+                    b.Property<bool>("AllowNewOrgs")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Emri")
                         .IsRequired()
                         .HasMaxLength(100)

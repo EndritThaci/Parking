@@ -79,6 +79,7 @@ namespace Parking_project.Services
                     Mbiemri = userCreate.Mbiemri,
                     Passwordi = _passwordHasher.HashPassword(null, userCreate.Passwordi),
                     Role = role,
+                    AllowNewOrgs = (role == "Customer"),
                     UserOrgs = new List<UserOrg>()
                 };
 

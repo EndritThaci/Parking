@@ -27,6 +27,15 @@ namespace Parking_web.Services
                 Url = $"{APIEndPoint}/User/{id}",
             });
         }
+
+        public Task<T?> UpdateAllUserOrgsAsync<T>(bool add)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.PUT,
+                Url = $"{APIEndPoint}/All?add={add}",
+            });
+        }
         
         public Task<T?> CreateUserOrgByNjesiAsync<T>(int userId, int njesiaId)
         {

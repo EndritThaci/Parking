@@ -1,6 +1,9 @@
-﻿using Parking_project.Models.DTO;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Parking_project.Data;
+using Parking_project.Models;
+using Parking_project.Models.DTO;
 using Parking_project.Services;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Parking_project.Controllers
 {
@@ -9,9 +12,11 @@ namespace Parking_project.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        public AuthController(IAuthService authService)
+        private readonly AplicationDbContext _db;
+        public AuthController(IAuthService authService, AplicationDbContext db)
         {
             _authService = authService;
+            _db = db;
         }
 
 
@@ -40,6 +45,27 @@ namespace Parking_project.Controllers
                 {
                     return BadRequest(ApiResponse<UserReadDTO>.BadRequest("Registration failed"));
                 }
+
+                var allowedBiznesIds = await _db.Organizata
+                        .Where(o => o.AllowCustomers)
+                        .Select(o => o.BiznesId)
+                        .ToListAsync();
+
+                var newUserOrgs = allowedBiznesIds
+                    .Select(biznesId => new UserOrg
+                    {
+                        UserId = user.UserId,
+                        BiznesId = biznesId,
+                        NjesiaId = null
+                    })
+                    .ToList();
+
+                if (newUserOrgs.Any())
+                {
+                    await _db.UserOrg.AddRangeAsync(newUserOrgs);
+                }
+
+                await _db.SaveChangesAsync();
 
                 var response = ApiResponse<UserReadDTO>.CreatedAt(user, "User created successfully");
                 return CreatedAtAction(nameof(Register), response);

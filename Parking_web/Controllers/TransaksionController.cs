@@ -19,7 +19,7 @@ namespace Parking_web.Controllers
         }
 
         [Authorize(Roles = "Customer, Manager, Admin , Super Admin")]
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, int njesia = -1)
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, int njesia = -1, string? status = null)
         {
             if (User.IsInRole("Super Admin") && User.FindFirst("BiznesId")?.Value == "0")
             {
@@ -32,14 +32,14 @@ namespace Parking_web.Controllers
                 if (User.IsInRole("Manager")) njesia = 0;
 
                 var response = User.IsInRole("Customer") ?
-                    await _transaksionService.GetByUserAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, njesia) :
-                    await _transaksionService.GetAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, njesia);
+                    await _transaksionService.GetByUserAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, njesia, status) :
+                    await _transaksionService.GetAsync<ApiResponse<TransaksionPage>>(pageNumber, pageSize, njesia, status);
 
                 if (response != null && response.Success && response.Data != null)
                 {
                     foreach (var t in response.Data.Data)
                     {
-                        if (t.Statusi == "Pending")
+                        if (t.Statusi != "Completed")
                         {
                             t.Cmimi = null;
                             t.KohaDaljes = null;

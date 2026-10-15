@@ -107,7 +107,8 @@ namespace Parking_web.Controllers
                     if (loginResponse != null && loginResponse.Success && loginResponse.Data != null)
                     {
                         LogInClaims(loginResponse.Data);
-                        return RedirectToAction("UserOrgs", "Profile");
+                        //return RedirectToAction("UserOrgs", "Profile");
+                        return RedirectToAction("Index", "Home");
                     }
 
                     TempData["success"] = "Regjistrimi u be me sukses! Ju lutem shtypni te dhenat tuaja.";

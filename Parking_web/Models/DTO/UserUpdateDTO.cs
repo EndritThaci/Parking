@@ -18,6 +18,7 @@ namespace Parking_web.Models.DTO
         [Required]
         [StringLength(150)]
         public string Username { get; set; }
+        public bool AllowNewOrgs { get; set; }
 
         public List<UserOrgCreateDto>? UserOrgs { get; set; }
     }

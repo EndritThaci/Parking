@@ -86,6 +86,28 @@ namespace Parking_web.Controllers
 
         [Authorize]
         [HttpPost]
+        public async Task<IActionResult> ChangeAllowOrg(bool allowOrg)
+        {
+            try
+            {
+                var response = await _userService.ChangeAllowOrgAsync<ApiResponse<Useri>>(allowOrg);
+                if (response != null && response.Success)
+                {
+                    return new JsonResult (new {success = true, message = "Cilesimi u përmirësua me sukses" });
+                }
+                else
+                {
+                    return new JsonResult(new { success = false, message = "U shfaq një gabim gjat përmirësimit të cilesimit" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { success = false, message = "U shfaq një gabim gjat përmirësimit të cilesimit: " + ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
         public async Task<IActionResult> ChangeName(UserUpdateDTO dto)
         {
             try
@@ -175,6 +197,25 @@ namespace Parking_web.Controllers
             if (response != null && response.Success)
             {
                 TempData["success"] = "Organizatat u përmirësuan me sukses";
+                return RedirectToAction("Index", "Home");
+            }
+            else
+            {
+                TempData["error"] = response?.Message ?? "U shfaq një gabim gjat përmirësimit të të dhënave";
+                return RedirectToAction("UserOrgs");
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Customer")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateAllUserOrgs(bool add)
+        {
+            var response = await _userOrgService.UpdateAllUserOrgsAsync<ApiResponse<UserOrg>>(add);
+            if (response != null && response.Success)
+            {
+                string addStr = add ? "shtuan" : "larguan";
+                TempData["success"] = $"Organizatat u {addStr} me sukses";
                 return RedirectToAction("Index", "Home");
             }
             else

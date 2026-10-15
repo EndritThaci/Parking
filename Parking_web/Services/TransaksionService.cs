@@ -12,22 +12,22 @@ namespace Parking_web.Services
         {
         }
 
-        public Task<T?> CreateAsync<T>(TransaksionetCreateDto dto)
+        public Task<T?> CreateAsync<T>(TransaksionetCreateDto dto, string? Status = null)
         {
             return SendAsync<T>(new ApiRequest
             {
                 ApiType = SD.ApiType.POST,
                 Data = dto,
-                Url = APIEndPoint,
+                Url = $"{APIEndPoint}?Status={Status}",
             });
         }
 
-        public Task<T?> GetAsync<T>(int pageNumber = 1, int pageSize = 10, int njesia = -1)
+        public Task<T?> GetAsync<T>(int pageNumber = 1, int pageSize = 10, int njesia = -1, string? status = null)
         {
             return SendAsync<T>(new ApiRequest
             {
                 ApiType = SD.ApiType.GET,
-                Url = $"{APIEndPoint}?pageNumber={pageNumber}&pageSize={pageSize}&njesiaId={njesia}",
+                Url = $"{APIEndPoint}?pageNumber={pageNumber}&pageSize={pageSize}&njesiaId={njesia}&status={status}",
             });
         }
 
@@ -40,12 +40,12 @@ namespace Parking_web.Services
             });
         }
 
-        public Task<T?> GetByUserAsync<T>(int pageNumber = 1, int pageSize = 10, int njesiaId = 0)
+        public Task<T?> GetByUserAsync<T>(int pageNumber = 1, int pageSize = 10, int njesiaId = 0, string? status = null)
         {
             return SendAsync<T>(new ApiRequest
             {
                 ApiType = SD.ApiType.GET,
-                Url = $"{APIEndPoint}/ByUser?pageNumber={pageNumber}&pageSize={pageSize}&njesiaId={njesiaId}",
+                Url = $"{APIEndPoint}/ByUser?pageNumber={pageNumber}&pageSize={pageSize}&njesiaId={njesiaId}&status={status}",
             });
         }
 
@@ -55,6 +55,15 @@ namespace Parking_web.Services
             {
                 ApiType = SD.ApiType.GET,
                 Url = $"{APIEndPoint}/Pending?userId={userId}&njesiaId={njesiaId}",
+            });
+        }
+
+        public Task<T?> GetReservedAsync<T>(int? userId = null, int? njesiaId = null)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.GET,
+                Url = $"{APIEndPoint}/Reserved?userId={userId}&njesiaId={njesiaId}",
             });
         }
 
@@ -93,6 +102,15 @@ namespace Parking_web.Services
             {
                 ApiType = SD.ApiType.PUT,
                 Url = $"{APIEndPoint}/{id}/Pay?cardId={cardId}",
+            });
+        }
+
+        public Task<T?> EnterAsync<T>(int id)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.PUT,
+                Url = $"{APIEndPoint}/{id}/Enter",
             });
         }
 

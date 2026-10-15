@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Parking_project.Data;
 using Parking_project.Models;
 using Parking_project.Models.DTO;
+using System.Security.Claims;
 
 namespace Parking_project.Controllers
 {
@@ -80,6 +81,77 @@ namespace Parking_project.Controllers
             catch (Exception ex)
             {
                 var errorResponse = ApiResponse<UserOrg>.Error(500, "An Error Occurred while retrieving User", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
+
+        [HttpPut("All")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<UserOrg?>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<UserOrg?>>> UpdateAllUserOrgs(bool add) //if add=true add all orgs else remove all
+        {
+            try
+            {
+                var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!int.TryParse(userIdValue, out int userId))
+                {
+                    return Unauthorized(ApiResponse<object>.Error(401, "Invalid user identity"));
+                }
+
+                var user = await _db.Useri.Include(u => u.UserOrgs).FirstOrDefaultAsync(u => u.UserId == userId && u.active);
+                if (user == null)
+                    return NotFound(ApiResponse<object>.NotFound($"User with ID {userId} not found"));
+
+                var existingUserOrgs = await _db.UserOrg
+                    .Where(uo => uo.UserId == userId)
+                    .ToListAsync();
+
+                if (!add)
+                {
+                    if (existingUserOrgs.Any())
+                    {
+                        _db.UserOrg.RemoveRange(existingUserOrgs);
+                    }
+                }
+                else
+                {
+                    var allowedBiznesIds = await _db.Organizata
+                        .Where(o => o.AllowCustomers)
+                        .Select(o => o.BiznesId)
+                        .ToListAsync();
+
+                    var existingBiznesIds = existingUserOrgs
+                        .Select(uo => uo.BiznesId)
+                        .ToHashSet();
+
+                    var newUserOrgs = allowedBiznesIds
+                        .Where(biznesId => !existingBiznesIds.Contains(biznesId))
+                        .Select(biznesId => new UserOrg
+                        {
+                            UserId = userId,
+                            BiznesId = biznesId,
+                            NjesiaId = null
+                        })
+                        .ToList();
+
+                    if (newUserOrgs.Any())
+                    {
+                        await _db.UserOrg.AddRangeAsync(newUserOrgs);
+                    }
+                }
+
+                await _db.SaveChangesAsync();
+
+                return Ok(ApiResponse<UserOrg?>.Ok(null, "UserOrgs updated successfully"));
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<object>.Error(500, "An Error Occurred while editing userOrgs", ex.Message);
                 return StatusCode(500, errorResponse);
             }
         }

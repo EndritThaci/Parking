@@ -50,6 +50,7 @@ namespace Parking_web.Controllers
                 if (page < 1) page = 1;
                 var response = await _orgService.GetPaginationAsync<ApiResponse<OrgPage>>(Search, userId, onlyAvailable, true, page, pageSize);
                 var pendingResponse = await _transaksioniService.GetPendingAsync<ApiResponse<List<TransaksionRead>>>(userId);
+                var reservedResponse = await _transaksioniService.GetReservedAsync<ApiResponse<List<TransaksionRead>>>(userId);
 
                 if (response != null && response.Success && response.Data != null)
                 {
@@ -58,6 +59,10 @@ namespace Parking_web.Controllers
                 if (pendingResponse != null && pendingResponse.Success && pendingResponse.Data != null && User.IsInRole("Customer"))
                 {
                     ViewBag.PendingTransactions = pendingResponse.Data;
+                }
+                if (reservedResponse != null && reservedResponse.Success && reservedResponse.Data != null && User.IsInRole("Customer"))
+                {
+                    ViewBag.ReservedTransactions = reservedResponse.Data;
                 }
             }
             catch (Exception ex)
@@ -135,10 +140,11 @@ namespace Parking_web.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> EntryQR(int njesiaId, string? identifikues)
+        public async Task<IActionResult> EntryQR(int njesiaId, string? identifikues, int? transaksionId = null)
         {
             ViewBag.UserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             ViewBag.Identifikues = identifikues;
+            ViewBag.TransaksionId = transaksionId;
             return View(njesiaId);
         }
 
@@ -212,6 +218,31 @@ namespace Parking_web.Controllers
                 var res = await CreateTransactionFunction(qrData.NjesiaID.Value, qrData.UserID.Value, qrData.Identifikues);
                 return new JsonResult(new { success = res.Success, message = res.Message });
             }
+            else if (qrData.Type == "QR")
+            {
+                if (qrData.NjesiaID == null || qrData.ID == null)
+                {
+                    return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
+                }
+                if (qrData.NjesiaID != njesiaId)
+                {
+                    return new JsonResult(new { success = false, message = "Ky QR Kod është për njësi tjetër." });
+                }
+
+                string expectedSignature = GenerateSignature(njesiaId: qrData.NjesiaID, id: qrData.ID);
+                if (qrData.Signature != expectedSignature)
+                {
+                    return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
+                }
+
+                var resp = await _transaksioniService.EnterAsync<ApiResponse<TransaksionParkimi>>(qrData.ID.Value);
+                if (resp == null || !resp.Success)
+                {
+                    return new JsonResult(new { success = false, message = "Ka ndodhur nje gabim gjat perpunimit të të dhenave" });
+                }
+
+                return new JsonResult(new { success = true, message = "Hyrja u krye me sukses" });
+            }
             else if (qrData.Type == "Njesia" && type == "Exit")
             {
                 if (qrData.NjesiaID == null )
@@ -257,6 +288,31 @@ namespace Parking_web.Controllers
 
                 var res = await CreateTransactionFunction(qrData.NjesiaID.Value, userId, null);
                 return new JsonResult(new { success = res.Success, message = res.Message });
+            }
+            else if (qrData.Type == "Njesia" && type == "Scan")
+            {
+                if (qrData.NjesiaID == null)
+                {
+                    return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
+                }
+                if (id == null)
+                {
+                    return new JsonResult(new { success = false, message = "Të dhëna të gabuara" });
+                }
+
+                string expectedSignature = GenerateSignature(njesiaId: qrData.NjesiaID);
+                if (qrData.Signature != expectedSignature)
+                {
+                    return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
+                }
+
+                var resp = await _transaksioniService.EnterAsync<ApiResponse<TransaksionParkimi>>(id.Value);
+                if (resp == null || !resp.Success)
+                {
+                    return new JsonResult(new { success = false, message = "Ka ndodhur nje gabim gjat perpunimit të të dhenave" });
+                }
+
+                return new JsonResult(new { success = true, message = "Hyrja u krye me sukses" });
             }
             else if (qrData.Type == "Njesia")
             {
@@ -381,6 +437,47 @@ namespace Parking_web.Controllers
                 return RedirectToAction("Index");
             }
             return RedirectToAction("Employee", new {njesia = njesiaId});
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reservation(int njesiaId, string? identifikues)
+        {
+            TransaksionetCreateDto createDto = new();
+            try
+            {
+                var cilsimiResponse = await _cilsimiService.GetByNjesiAsync<ApiResponse<List<CilsimetReadDto>>>(njesiaId);
+                var cilsimet = cilsimiResponse?.Data;
+                var cilsimiActiv = cilsimet?.FirstOrDefault(c => c.Selected);
+
+                if (cilsimiActiv == null)
+                {
+                    TempData["error"] = "Nuk u gjet asnjë cilësim aktiv për këtë njësi.";
+                    return RedirectToAction("Create", new { njesiaId });
+                }
+
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+                createDto.NjesiaId = njesiaId;
+                createDto.CilsimiId = cilsimiActiv.CilsimetiId;
+                createDto.UserId = userId;
+                createDto.Identifikues = identifikues;
+
+                var response = await _transaksioniService.CreateAsync<ApiResponse<TransaksionetCreateDto>>(createDto, "Reserved");
+                if (response != null && response.Success && response.Data != null)
+                {
+                    TempData["success"] = "Transaksioni u krijua me sukses.";
+                    return RedirectToAction("Index");
+                }
+
+                TempData["error"] = "Ndodhi një gabim gjatë krijimit të transaksionit.";
+                return RedirectToAction("Create", new { njesiaId });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"Gabim: {ex.Message}";
+                return RedirectToAction("Create", new { njesiaId });
+            }
         }
 
         [HttpGet]
@@ -569,6 +666,12 @@ namespace Parking_web.Controllers
                 {
                     string signature = GenerateSignature(njesiaId: njesiaId, userId: userId);
                     var qrData = new QREncrypt { NjesiaID = njesiaId, UserID = userId , Signature = signature, Identifikues = identifikues, Type = "Entry"};
+                    encrypted = Encryption.EncryptQR(qrData);
+                }
+                else if (njesiaId != null && id != null)
+                {
+                    string signature = GenerateSignature(njesiaId: njesiaId, id: id);
+                    var qrData = new QREncrypt { NjesiaID = njesiaId, ID = id , Signature = signature, Identifikues = identifikues, Type = "QR"};
                     encrypted = Encryption.EncryptQR(qrData);
                 }
                 else if (njesiaId != null)

@@ -78,7 +78,7 @@ namespace Parking_project.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<TransaksionPage>>> GetTransaksionin(int pageNumber = 1, int pageSize = 10, int njesiaId = -1)
+        public async Task<ActionResult<ApiResponse<TransaksionPage>>> GetTransaksionin( int pageNumber = 1, int pageSize = 10, int njesiaId = -1, string? status = null)
         {
             try
             {
@@ -99,7 +99,13 @@ namespace Parking_project.Controllers
                     .Include(t => t.User)
                     .Where(t => t.Cilsimet.Sherbimi.BiznesId == orgId);
 
-                var transaksionQuery = _db.TransaksionDetaj.Where(d => d.TransaksionParkimi.Cilsimet.Sherbimi.BiznesId == orgId && d.TransaksionParkimi.Statusi != "Pending");
+                if (!string.IsNullOrEmpty(status))
+                {
+                    query = query.Where(t => t.Statusi.ToLower().Contains(status.ToLower().Trim()));
+
+                }
+
+                var transaksionQuery = _db.TransaksionDetaj.Where(d => d.TransaksionParkimi.Cilsimet.Sherbimi.BiznesId == orgId && d.TransaksionParkimi.Statusi == "Completed");
                 if (njesiaId >= 0)
                 {
                     njesiaId = njesiaId == 0 ? int.Parse(User.FindFirst("NjesiaId")!.Value) : njesiaId;
@@ -355,7 +361,7 @@ namespace Parking_project.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<TransaksionPage>>> GetTransaksioninByUser(int pageNumber = 1, int pageSize = 10, int njesiaId = 0)
+        public async Task<ActionResult<ApiResponse<TransaksionPage>>> GetTransaksioninByUser(int pageNumber = 1, int pageSize = 10, int njesiaId = 0, string? status = null)
         {
             try
             {
@@ -371,7 +377,13 @@ namespace Parking_project.Controllers
                    .Include(t => t.Njesia)
                    .Where(t => t.UserId == userId);
 
-                var transaksionQuery = _db.TransaksionDetaj.AsNoTracking().Where(d => d.TransaksionParkimi.UserId == userId && d.TransaksionParkimi.Statusi != "Pending");
+                if (!string.IsNullOrEmpty(status))
+                {
+                    query = query.Where(t => t.Statusi.ToLower().Contains(status.ToLower().Trim()));
+
+                }
+
+                var transaksionQuery = _db.TransaksionDetaj.AsNoTracking().Where(d => d.TransaksionParkimi.UserId == userId && d.TransaksionParkimi.Statusi == "Completed");
 
                 if (njesiaId > 0)
                 {
@@ -507,22 +519,69 @@ namespace Parking_project.Controllers
                     return NotFound(ApiResponse<object>.NotFound("No transactions found."));
                 }
 
-                var transaksionIds = transaksionet.Select(t => t.TransaksioniId).ToList();
+                var result = transaksionet.Select(t => new TransaksionRead
+                {
+                    TransaksioniId = t.TransaksioniId,
+                    KohaHyrjes = t.KohaHyrjes,
+                    KohaDaljes = t.KohaDaljes,
+                    Cmimi = 0,
+                    Statusi = t.Statusi,
+                    Identifikues = t.Identifikues,
+                    Njesia = t.Njesia,
+                    Cilsimi = t.Cilsimet,
+                    Useri = t.User,
+                    Sherbimi = null,
+                });
 
-                var getSherbimet = await _db.TransaksionDetaj.Where(c => transaksionIds.Contains(c.TransaksionId)).Include(c => c.Sherbimi).ToListAsync();
+                return Ok(ApiResponse<IEnumerable<TransaksionRead>>.Ok(result, "Transactions retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+                return StatusCode(500, ApiResponse<object>.Error(500, "An error occurred while processing the request.", innerMessage));
+            }
+        }
+        
+        [HttpGet]
+        [Authorize]
+        [Route("Reserved")]
+        [ProducesResponseType(typeof(ApiResponse<TransaksionRead>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<IEnumerable<TransaksionRead>>>> GetTransaksionReserved(int? userId, int? njesiaId)
+        {
+            try
+            {
+                int orgId = int.Parse(User.FindFirst("BiznesId")!.Value);
+                var query = _db.TransaksionParkimi.AsNoTracking().Where(t => t.Statusi == "Reserved");
+
+                if(userId != null) query = query.Where(t => t.UserId == userId);
+                if(orgId != 0) query = query.Where(t => t.Njesia.BiznesId == orgId);
+                if(njesiaId != null) query = query.Where(t => t.NjesiaId == njesiaId);
+
+                var transaksionet = await query
+                    .Include(t => t.Cilsimet)
+                    .Include(n => n.Njesia)
+                    .Include(t => t.User)
+                    .ToListAsync();
+
+                if (transaksionet.Count() == 0)
+                {
+                    return NotFound(ApiResponse<object>.NotFound("No transactions found."));
+                }
 
                 var result = transaksionet.Select(t => new TransaksionRead
                 {
                     TransaksioniId = t.TransaksioniId,
                     KohaHyrjes = t.KohaHyrjes,
                     KohaDaljes = t.KohaDaljes,
-                    Cmimi = getSherbimet.Where(i => i.TransaksionId == t.TransaksioniId).Sum(c => c.Cmimi),
+                    Cmimi = 0,
                     Statusi = t.Statusi,
                     Identifikues = t.Identifikues,
                     Njesia = t.Njesia,
                     Cilsimi = t.Cilsimet,
                     Useri = t.User,
-                    Sherbimi = getSherbimet.Where(d => d.TransaksionId == t.TransaksioniId).Select(d => d.Sherbimi).ToList(),
+                    Sherbimi = null,
                 });
 
                 return Ok(ApiResponse<IEnumerable<TransaksionRead>>.Ok(result, "Transactions retrieved successfully"));
@@ -621,7 +680,7 @@ namespace Parking_project.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<TransaksionetCreateDto>>> CreateTransaksion(TransaksionetCreateDto transaksionetCreateDto)
+        public async Task<ActionResult<ApiResponse<TransaksionetCreateDto>>> CreateTransaksion(TransaksionetCreateDto transaksionetCreateDto, string? Status = null)
         {
             try
             {
@@ -644,7 +703,14 @@ namespace Parking_project.Controllers
                 }
 
                 var transaksionet = _mapper.Map<TransaksionParkimi>(transaksionetCreateDto);
-                transaksionet.Statusi = "Pending";
+                if(string.IsNullOrEmpty(Status))
+                {
+                    transaksionet.Statusi = "Pending";
+                }
+                else
+                {
+                    transaksionet.Statusi = Status;
+                }
                 transaksionet.KohaHyrjes = DateTime.UtcNow;
                 transaksionet.KohaDaljes = null;
                 transaksionet.UserId = userId;
@@ -933,6 +999,34 @@ namespace Parking_project.Controllers
             }
         }
 
+        [HttpPut("{id:int}/Enter")]
+        [ProducesResponseType(typeof(ApiResponse<TransaksionParkimi>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<TransaksionParkimi>>> Enter(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(ApiResponse<object>.BadRequest("Invalid ID supplied."));
+            }
+            var findTransaktion = await _db.TransaksionParkimi.Where(t => t.TransaksioniId == id).Include(n => n.Njesia).FirstOrDefaultAsync();
+            if (findTransaktion == null)
+            {
+                return NotFound(ApiResponse<object>.NotFound($"Transaktion with id {id} not found."));
+            }
+            if (findTransaktion.Statusi != "Reserved")
+            {
+                return BadRequest(ApiResponse<object>.BadRequest($"Transaktion with id {id} is not Reserved."));
+            }
+
+            findTransaktion.Statusi = "Pending";
+            findTransaktion.KohaHyrjes = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+            return Ok(ApiResponse<TransaksionParkimi>.Ok(findTransaktion, "Transaksioni has been updated"));
+        }
+
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "Manager, Admin , Super Admin")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -967,13 +1061,17 @@ namespace Parking_project.Controllers
                 _db.TransaksionParkimi.Remove(transaction);
                 await _db.SaveChangesAsync();
 
-                var getNjesia = await _db.NjesiOrg.Where(v => v.NjesiteId == transaction.NjesiaId).FirstOrDefaultAsync();
-                if (getNjesia == null)
+                if(transaction.Statusi != "Cancelled")
                 {
-                    return NotFound(ApiResponse<object>.NotFound("Njesia could not be found"));
+                    var getNjesia = await _db.NjesiOrg.Where(v => v.NjesiteId == transaction.NjesiaId).FirstOrDefaultAsync();
+                    if (getNjesia == null)
+                    {
+                        await dbTransaction.RollbackAsync();
+                        return NotFound(ApiResponse<object>.NotFound("Njesia could not be found"));
+                    }
+                    getNjesia.VendeTeLira++;
+                    await _db.SaveChangesAsync();
                 }
-                getNjesia.VendeTeLira++;
-                await _db.SaveChangesAsync();
 
                 await dbTransaction.CommitAsync();
                 return Ok(ApiResponse<object>.NoContent($"Transaction with ID {id} has been deleted."));

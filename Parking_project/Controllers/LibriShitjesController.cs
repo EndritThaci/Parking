@@ -42,6 +42,7 @@ namespace Parking_project.Controllers
                     .ThenInclude(c => c.Sherbimi)
                 .Include(l => l.Njesia)
                 .Include(t => t.User)
+                .Where(s => s.Statusi == "Completed")
                 .AsQueryable();
 
             if (User.IsInRole("Customer"))

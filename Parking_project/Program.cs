@@ -147,6 +147,7 @@ builder.Services.AddAutoMapper(o =>
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddHostedService<ReservationExpirationService>();
 
 
 var app = builder.Build();

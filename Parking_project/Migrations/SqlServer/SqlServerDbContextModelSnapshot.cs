@@ -345,6 +345,9 @@ namespace Parking_project.Migrations.SqlServer
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
+                    b.Property<bool>("AllowNewOrgs")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Emri")
                         .IsRequired()
                         .HasMaxLength(100)

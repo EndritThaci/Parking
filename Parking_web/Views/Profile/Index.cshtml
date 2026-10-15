@@ -99,6 +99,25 @@
                             <i class="bi bi-gear d-block mb-1 fs-4"></i> Zgjedh Organizatat
                         </a>
                     </div>
+                    <hr class="opacity-25">
+                    <form id="allowOrgForm" asp-controller="Profile" asp-action="ChangeAllowOrg" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="d-flex justify-content-between align-items-center gap-3">
+                            <div>
+                                <label for="allowOrgSwitch" class="fw-semibold mb-1">
+                                    Organizata të reja
+                                </label>
+                                <p class="text-muted small mb-0">
+                                    Lejo shtimin automatik të organizave të reja.
+                                </p>
+                            </div>
+
+                            <div class="form-check form-switch fs-4 mb-0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="allowOrgSwitch" checked="@(Model.AllowNewOrgs ? "checked" : null)" />
+                            </div>
+                        </div>
+                    </form>
                 </div>
             }
         </div>
@@ -371,6 +390,68 @@
 
             document.getElementById("paymentMethodId").value = paymentMethod.id;
             form.submit();
+        });
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggle = document.getElementById("allowOrgSwitch");
+            const form = document.getElementById("allowOrgForm");
+
+            if (!toggle || !form) return;
+
+            toggle.addEventListener("change", async function () {
+                const previousValue = !toggle.checked;
+                const newValue = toggle.checked;
+                const token = form.querySelector( 'input[name="__RequestVerificationToken"]' ).value;
+
+                toggle.disabled = true;
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            "RequestVerificationToken": token
+                        },
+                        body: new URLSearchParams({
+                            allowOrg: String(newValue)
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Sukses",
+                            text: result.message ?? "Cilësimi u përmirësua me sukses.",
+                            timer: 1500,
+                            showConfirmButton: false,
+                            timerProgressBar: true
+                        });
+                    } else {
+                        toggle.checked = previousValue;
+
+                        await Swal.fire({
+                            icon: "error",
+                            title: "Gabim!",
+                            text: result.message ?? "Ndodhi një gabim gjat ruajtjes së ndryshimeve",
+                            confirmButtonText: "Kuptova"
+                        });
+                    }
+                } catch (error) {
+                    toggle.checked = previousValue;
+
+                    await Swal.fire({
+                        icon: "error",
+                        title: "Gabim!",
+                        text: "Ndodhi një gabim gjat ruajtjes së ndryshimeve",
+                        confirmButtonText: "Kuptova"
+                    });
+                } finally {
+                    toggle.disabled = false;
+                }
+            });
         });
     </script>
 }

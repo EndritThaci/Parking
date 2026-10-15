@@ -10,6 +10,7 @@ namespace Parking_web.Services.IServices
         Task<T?> GetUsersPaginationAsync<T>(int? orgId, string? search, string? role, bool active, int page = 1, int pageSize = 10);
         Task<T?> UpdateAsync<T>(UserUpdateDTO dto);
         Task<T?> ChangePasswordAsync<T>(ChangePasswordDTO dto);
+        Task<T?> ChangeAllowOrgAsync<T>(bool allowOrg);
         Task<T?> ActivateSuperAdminAsync<T>(int orgId);
         Task<T?> DeleteAsync<T>(int id);
     }

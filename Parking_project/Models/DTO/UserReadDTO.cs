@@ -7,6 +7,7 @@
         public string Mbiemri { get; set; }
         public string Username { get; set; }
         public string Role { get; set; }
+        public bool AllowNewOrgs { get; set; }
         public List<UserOrgCreateDto>? UserOrgs { get; set; }
     }
 }

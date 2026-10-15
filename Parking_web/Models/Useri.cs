@@ -29,6 +29,7 @@ namespace Parking_web.Models
         [MaxLength(50)]
         public string Role { get; set; } = "Customer";
 
+        public bool AllowNewOrgs { get; set; } = true;
         public bool active { get; set; } = true;
 
         public List<UserOrg> UserOrgs { get; set; } = new();

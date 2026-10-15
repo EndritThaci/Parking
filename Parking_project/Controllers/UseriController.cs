@@ -424,6 +424,33 @@ namespace Parking_project.Controllers
                 return StatusCode(500, errorResponse);
             }
         }
+        
+        [HttpPut("AllowOrg")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<Useri>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<Useri>>> ChangePassword(bool allowOrg)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var user = await _db.Useri.FirstOrDefaultAsync(u => u.UserId == userId);
+                if (user == null)
+                    return NotFound(ApiResponse<Useri>.NotFound($"User with ID {userId} not found"));
+
+                user.AllowNewOrgs = allowOrg;
+
+                await _db.SaveChangesAsync();
+
+                return Ok(ApiResponse<Useri>.Ok(user, "User updated successfully"));
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<Useri>.Error(500, "An Error Occurred while editing user", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
 
         [HttpPut("{orgId:int}/ActivateSuperAdmin")]
         [Authorize(Roles = "Super Admin")]

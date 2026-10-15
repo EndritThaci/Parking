@@ -18,7 +18,8 @@ else if (User.IsInRole("Admin"))
 }
 else
 {
-    var pendingList = (ViewBag.PendingTransactions as List<TransaksionRead>)?.OrderBy(t => t.KohaHyrjes).ToList();
+    var pendingList = (ViewBag.PendingTransactions as List<TransaksionRead>)?.OrderBy(t => t.KohaHyrjes).ToList() ?? new List<TransaksionRead>();
+    var reservedList = (ViewBag.ReservedTransactions as List<TransaksionRead>)?.OrderBy(t => t.KohaHyrjes).ToList() ?? new List<TransaksionRead>();
 
     ViewData["Title"] = "Shtepia";
 
@@ -27,9 +28,9 @@ else
     var totalPages = Model.TotalPages;
 
     <div class="container py-5">
-        @if ((pendingList != null && pendingList.Any()))
+        @if ((pendingList != null && pendingList.Any()) || (reservedList != null && reservedList.Any()))
         {
-            var sum = pendingList.Count;
+            var sum = pendingList.Count + reservedList.Count;
             <div class="mb-5">
                 <div class="d-flex align-items-center mb-3 justify-content-center"
                      style="cursor: pointer;"
@@ -53,6 +54,108 @@ else
                 <div class="collapse show" id="activeTransactions">
                     <div class="row g-3 justify-content-center pt-2">
                         <div class="row g-3 justify-content-center">
+                            @foreach (var item in reservedList)
+                            {
+
+                                <div class="col-md-6 col-lg-4">
+                                    @if (item.Njesia.QRScanner)
+                                    {
+                                        <a asp-controller="Home" asp-action="EntryQR" asp-route-njesiaId="@item.Njesia.NjesiteId" asp-route-transaksioniId="@item.TransaksioniId"
+                                           class="text-decoration-none text-reset d-block h-100">
+
+                                            <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative reserved-card clickable-card">
+                                                <div class="reserved-stripe"></div>
+
+                                                <div class="card-body p-4">
+                                                    <div class="d-flex justify-content-between align-items-start @(item.Identifikues == null ? "mb-3" : "mb-1")">
+                                                        <div>
+                                                            <h6 class="text-muted small text-uppercase fw-bold mb-1">
+                                                                Vendi i Parkimit
+                                                            </h6>
+                                                            <h4 class="fw-black mb-0">@item.Njesia.Emri</h4>
+                                                        </div>
+
+                                                        <span class="badge reserved-badge px-3 rounded-pill">
+                                                            Rezervuar
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="d-flex align-items-center text-muted small @(item.Identifikues == null ? "mb-3" : "")">
+                                                        <i class="bi bi-clock-history me-2"></i>
+                                                        <span>
+                                                            Duhet të paraqiteni para:
+                                                            <strong>@item.KohaHyrjes.ToString("HH:mm")</strong>
+                                                        </span>
+                                                    </div>
+
+                                                    @if (item.Identifikues != null)
+                                                    {
+                                                        <div class="d-flex align-items-center text-muted small mb-2">
+                                                            <span>
+                                                                <i class="bi bi-car-front-fill me-2"></i>
+                                                                Targat e automjetit: @item.Identifikues.ToUpper()
+                                                            </span>
+                                                        </div>
+                                                    }
+
+                                                    <div class="btn w-100 rounded-pill fw-bold py-2 shadow-sm transition-all btn-reserved mt-2">
+                                                        Përzgjidh për Hyrje
+                                                        <i class="bi bi-arrow-right ms-1"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative reserved-card clickable-card" role="button" tabindex="0"
+                                             onclick="openCamera(@item.TransaksioniId)"
+                                             onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openCamera(@item.TransaksioniId); }">
+
+                                            <div class="reserved-stripe"></div>
+
+                                            <div class="card-body p-4">
+                                                <div class="d-flex justify-content-between align-items-start @(item.Identifikues == null ? "mb-3" : "mb-1")">
+                                                    <div>
+                                                        <h6 class="text-muted small text-uppercase fw-bold mb-1">
+                                                            Vendi i Parkimit
+                                                        </h6>
+                                                        <h4 class="fw-black mb-0">@item.Njesia.Emri</h4>
+                                                    </div>
+
+                                                    <span class="badge reserved-badge px-3 rounded-pill">
+                                                        Rezervuar
+                                                    </span>
+                                                </div>
+
+                                                <div class="d-flex align-items-center text-muted small @(item.Identifikues == null ? "mb-3" : "")">
+                                                    <i class="bi bi-clock-history me-2"></i>
+                                                    <span>
+                                                        Duhet të paraqiteni para:
+                                                        <strong>@item.KohaHyrjes.ToString("HH:mm")</strong>
+                                                    </span>
+                                                </div>
+
+                                                @if (item.Identifikues != null)
+                                                {
+                                                    <div class="d-flex align-items-center text-muted small mb-2">
+                                                        <span>
+                                                            <i class="bi bi-car-front-fill me-2"></i>
+                                                            Targat e automjetit: @item.Identifikues.ToUpper()
+                                                        </span>
+                                                    </div>
+                                                }
+
+                                                <div class="btn w-100 rounded-pill fw-bold py-2 shadow-sm transition-all btn-reserved mt-2">
+                                                    Përzgjidh për Hyrje
+                                                    <i class="bi bi-camera ms-1"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+
+                            }
                             @foreach (var item in pendingList)
                             {
                                 <div class="col-md-6 col-lg-4">
@@ -123,7 +226,7 @@ else
                                                name="Search" 
                                                value="@Context.Request.Query["Search"]" 
                                                class="form-control bg-white border-0 fs-6 pe-3 rounded-end-3 shadow-none" 
-                                               placeholder="Kërko organizatë sipas emrit ose vendndodhjes..." 
+                                               placeholder="Kërko organizatë..." 
                                                aria-label="Kërko organizatë" />
 
                                         <button type="button" 
@@ -611,6 +714,62 @@ else
         .njesia-full .text-primary {
             color: #dc3545 !important;
         }
+
+    .clickable-card {
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .clickable-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12) !important;
+        }
+
+        .clickable-card:focus-visible {
+            outline: 3px solid var(--bs-primary);
+            outline-offset: 3px;
+        }
+
+    .reserved-card {
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .reserved-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(253, 126, 20, 0.15) !important;
+        border: 1px solid #fd7e14 !important;
+    }
+
+    .reserved-stripe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: #fd7e14;
+    }
+
+    .reserved-badge {
+        background-color: #fff3cd !important;
+        color: #e65c00 !important;
+        border: 1px solid #ffeeba !important;
+    }
+
+    .btn-reserved {
+        background-color: #fff;
+        color: #fd7e14;
+        border: 1px solid #fd7e14;
+    }
+
+    .btn-reserved:hover {
+        background-color: #fd7e14 !important;
+        border-color: #fd7e14 !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 15px rgba(253, 126, 20, 0.3);
+    }
 </style>
 
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
@@ -808,7 +967,7 @@ else
     let qrScanner = null;
     let qrProcessing = false;
 
-    async function openCamera() {
+    async function openCamera(transaksionId) {
         const modalElement = document.getElementById("cameraModal");
         const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
         modal.show();
@@ -836,13 +995,13 @@ else
                         if (qrProcessing) {
                             return;
                         }
-                            qrProcessing = true;
+                        qrProcessing = true;
 
                         document.getElementById("qr-reader").classList.add("d-none");
                         document.getElementById("qr-loading").classList.remove("d-none");
 
                         await stopCamera();
-                        await handleQrCode(decodedText);
+                        await handleQrCode(decodedText, transaksionId);
                     },
                     (errorMessage) => { }
                 );
@@ -870,18 +1029,32 @@ else
             qrScanner = null;
         }
     }
-    async function handleQrCode(value) {
+    async function handleQrCode(value, transaksionId) {
         try {
-            const response = await fetch(
-                `/Home/QRReader?encrypted=${encodeURIComponent(value)}&type=Random}`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Accept": "application/json"
+            var result = null;
+            if(transaksionId){
+                const response = await fetch(
+                    `/Home/QRReader?encrypted=${encodeURIComponent(value)}&id=${transaksionId}&type=Scan}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Accept": "application/json"
+                        }
                     }
-                }
-            );
-            const result = await response.json();
+                );
+                result = await response.json();
+            }else{
+                const response = await fetch(
+                    `/Home/QRReader?encrypted=${encodeURIComponent(value)}&type=Random}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Accept": "application/json"
+                        }
+                    }
+                );
+                result = await response.json();
+            }
 
             if (result.success) {
                 const modalElement = document.getElementById("cameraModal");

@@ -5,7 +5,7 @@
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-lg-6">
             <div class="card border-0 shadow-lg rounded-5">
                 <div class="card-header bg-primary text-white py-3 text-center rounded-top-5">
                     <h4 class="mb-0 fw-bold">Konfirmimi i Transaksionit</h4>
@@ -19,7 +19,8 @@
                         <p class="text-muted">Po filloni një transaksion të ri me këto të dhëna:</p>
                     </div>
 
-                    <form asp-action="EntryQR" method="get">
+                    <form asp-action="EntryQR" method="get" id="entryForm">
+                        @Html.AntiForgeryToken()
                         <input type="hidden" name="njesiaId" value="@Model.NjesiaId" />
 
                         <ul class="list-group list-group-flush border rounded mb-4">
@@ -47,14 +48,33 @@
                             </li>
                         </ul>
                         <div class="d-grid gap-2">
-                            @if(ViewBag.QRScanner){
-                                <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm"> Konfirmo dhe Vazhdo </button>
-                            }
-                            else{
-                                <button type="button" id="cameraButton" onclick="openCamera()" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm"><i class="bi bi-qr-code-scan me-1"></i> Skano </button>
-                            }
+                            <div class="d-flex gap-2 w-100">
+                                @if(ViewBag.QRScanner)
+                                {
+                                    <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm flex-grow-1 text-nowrap"> 
+                                        <span class="d-inline d-sm-none">Konfirmo</span>
+                                        <span class="d-none d-sm-inline">Konfirmo dhe Vazhdo</span>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" id="cameraButton" onclick="openCamera()" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm flex-grow-1 text-nowrap">
+                                        <i class="bi bi-qr-code-scan me-1"></i> 
+                                        <span>Skano</span>
+                                    </button>
+                                }
+
+                                <button type="button" onclick="confirmReservation()" class="btn btn-outline-warning btn-lg rounded-pill fw-bold shadow-sm text-nowrap px-4 btn-reservo"> 
+                                    Reservo 
+                                </button>
+                            </div>
                             <a asp-action="Index" class="btn rounded-pill fw-bold border-0"> Anulo </a>
                         </div>
+                    </form>
+                    <form id="reservationForm" asp-action="Reservation" method="post" class="d-none">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="njesiaId" value="@Model.NjesiaId" />
+                        <input type="hidden" name="identifikues" id="reservationIdentifikues" />
                     </form>
                 </div>
             </div>
@@ -91,6 +111,13 @@
     </div>
 </div>
 
+<style>
+    .btn-reservo:hover {
+        background-color: #ffc107 !important;
+        border-color: #ffc107 !important;
+        color: #ffffff !important;
+    }
+</style>
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
@@ -242,5 +269,32 @@
                 qrProcessing = false;
             }
         }
+
+    function confirmReservation() {
+        const targaInput = document.getElementById('identifikues');
+        const reservationTarga = document.getElementById('reservationIdentifikues');
+    
+        if (targaInput && reservationTarga) {
+            reservationTarga.value = targaInput.value;
+        }
+
+        Swal.fire({
+            title: 'Konfirmo Rezervimin?',
+            text: 'Duhet të paraqitesh në parking mbrenda 1 ore',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ffc107',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Po, rezervo!',
+            cancelButtonText: 'Anulo'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.getElementById('reservationForm');
+                if (form) {
+                    form.submit();
+                }
+            }
+        });
+    }
     </script>
 }

@@ -75,6 +75,15 @@ namespace Parking_web.Services
             });
         }
 
+        public Task<T?> ChangeAllowOrgAsync<T>(bool allowOrg)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.PUT,
+                Url = $"{APIEndPoint}/AllowOrg?allowOrg={allowOrg}",
+            });
+        }
+
         public Task<T?> ActivateSuperAdminAsync<T>(int orgId)
         {
             return SendAsync<T>(new ApiRequest

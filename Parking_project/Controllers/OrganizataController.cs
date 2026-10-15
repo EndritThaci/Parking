@@ -339,6 +339,25 @@ namespace Parking_project.Controllers
                     }
                 }
 
+                if (organizata.AllowCustomers)
+                {
+                    var usersAllowed = await _db.Useri
+                        .Where(u => u.AllowNewOrgs && u.Role == "Customer")
+                        .Select(u=> new UserOrg
+                        {
+                            UserId = u.UserId,
+                            BiznesId = organizata.BiznesId,
+                            NjesiaId = null
+                        })
+                        .ToListAsync();
+
+                    if (usersAllowed.Any())
+                    {
+                        await _db.UserOrg.AddRangeAsync(usersAllowed);
+                        await _db.SaveChangesAsync();
+                    }
+                }
+
                 return CreatedAtAction(nameof(GetOrganizataByID),new {id = organizata.BiznesId}, ApiResponse<Organizata>.CreatedAt(organizata,"Organizata u krijua me sukses"));
             }
             catch (Exception ex)
