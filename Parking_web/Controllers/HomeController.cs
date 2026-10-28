@@ -12,6 +12,7 @@ using System.Drawing;
 using System.Net.NetworkInformation;
 using System.Security.Claims;
 using System.Security.Cryptography.Xml;
+using System.Transactions;
 using System.Xml.Linq;
 
 namespace Parking_web.Controllers
@@ -140,11 +141,21 @@ namespace Parking_web.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> EntryQR(int njesiaId, string? identifikues, int? transaksionId = null)
+        public async Task<IActionResult> EntryQR(int njesiaId, string? identifikues, int? transaksioniId = null)
         {
-            ViewBag.UserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if(transaksioniId != null)
+            {
+                var transResponse = await _transaksioniService.GetAsync<ApiResponse<TransaksionRead>>(transaksioniId.Value);
+                if (transResponse == null || !transResponse.Success || transResponse.Data == null || transResponse.Data.Useri.UserId != userId)
+                {
+                    TempData["error"] = "Nuk u gjet transaksioni.";
+                    return RedirectToAction("Index");
+                }
+            }
+            ViewBag.UserId = userId;
             ViewBag.Identifikues = identifikues;
-            ViewBag.TransaksionId = transaksionId;
+            ViewBag.TransaksionId = transaksioniId;
             return View(njesiaId);
         }
 
@@ -220,7 +231,7 @@ namespace Parking_web.Controllers
             }
             else if (qrData.Type == "QR")
             {
-                if (qrData.NjesiaID == null || qrData.ID == null)
+                if (qrData.NjesiaID == null || qrData.ID == null || qrData.UserID == null)
                 {
                     return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
                 }
@@ -229,7 +240,7 @@ namespace Parking_web.Controllers
                     return new JsonResult(new { success = false, message = "Ky QR Kod është për njësi tjetër." });
                 }
 
-                string expectedSignature = GenerateSignature(njesiaId: qrData.NjesiaID, id: qrData.ID);
+                string expectedSignature = GenerateSignature(njesiaId: qrData.NjesiaID, userId: qrData.UserID, id: qrData.ID);
                 if (qrData.Signature != expectedSignature)
                 {
                     return new JsonResult(new { success = false, message = "Ky QR Kod është i pavlefshëm." });
@@ -662,16 +673,16 @@ namespace Parking_web.Controllers
                     var qrData = new QREncrypt { ID = id, Timestamp = timestamp, Signature = signature, CardID = selectedCardId, Type = "Payment" };
                     encrypted = Encryption.EncryptQR(qrData);
                 }
+                else if (njesiaId != null && userId != null && id != null)
+                {
+                    string signature = GenerateSignature(njesiaId: njesiaId, userId: userId, id: id);
+                    var qrData = new QREncrypt { NjesiaID = njesiaId, UserID = userId , ID = id , Signature = signature, Identifikues = identifikues, Type = "QR"};
+                    encrypted = Encryption.EncryptQR(qrData);
+                }
                 else if (njesiaId != null && userId != null)
                 {
                     string signature = GenerateSignature(njesiaId: njesiaId, userId: userId);
                     var qrData = new QREncrypt { NjesiaID = njesiaId, UserID = userId , Signature = signature, Identifikues = identifikues, Type = "Entry"};
-                    encrypted = Encryption.EncryptQR(qrData);
-                }
-                else if (njesiaId != null && id != null)
-                {
-                    string signature = GenerateSignature(njesiaId: njesiaId, id: id);
-                    var qrData = new QREncrypt { NjesiaID = njesiaId, ID = id , Signature = signature, Identifikues = identifikues, Type = "QR"};
                     encrypted = Encryption.EncryptQR(qrData);
                 }
                 else if (njesiaId != null)

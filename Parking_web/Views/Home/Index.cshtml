@@ -56,6 +56,8 @@ else
                         <div class="row g-3 justify-content-center">
                             @foreach (var item in reservedList)
                             {
+                                var kosovoTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Belgrade");
+                                var entryTime = TimeZoneInfo.ConvertTimeFromUtc(item.KohaHyrjes, kosovoTimeZone);
 
                                 <div class="col-md-6 col-lg-4">
                                     @if (item.Njesia.QRScanner)
@@ -84,7 +86,7 @@ else
                                                         <i class="bi bi-clock-history me-2"></i>
                                                         <span>
                                                             Duhet të paraqiteni para:
-                                                            <strong>@item.KohaHyrjes.ToString("HH:mm")</strong>
+                                                            <strong>@entryTime.AddHours(1).ToString("HH:mm")</strong>
                                                         </span>
                                                     </div>
 
@@ -132,7 +134,7 @@ else
                                                     <i class="bi bi-clock-history me-2"></i>
                                                     <span>
                                                         Duhet të paraqiteni para:
-                                                        <strong>@item.KohaHyrjes.ToString("HH:mm")</strong>
+                                                        <strong>@entryTime.AddHours(1).ToString("HH:mm")</strong>
                                                     </span>
                                                 </div>
 
@@ -158,6 +160,9 @@ else
                             }
                             @foreach (var item in pendingList)
                             {
+                                var kosovoTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Belgrade");
+                                var entryTime = TimeZoneInfo.ConvertTimeFromUtc(item.KohaHyrjes, kosovoTimeZone);
+
                                 <div class="col-md-6 col-lg-4">
                                     <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative pending-card">
                                         <div class="pending-stripe"></div>
@@ -176,9 +181,9 @@ else
 
                                                 <div class="d-flex align-items-center text-muted small @(item.Identifikues == null ? "mb-3" : "")">
                                                     <i class="bi bi-clock-history me-2"></i>
-                                                    <span>Hyrja: <strong>@item.KohaHyrjes.ToString("HH:mm")</strong></span>
+                                                    <span>Hyrja: <strong>@entryTime.ToString("HH:mm")</strong></span>
                                                     <span class="mx-2">|</span>
-                                                    <span>Data: @item.KohaHyrjes.ToString("dd/MM")</span>
+                                                    <span>Data: @entryTime.ToString("dd/MM")</span>
                                                 </div>
                                                 @if(item.Identifikues != null)
                                                 {
@@ -1034,7 +1039,7 @@ else
             var result = null;
             if(transaksionId){
                 const response = await fetch(
-                    `/Home/QRReader?encrypted=${encodeURIComponent(value)}&id=${transaksionId}&type=Scan}`,
+                    `/Home/QRReader?encrypted=${encodeURIComponent(value)}&id=${transaksionId}&type=Scan`,
                     {
                         method: "GET",
                         headers: {
@@ -1045,7 +1050,7 @@ else
                 result = await response.json();
             }else{
                 const response = await fetch(
-                    `/Home/QRReader?encrypted=${encodeURIComponent(value)}&type=Random}`,
+                    `/Home/QRReader?encrypted=${encodeURIComponent(value)}&type=Random`,
                     {
                         method: "GET",
                         headers: {
